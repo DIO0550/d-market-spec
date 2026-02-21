@@ -158,6 +158,16 @@ TaskOutput:
 ## Step 5: Copilotレビューループ
 
 生成した implementation-plan.md を GitHub Copilot CLI でレビューする。
+レビュー結果はファイルに保存し、コンテキストの消費を抑える。
+
+### レビュー結果の保存先
+
+```bash
+mkdir -p .specs/{nnn}-{feature-name}/plan-review
+```
+
+レビュー結果は `.specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md` に保存する。
+`{NNN}` は3桁の連番（001, 002, 003...）。
 
 ### レビュー実行
 
@@ -175,16 +185,16 @@ copilot -p "以下の実装計画をレビューしてください。
 
 問題がなければ「問題なし」と回答してください。
 問題があれば具体的な指摘と改善案を提示してください。
-" .specs/{nnn}-{feature-name}/implementation-plan.md
+" .specs/{nnn}-{feature-name}/implementation-plan.md > .specs/{nnn}-{feature-name}/plan-review/review-001.md
 ```
 
 ### ループ処理
 
-1. Copilotの出力を解析
+1. 保存したレビュー結果ファイルを読み込み、内容を解析
 2. 「問題なし」なら Step 6 へ
 3. 問題があれば:
    - 指摘内容を元に implementation-plan.md を修正
-   - 再度 Copilot レビューを実行
+   - 連番をインクリメントして再度 Copilot レビューを実行・保存
    - 最大5回までループ
 
 レビュー観点の詳細は `references/review-criteria.md` を参照。
@@ -218,7 +228,11 @@ rm .specs/{nnn}-{feature-name}/PLANNING
     ├── hearing-notes.md         # ヒアリング結果（オーケストレーター生成）
     ├── exploration-report.md    # 探索レポート（codebase-explorer 生成）
     ├── implementation-plan.md   # 実装計画（spec-planner 生成）
-    └── tasks.md                 # タスクリスト（spec-planner 生成）
+    ├── tasks.md                 # タスクリスト（spec-planner 生成）
+    └── plan-review/             # Copilotレビュー結果
+        ├── review-001.md
+        ├── review-002.md
+        └── ...
 ```
 
 `{nnn}` は `.specs/` 内の既存フォルダ数に基づく3桁の連番（001, 002, 003...）
