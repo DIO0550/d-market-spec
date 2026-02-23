@@ -144,6 +144,7 @@ Task tool:
     ## 重要
     - システム図（状態マシン図 + データフロー図）は必須。省略禁止。
     - exploration-report.md の制約・リスクを implementation-plan.md に反映すること。
+    - implementation-plan.md に "## Definition of Done" セクションを必ず含めること。機能固有の受入条件を具体的に記載すること。
 ```
 
 ```
