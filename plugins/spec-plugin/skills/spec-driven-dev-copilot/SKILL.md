@@ -1,6 +1,8 @@
 ---
 name: spec-driven-dev-copilot
-description: 仕様駆動型開発スキル（Copilot版）。機能実装前に対話的なヒアリングで仕様を明確化し、探索と計画をサブエージェントに委譲して implementation-plan.md と tasks.md を生成する。「機能を実装したい」「新しいコンポーネントを作りたい」「○○を追加したい」などの実装リクエスト時に使用。GitHub Copilot CLIによる自動レビューと修正ループで品質を担保する。
+description: 仕様駆動型開発ワークフロー（Copilot版）。GitHub Copilot CLIでレビュー。spec-driven-devのCopilot対応版。
+disable-model-invocation: true
+allowed-tools: Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING), Bash(copilot *)
 ---
 
 # Spec-Driven Development (Copilot版)

@@ -1,6 +1,8 @@
 ---
 name: spec-driven-dev-lite
-description: 仕様駆動型開発スキル（Lite版）。機能実装前に対話的なヒアリングで仕様を明確化し、探索と計画をサブエージェントに委譲して implementation-plan.md と tasks.md を生成する。「機能を実装したい」「新しいコンポーネントを作りたい」「○○を追加したい」などの実装リクエスト時に使用。他のAIによるレビューを省略した軽量版。
+description: 仕様駆動型開発ワークフロー（Lite版）。AIレビューなしの軽量版。spec-driven-devと同じワークフローだがCodex/Copilotレビューを省略する。
+disable-model-invocation: true
+allowed-tools: Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING)
 ---
 
 # Spec-Driven Development (Lite版)

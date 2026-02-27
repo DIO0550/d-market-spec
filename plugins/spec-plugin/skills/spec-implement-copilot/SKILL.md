@@ -1,6 +1,9 @@
 ---
 name: spec-implement-copilot
-description: 番号指定で実装を開始し、GitHub Copilot CLIでコードレビューを行うスキル。「/implement 001」のように番号を指定して、該当するspecの実装計画に沿ってタスクを順番に実装する。各タスク完了後にCopilot CLIでレビューし、指摘があれば修正する。tasks.mdのチェックリストを更新しながら進め、全タスク完了後にPLANNINGファイルを削除する。
+description: 番号指定で.specsの実装計画に沿って実装し、各タスク完了後にCopilot CLIでコードレビュー。spec-implementのCopilot版。
+disable-model-invocation: true
+argument-hint: "[番号]"
+allowed-tools: Bash(copilot *), Bash(mkdir *), Bash(rm .specs/*/PLANNING)
 ---
 
 # Spec Implement (Copilot版)
@@ -32,10 +35,10 @@ description: 番号指定で実装を開始し、GitHub Copilot CLIでコード�
 
 ## Step 1: specフォルダの特定
 
-引数として受け取った番号（例: `001`）を使い、`.specs/` 配下から `{nnn}-*` にマッチするフォルダを検索する。
+指定された番号 `$0` を使い、`.specs/` 配下からマッチするフォルダを検索する。
 
 ```bash
-spec_dir=$(ls -1d .specs/${nnn}-* 2>/dev/null | head -1)
+spec_dir=$(ls -1d .specs/$0-* 2>/dev/null | head -1)
 ```
 
 - マッチするフォルダが見つからない場合はエラーメッセージを表示して終了

@@ -1,6 +1,8 @@
 ---
 name: plan-to-issues
-description: 実装計画からGitHub Issuesを作成するスキル。実装計画テンプレートをエピックと子Issueに分解してGitHub Issuesとして起票する。「Issueを作りたい」「実装計画をIssue化したい」「エピックを作成したい」などのリクエスト時に使用。
+description: 実装計画からGitHub Issuesを作成する。エピックと子Issueに分解してGitHub Issuesとして起票する。
+disable-model-invocation: true
+allowed-tools: Bash(gh *)
 ---
 
 # Plan to Issues

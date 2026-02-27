@@ -1,6 +1,8 @@
 ---
 name: spec-driven-dev
-description: 仕様駆動型開発スキル。機能実装前に対話的なヒアリングで仕様を明確化し、探索と計画をサブエージェントに委譲して implementation-plan.md と tasks.md を生成する。「機能を実装したい」「新しいコンポーネントを作りたい」「○○を追加したい」などの実装リクエスト時に使用。Codexによる自動レビューと修正ループで品質を担保する。
+description: 仕様駆動型開発ワークフロー（Codexレビュー付き）。ヒアリング→コード探索→計画生成を行い、implementation-plan.mdとtasks.mdを生成する。レビュー不要なら/spec-driven-dev-lite、Copilotなら/spec-driven-dev-copilot。
+disable-model-invocation: true
+allowed-tools: Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING), Bash(codex *)
 ---
 
 # Spec-Driven Development
