@@ -1,6 +1,6 @@
 ---
 name: plan-to-issues
-description: 実装計画からGitHub Issuesを作成する。エピックと子Issueに分解してGitHub Issuesとして起票する。
+description: 実装計画をGitHub Issuesに変換する。implementation-plan.mdをエピック＋子Issueに自動分解し、ラベル・マイルストーン付きでGitHub Issuesとして一括起票する。
 disable-model-invocation: true
 allowed-tools: Bash(gh *)
 ---

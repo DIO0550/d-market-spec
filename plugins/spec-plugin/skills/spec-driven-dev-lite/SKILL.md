@@ -1,6 +1,6 @@
 ---
 name: spec-driven-dev-lite
-description: 仕様駆動型開発ワークフロー（Lite版）。AIレビューなしの軽量版。spec-driven-devと同じワークフローだがCodex/Copilotレビューを省略する。
+description: 仕様策定ワークフローの軽量版。AIレビューを省略して素早く実装計画を生成する。小規模な変更や、自分でレビューしたい場合に最適。
 disable-model-invocation: true
 allowed-tools: Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING)
 ---
@@ -61,15 +61,18 @@ mkdir -p .specs/${next_num}-{feature-name} && touch .specs/${next_num}-{feature-
 ### 必須ヒアリング項目
 
 **Batch 1: スコープ確認**
+探索範囲を絞り込み、関係ないコードの読み込みを避けるために確認する。
 - 何を実現したいか（目的）
 - 影響範囲（新規 / 既存修正）
 
 **Batch 2: 技術的詳細**
+実装計画の精度を高め、既存コードとの整合性を確保するために確認する。
 - 使用技術・フレームワーク
 - 依存関係
 - データ構造・API設計
 
 **Batch 3: 品質要件**
+テスト計画とエッジケースの洗い出しに必要な情報を確認する。
 - エッジケース・エラーハンドリング
 - テスト要件
 - パフォーマンス要件

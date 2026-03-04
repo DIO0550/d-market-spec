@@ -1,6 +1,6 @@
 ---
 name: spec-driven-dev
-description: 仕様駆動型開発ワークフロー（Codexレビュー付き）。ヒアリング→コード探索→計画生成を行い、implementation-plan.mdとtasks.mdを生成する。レビュー不要なら/spec-driven-dev-lite、Copilotなら/spec-driven-dev-copilot。
+description: 新機能の仕様策定から実装計画まで一気通貫で進めるワークフロー。ヒアリング→コード探索→計画生成→Codexレビューの全自動パイプライン。implementation-plan.mdとtasks.mdを生成し、実装準備を完了させる。
 disable-model-invocation: true
 allowed-tools: Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING), Bash(codex *)
 ---
@@ -62,16 +62,18 @@ mkdir -p .specs/${next_num}-{feature-name} && touch .specs/${next_num}-{feature-
 ### 必須ヒアリング項目
 
 **Batch 1: スコープ確認**
+探索範囲を絞り込み、関係ないコードの読み込みを避けるために確認する。
 - 何を実現したいか（目的）
 - 影響範囲（新規 / 既存修正）
-- 優先度・緊急度
 
 **Batch 2: 技術的詳細**
+実装計画の精度を高め、既存コードとの整合性を確保するために確認する。
 - 使用技術・フレームワーク
 - 依存関係
 - データ構造・API設計
 
 **Batch 3: 品質要件**
+テスト計画とエッジケースの洗い出しに必要な情報を確認する。
 - エッジケース・エラーハンドリング
 - テスト要件
 - パフォーマンス要件

@@ -1,6 +1,6 @@
 ---
 name: implementation-plan
-description: 特定機能の実装設計書を作成する。フォルダ構造・コンポーネント設計・移行計画を含む技術的な実装仕様書を生成。プロジェクト全体の設計書にはdesign-docを使うこと。
+description: 特定機能の実装設計書を作成する。コンポーネント設計・フォルダ構造・移行計画を含む技術的な実装仕様書を生成。spec-driven-devのStep 4で自動生成されるが、単独で実装設計だけ作りたい場合にも使える。
 disable-model-invocation: true
 allowed-tools: Bash(mkdir *)
 ---

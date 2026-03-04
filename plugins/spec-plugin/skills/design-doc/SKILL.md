@@ -1,6 +1,6 @@
 ---
 name: design-doc
-description: プロジェクト全体の設計ドキュメントを構造化して作成する。要件定義からテスト戦略・リスク管理まで網羅。特定機能の実装設計にはimplementation-planを使うこと。
+description: プロジェクト全体の設計ドキュメントを作成する。要件定義・アーキテクチャ・テスト戦略・リスク管理を網羅した包括的なDesign Docを生成。新規プロジェクト立ち上げや大規模リアーキテクチャの設計に使う。個別機能の実装設計にはimplementation-planを使うこと。
 disable-model-invocation: true
 allowed-tools: Bash(mkdir *)
 ---

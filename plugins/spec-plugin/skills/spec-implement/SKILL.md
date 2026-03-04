@@ -1,6 +1,6 @@
 ---
 name: spec-implement
-description: 番号指定で.specsの実装計画に沿ってタスクを順番に実装する。レビューなし版。Codexレビュー付きは/spec-implement-codex、Copilotは/spec-implement-copilot。
+description: .specsの実装計画に沿ってタスクを順番に実装する。番号を指定すると、該当specのtasks.mdを読み込み、未完了タスクを順次実装していく。
 disable-model-invocation: true
 argument-hint: "[番号]"
 allowed-tools: Bash(rm .specs/*/PLANNING)
@@ -69,23 +69,11 @@ Issue番号が記載されていない場合はスキップする。
 
 ## Step 3.5: TaskCreate による進捗管理の初期化
 
-tasks.md の未完了タスク（`□`）をすべて TaskCreate ツールで登録する。
+tasks.md の未完了タスク（`□`）をすべて TaskCreate で登録し、TaskUpdate の `addBlockedBy` でセクション間の依存関係を設定する。
 
-### 登録ルール
-
-- 各 `□` 行に対して TaskCreate を実行
-- `subject`: タスク行のテキストをそのまま使用
+- `subject`: タスク行のテキスト
 - `activeForm`: 進行形に変換（例: "型定義を作成" → "型定義を作成中"）
-- `description`: implementation-plan.md の該当セクションから補足情報を含める
-
-### 依存関係の設定
-
-TaskUpdate の `addBlockedBy` を使い、以下の順序で依存関係を設定する：
-
-- Research & Planning のタスク → Implementation のタスクが blockedBy で依存
-- Implementation のタスク → Verification のタスクが blockedBy で依存
-- 同一セクション内で順序依存がある場合も blockedBy を設定
-- 独立して実行可能なタスク同士には依存関係を設定しない
+- 依存: Research → Implementation → Verification の順
 
 ## Step 4: タスクの順次実装
 
