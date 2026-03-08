@@ -106,21 +106,23 @@ mkdir -p .specs/{nnn}-{feature-name}/code-review
 ### レビュー実行
 
 ```bash
-copilot -p "以下のタスクの実装をレビューしてください。
+{
+  echo "## 実装計画"
+  cat .specs/{nnn}-{feature-name}/implementation-plan.md
+  echo
+  echo "## 対象タスク"
+  echo "{現在のタスク内容}"
+  echo
+  echo "## 変更されたファイル"
+  git diff --name-only
+  echo
+  echo "## 変更内容"
+  git diff
+} | copilot -p "以下のタスクの実装をレビューしてください。
 
 【重要】ファイルの作成・編集は一切行わないでください。レビュー結果は標準出力のみで回答してください。
 
-## 実装計画
-$(cat .specs/{nnn}-{feature-name}/implementation-plan.md)
-
-## 対象タスク
-{現在のタスク内容}
-
-## 変更されたファイル
-$(git diff --name-only)
-
-## 変更内容
-$(git diff)
+以下は標準入力で渡されるレビュー対象コンテキストです。
 
 ## レビュー観点
 1. 実装計画との整合性: 計画通りに実装されているか
