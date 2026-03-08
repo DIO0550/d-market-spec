@@ -1,11 +1,11 @@
 ---
-name: spec-driven-dev
-description: 新機能の仕様策定から実装計画まで一気通貫で進めるワークフロー。ヒアリング→コード探索→計画生成→Codexレビューの全自動パイプライン。implementation-plan.mdとtasks.mdを生成し、実装準備を完了させる。
+name: spec-driven-dev-codex
+description: 新機能の仕様策定から実装計画まで一気通貫で進めるワークフロー。ヒアリング→コード探索→計画生成→Codexレビューの全自動パイプライン。implementation-plan.mdとtasks.mdを生成し、実装準備を完了させる。Codexレビュー付き版。
 disable-model-invocation: true
 allowed-tools: Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING), Bash(codex *)
 ---
 
-# Spec-Driven Development
+# Spec-Driven Development (Codexレビュー版)
 
 機能実装前に仕様を明確化し、実装計画とタスクリストを生成するスキル。
 ヒアリングはオーケストレーターが行い、**探索と計画生成は別々のサブエージェントに委譲**する。
@@ -102,10 +102,10 @@ Task tool:
     その目的・スコープに基づいてコードベースを探索してください。
 
     ## 参照スキル
-    spec-driven-dev:exploration-perspectives
+    spec-driven-dev-codex:exploration-perspectives
 
     ## テンプレート
-    spec-driven-dev:exploration-report
+    spec-driven-dev-codex:exploration-report
 
     ## 出力先
     .specs/{nnn}-{feature-name}/exploration-report.md
@@ -140,8 +140,8 @@ Task tool:
     - .specs/{nnn}-{feature-name}/exploration-report.md
 
     ## テンプレート
-    - spec-driven-dev:implementation-plan
-    - spec-driven-dev:tasks
+    - spec-driven-dev-codex:implementation-plan
+    - spec-driven-dev-codex:tasks
 
     ## 出力先
     - .specs/{nnn}-{feature-name}/implementation-plan.md

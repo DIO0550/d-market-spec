@@ -1,14 +1,14 @@
 ---
-name: spec-driven-dev-lite
-description: 仕様策定ワークフローの軽量版。AIレビューを省略して素早く実装計画を生成する。小規模な変更や、自分でレビューしたい場合に最適。
+name: spec-driven-dev
+description: 仕様策定ワークフローの標準版。AIレビューを省略して素早く実装計画を生成する。
 disable-model-invocation: true
 allowed-tools: Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING)
 ---
 
-# Spec-Driven Development (Lite版)
+# Spec-Driven Development
 
 機能実装前に仕様を明確化し、実装計画とタスクリストを生成するスキル。
-**他のAI（Codex/Copilot）によるレビューを省略した軽量版。**
+**他のAI（Codex/Copilot）によるレビューを省略した標準版。**
 ヒアリングはオーケストレーターが行い、**探索と計画生成は別々のサブエージェントに委譲**する。
 
 ## ⚠️ 重要: システム図は必須
@@ -101,10 +101,10 @@ Task tool:
     その目的・スコープに基づいてコードベースを探索してください。
 
     ## 参照スキル
-    spec-driven-dev-lite:exploration-perspectives
+    spec-driven-dev:exploration-perspectives
 
     ## テンプレート
-    spec-driven-dev-lite:exploration-report
+    spec-driven-dev:exploration-report
 
     ## 出力先
     .specs/{nnn}-{feature-name}/exploration-report.md
@@ -139,8 +139,8 @@ Task tool:
     - .specs/{nnn}-{feature-name}/exploration-report.md
 
     ## テンプレート
-    - spec-driven-dev-lite:implementation-plan
-    - spec-driven-dev-lite:tasks
+    - spec-driven-dev:implementation-plan
+    - spec-driven-dev:tasks
 
     ## 出力先
     - .specs/{nnn}-{feature-name}/implementation-plan.md
