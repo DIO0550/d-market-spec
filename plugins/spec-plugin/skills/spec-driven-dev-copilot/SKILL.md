@@ -177,7 +177,7 @@ mkdir -p .specs/{nnn}-{feature-name}/plan-review
 ### レビュー実行
 
 ```bash
-copilot -p "以下の実装計画をレビューしてください。
+cat .specs/{nnn}-{feature-name}/implementation-plan.md | copilot -p "以下の実装計画をレビューしてください。
 
 【重要】ファイルの作成・編集は一切行わないでください。レビュー結果は標準出力のみで回答してください。
 
@@ -190,7 +190,9 @@ copilot -p "以下の実装計画をレビューしてください。
 
 問題がなければ「問題なし」と回答してください。
 問題があれば具体的な指摘と改善案を提示してください。
-" .specs/{nnn}-{feature-name}/implementation-plan.md > .specs/{nnn}-{feature-name}/plan-review/review-001.md
+
+以下は implementation-plan.md の内容です:
+" > .specs/{nnn}-{feature-name}/plan-review/review-001.md
 ```
 
 ### ループ処理
