@@ -33,7 +33,7 @@ color: orange
 作業を開始する前に、スキルの参照ファイルを取得します：
 
 ```
-spec-driven-dev:question-patterns
+spec-driven-dev-codex:question-patterns
 ```
 
 ## ワークフロー
@@ -93,7 +93,7 @@ AskUserQuestion でヒアリングし、結果を `.specs/{nnn}-{feature-name}/h
 
 ヒアリング完了後、テンプレートに沿って結果をファイルに書き出す。
 
-テンプレート: `spec-driven-dev:hearing-notes`
+テンプレート: `spec-driven-dev-codex:hearing-notes`
 出力先: `.specs/{nnn}-{feature-name}/hearing-notes.md`
 
 ## Step 2: codebase-explorer サブエージェント起動
@@ -111,10 +111,10 @@ Task tool:
     その目的・スコープに基づいてコードベースを探索してください。
 
     ## 参照スキル
-    spec-driven-dev:exploration-perspectives
+    spec-driven-dev-codex:exploration-perspectives
 
     ## テンプレート
-    spec-driven-dev:exploration-report
+    spec-driven-dev-codex:exploration-report
 
     ## 出力先
     .specs/{nnn}-{feature-name}/exploration-report.md
@@ -145,8 +145,8 @@ Task tool:
     - .specs/{nnn}-{feature-name}/exploration-report.md
 
     ## テンプレート
-    - spec-driven-dev:implementation-plan
-    - spec-driven-dev:tasks
+    - spec-driven-dev-codex:implementation-plan
+    - spec-driven-dev-codex:tasks
 
     ## 出力先
     - .specs/{nnn}-{feature-name}/implementation-plan.md
