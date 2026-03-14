@@ -1,5 +1,5 @@
 {
-  "description": "Spec-driven開発のフック群。計画中のAutoCompact対策、図表の強制など。",
+  "description": "Spec-driven開発のフック群。計画中のAutoCompact対策、図表の強制、計画モードガードなど。",
   "hooks": {
     "PreToolUse": [
       {
@@ -8,6 +8,28 @@
           {
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/enforce-diagrams.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/guard-planning-writes.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/guard-planning-writes.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/guard-planning-writes.sh\""
           }
         ]
       }

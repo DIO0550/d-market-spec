@@ -49,9 +49,11 @@ allowed-tools: Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING), Bash(co
 ```bash
 next_num=$(printf "%03d" $(( $(ls -1d .specs/[0-9][0-9][0-9]-* .specs/archive/[0-9][0-9][0-9]-* 2>/dev/null | sed 's|.*/\([0-9]\{3\}\)-.*|\1|' | sort -rn | head -1 | sed 's/^0*//; s/^$/0/') + 1 )))
 mkdir -p .specs/${next_num}-{feature-name} && touch .specs/${next_num}-{feature-name}/PLANNING
+mkdir -p .specs/.guard && touch .specs/.guard/${CLAUDE_SESSION_ID}
 ```
 
 **重要**: PLANNINGファイルが存在する間は計画フェーズであり、コードの実装は禁止。
+**ガード**: `.specs/.guard/${CLAUDE_SESSION_ID}` が存在する間、このセッションでは `.specs/` 以外への書き込みがhookによりブロックされる。
 
 ## Step 2: ヒアリング → hearing-notes.md 書き出し
 
@@ -216,15 +218,21 @@ cat .specs/{nnn}-{feature-name}/implementation-plan.md | copilot -p "以下の�
 
 ユーザーが修正を要求した場合は Step 5 のループに戻る。
 
-## Step 7: PLANNINGファイル削除（実装開始）
+## Step 7: 実装開始（ユーザーによるガード解除）
 
-ユーザーから実装開始の許可を得たら、PLANNINGファイルを削除して実装フェーズに移行する。
+計画が完了したら、ユーザーに以下を案内する:
 
-```bash
-rm .specs/{nnn}-{feature-name}/PLANNING
+1. ガードファイルの削除（**ユーザーが手動で実行**）
+2. PLANNINGファイルの削除
+
+```
+ユーザーへの案内:
+  実装を開始するには、以下のコマンドを実行してください:
+  rm .specs/.guard/${CLAUDE_SESSION_ID} .specs/{nnn}-{feature-name}/PLANNING
 ```
 
-**注意**: PLANNINGファイル削除前に実装コードを書いてはならない。
+**注意**: ガードファイルはhookにより自動削除がブロックされる。必ずユーザーが手動で削除すること。
+**注意**: ガード解除前に実装コードを書いてはならない。
 
 ## 出力ディレクトリ
 
