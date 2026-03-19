@@ -3,7 +3,7 @@ name: spec-implement
 description: .specsの実装計画に沿ってタスクを順番に実装する。番号を指定すると、該当specのtasks.mdを読み込み、未完了タスクを順次実装していく。
 disable-model-invocation: true
 argument-hint: "[番号]"
-allowed-tools: Bash(rm .specs/*/PLANNING)
+allowed-tools: Bash(rm .specs/*/PLANNING), Bash(rm .specs/.guard/*)
 ---
 
 # Spec Implement
@@ -99,12 +99,17 @@ tasks.md の未完了タスク（`□`）をすべて TaskCreate で登録し、
 
 **重要**: 親タスクは、すべての子タスクが `■` になった時点で `■` に更新する。
 
-## Step 5: PLANNINGファイルの削除
+## Step 5: PLANNINGファイル + ガードファイルの削除
 
-すべてのタスクが完了（`□` が残っていない）したら、PLANNINGファイルを削除する。
+すべてのタスクが完了（`□` が残っていない）したら、PLANNINGファイルとガードファイルを削除する。
+
+PLANNINGファイルには計画時のセッションIDが記録されている。これを読み取り、対応するガードファイルも削除する。
 
 ```bash
+# PLANNINGファイルからセッションIDを読み取り、ガードファイルを削除
+guard_session=$(cat .specs/{nnn}-{feature-name}/PLANNING 2>/dev/null)
 rm .specs/{nnn}-{feature-name}/PLANNING
+[ -n "$guard_session" ] && rm -f .specs/.guard/$guard_session
 ```
 
 PLANNINGファイルが存在しない場合はスキップする。

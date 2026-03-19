@@ -47,7 +47,8 @@ allowed-tools: Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING)
 
 ```bash
 next_num=$(printf "%03d" $(( $(ls -1d .specs/[0-9][0-9][0-9]-* .specs/archive/[0-9][0-9][0-9]-* 2>/dev/null | sed 's|.*/\([0-9]\{3\}\)-.*|\1|' | sort -rn | head -1 | sed 's/^0*//; s/^$/0/') + 1 )))
-mkdir -p .specs/${next_num}-{feature-name} && touch .specs/${next_num}-{feature-name}/PLANNING
+mkdir -p .specs/${next_num}-{feature-name}
+echo "${CLAUDE_SESSION_ID}" > .specs/${next_num}-{feature-name}/PLANNING
 mkdir -p .specs/.guard && touch .specs/.guard/${CLAUDE_SESSION_ID}
 ```
 

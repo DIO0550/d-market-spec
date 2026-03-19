@@ -3,7 +3,7 @@ name: spec-implement-codex
 description: .specsの実装計画に沿って実装し、各タスク完了後にCodex CLIで自動コードレビュー。品質重視の実装に最適。
 disable-model-invocation: true
 argument-hint: "[番号]"
-allowed-tools: Bash(codex *), Bash(mkdir *), Bash(rm .specs/*/PLANNING)
+allowed-tools: Bash(codex *), Bash(mkdir *), Bash(rm .specs/*/PLANNING), Bash(rm .specs/.guard/*)
 ---
 
 # Spec Implement (Codex版)
@@ -158,12 +158,17 @@ $(git diff)
 
 **重要**: 親タスクは、すべての子タスクが `■` になった時点で `■` に更新する。
 
-## Step 7: PLANNINGファイルの削除
+## Step 7: PLANNINGファイル + ガードファイルの削除
 
-すべてのタスクが完了（`□` が残っていない）したら、PLANNINGファイルを削除する。
+すべてのタスクが完了（`□` が残っていない）したら、PLANNINGファイルとガードファイルを削除する。
+
+PLANNINGファイルには計画時のセッションIDが記録されている。これを読み取り、対応するガードファイルも削除する。
 
 ```bash
+# PLANNINGファイルからセッションIDを読み取り、ガードファイルを削除
+guard_session=$(cat .specs/{nnn}-{feature-name}/PLANNING 2>/dev/null)
 rm .specs/{nnn}-{feature-name}/PLANNING
+[ -n "$guard_session" ] && rm -f .specs/.guard/$guard_session
 ```
 
 PLANNINGファイルが存在しない場合はスキップする。
