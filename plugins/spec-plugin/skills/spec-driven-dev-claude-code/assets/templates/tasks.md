@@ -22,7 +22,7 @@
 ---
 
 <!--
-使用例:
+使用例 (標準構成):
 
 # Task: Implement Block Button on Ranking Page
 
@@ -44,6 +44,56 @@
 - [ ] Verify button appears on ranking page
 - [ ] Verify clicking blocks the user
 - [ ] Verify blocked videos are hidden
+
+---
+
+使用例 (TDD 構成 — テストを含む場合):
+
+# Task: Implement Price Calculator
+
+## Research & Planning
+
+- [ ] テスト環境・既存テスト構成の調査
+- [ ] テストTODOリスト作成
+  - 正常系: 単品の税込価格計算
+  - 正常系: 複数商品の合計計算
+  - 境界値: 0円の商品
+  - 異常系: 負の価格
+  - エッジケース: 小数点以下の丸め
+- [ ] 既存の価格関連コードの調査
+
+## Implementation (TDD サイクル)
+
+### 単品の税込価格計算
+- [ ] RED: 単品の税込価格を計算するテストを書く
+- [ ] GREEN: テストを通す最小限の実装（仮実装）
+- [ ] REFACTOR: 不要
+
+### 複数商品の合計計算
+- [ ] RED: 複数商品の合計を計算するテストを書く
+- [ ] GREEN: テストを通す実装（三角測量で一般化）
+- [ ] REFACTOR: 計算ロジックの共通化
+
+### 境界値・異常系
+- [ ] RED: 0円の商品のテストを書く
+- [ ] GREEN: テストを通す実装
+- [ ] RED: 負の価格でエラーを返すテストを書く
+- [ ] GREEN: バリデーション実装
+- [ ] RED: 小数点以下の丸めテストを書く
+- [ ] GREEN: 丸めロジック実装
+- [ ] REFACTOR: エラーハンドリングの整理
+
+## Verification
+
+- [ ] 全テストがパスすることを確認
+- [ ] 既存の価格表示に影響がないことを確認
+
+---
+
+TDD タスク構成の判断基準:
+テスト要件が含まれる場合、またはロジック（計算、変換、バリデーション等）を含む機能の場合は
+TDD サイクル（Red-Green-Refactor）でタスクを構成する。
+順序: シンプルな正常系 → バリエーション → 境界値 → 異常系・エッジケース
 
 ---
 

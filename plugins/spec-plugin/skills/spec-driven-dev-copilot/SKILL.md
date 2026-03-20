@@ -154,6 +154,7 @@ Task tool:
     - システム図（状態マシン図 + データフロー図）は必須。省略禁止。
     - exploration-report.md の制約・リスクを implementation-plan.md に反映すること。
     - implementation-plan.md に "## Definition of Done" セクションを必ず含めること。機能固有の受入条件を具体的に記載すること。
+    - テスト要件がある場合、t-wada TDD ベースで tasks.md を構成すること（Red-Green-Refactor サイクル、TODOリスト駆動）。テンプレートの TDD 構成例を参照。
 ```
 
 ```

@@ -1,14 +1,13 @@
 ---
-name: spec-driven-dev
-description: 仕様策定ワークフローの標準版。AIレビューを省略して素早く実装計画を生成する。
+name: spec-driven-dev-codex
+description: 新機能の仕様策定から実装計画まで一気通貫で進めるワークフロー。ヒアリング→コード探索→計画生成→Codexレビューの全自動パイプライン。implementation-plan.mdとtasks.mdを生成し、実装準備を完了させる。Codexレビュー付き版。
 disable-model-invocation: true
-allowed-tools: Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING)
+allowed-tools: Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING), Bash(codex *)
 ---
 
-# Spec-Driven Development
+# Spec-Driven Development (Codexレビュー版)
 
 機能実装前に仕様を明確化し、実装計画とタスクリストを生成するスキル。
-**他のAI（Codex/Copilot）によるレビューを省略した標準版。**
 ヒアリングはオーケストレーターが行い、**探索と計画生成は別々のサブエージェントに委譲**する。
 
 ## ⚠️ 重要: システム図は必須
@@ -36,9 +35,11 @@ allowed-tools: Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING)
    ↓
 4. spec-planner サブエージェント → implementation-plan.md + tasks.md
    ↓
-5. ユーザーに提示
+5. Codexレビュー → 修正ループ（自動）
    ↓
-6. 実装開始許可後、PLANNINGファイル削除
+6. ユーザーに提示
+   ↓
+7. 実装開始許可後、PLANNINGファイル削除
 ```
 
 ## Step 1: specsフォルダ + PLANNINGファイル作成
@@ -104,10 +105,10 @@ Task tool:
     その目的・スコープに基づいてコードベースを探索してください。
 
     ## 参照スキル
-    spec-driven-dev:exploration-perspectives
+    spec-driven-dev-codex:exploration-perspectives
 
     ## テンプレート
-    spec-driven-dev:exploration-report
+    spec-driven-dev-codex:exploration-report
 
     ## 出力先
     .specs/{nnn}-{feature-name}/exploration-report.md
@@ -142,8 +143,8 @@ Task tool:
     - .specs/{nnn}-{feature-name}/exploration-report.md
 
     ## テンプレート
-    - spec-driven-dev:implementation-plan
-    - spec-driven-dev:tasks
+    - spec-driven-dev-codex:implementation-plan
+    - spec-driven-dev-codex:tasks
 
     ## 出力先
     - .specs/{nnn}-{feature-name}/implementation-plan.md
@@ -153,6 +154,7 @@ Task tool:
     - システム図（状態マシン図 + データフロー図）は必須。省略禁止。
     - exploration-report.md の制約・リスクを implementation-plan.md に反映すること。
     - implementation-plan.md に "## Definition of Done" セクションを必ず含めること。機能固有の受入条件を具体的に記載すること。
+    - テスト要件がある場合、t-wada TDD ベースで tasks.md を構成すること（Red-Green-Refactor サイクル、TODOリスト駆動）。テンプレートの TDD 構成例を参照。
 ```
 
 ```
@@ -162,7 +164,53 @@ TaskOutput:
   timeout: 300000
 ```
 
-## Step 5: ユーザー確認
+## Step 5: Codexレビューループ
+
+生成した implementation-plan.md を Codex でレビューする。
+レビュー結果はファイルに保存し、コンテキストの消費を抑える。
+
+### レビュー結果の保存先
+
+```bash
+mkdir -p .specs/{nnn}-{feature-name}/plan-review
+```
+
+レビュー結果は `.specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md` に保存する。
+`{NNN}` は3桁の連番（001, 002, 003...）。
+
+### レビュー実行
+
+```bash
+codex exec --cd "$PWD" --dangerously-bypass-approvals-and-sandbox "以下の実装計画をレビューしてください。
+
+【重要】ファイルの作成・編集は一切行わないでください。レビュー結果は標準出力のみで回答してください。
+
+レビュー対象: .specs/{nnn}-{feature-name}/implementation-plan.md
+
+レビュー観点:
+1. 仕様の曖昧さ・抜け漏れはないか
+2. 実装可能性に問題はないか
+3. エッジケースは考慮されているか
+4. ファイル構成は妥当か
+5. 全体アーキテクチャとの整合性はあるか
+
+問題がなければ「問題なし」と回答してください。
+問題があれば具体的な指摘と改善案を提示してください。
+" > .specs/{nnn}-{feature-name}/plan-review/review-001.md
+```
+
+### ループ処理
+
+1. 保存したレビュー結果ファイルを読み込み、内容を解析
+2. 「問題なし」なら Step 6 へ
+3. 問題があれば:
+   - 指摘内容を元に implementation-plan.md を修正
+   - 連番をインクリメントして再度 Codex レビューを実行・保存
+   - 最大5回までループ
+
+レビュー観点の詳細は `references/review-criteria.md` を参照。
+
+## Step 6: ユーザー確認
 
 生成したファイルをユーザーに提示:
 
@@ -170,9 +218,9 @@ TaskOutput:
 2. tasks.md のタスク一覧
 3. 「修正が必要な場合はお知らせください」
 
-ユーザーが修正を要求した場合は Step 4 に戻って修正する。
+ユーザーが修正を要求した場合は Step 5 のループに戻る。
 
-## Step 6: 実装開始（ユーザーによるガード解除）
+## Step 7: 実装開始（ユーザーによるガード解除）
 
 計画が完了したら、ユーザーに以下を案内する:
 
@@ -197,7 +245,11 @@ TaskOutput:
     ├── hearing-notes.md         # ヒアリング結果（オーケストレーター生成）
     ├── exploration-report.md    # 探索レポート（codebase-explorer 生成）
     ├── implementation-plan.md   # 実装計画（spec-planner 生成）
-    └── tasks.md                 # タスクリスト（spec-planner 生成）
+    ├── tasks.md                 # タスクリスト（spec-planner 生成）
+    └── plan-review/             # Codexレビュー結果
+        ├── review-001.md
+        ├── review-002.md
+        └── ...
 ```
 
 `{nnn}` は `.specs/` 内の既存フォルダ数に基づく3桁の連番（001, 002, 003...）
