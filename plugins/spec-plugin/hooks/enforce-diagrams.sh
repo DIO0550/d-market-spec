@@ -68,25 +68,28 @@ fi
 
 # 結果判定
 if [ ${#missing[@]} -gt 0 ]; then
-  echo "⚠️ implementation-plan / design-doc に必須の図表が不足しています。"
-  echo ""
-  echo "不足項目:"
+  cat >&2 <<'BLOCK'
+=== WRITE BLOCKED: 図表が不足しています ===
+
+このファイルは図表なしでは書き込めません。これはシステム制約です。
+cat・echo等の別コマンドによる迂回も禁止されています。
+
+【必須アクション】図表を含めた上で、再度 Write ツールで書き出してください。
+
+必要な図表:
+BLOCK
   for item in "${missing[@]}"; do
-    echo "  - $item"
+    echo "  - $item" >&2
   done
-  echo ""
-  echo "以下を含めてからファイルを書き出してください:"
-  echo "  1. 「## 状態マシン図」セクション（ASCII罫線図 or mermaidブロック付き）"
-  echo "  2. 「## データフロー図」セクション（ASCII罫線図 or mermaidブロック付き）"
-  echo ""
-  echo "例:"
-  echo '  ## 状態マシン図'
-  echo '  ```mermaid'
-  echo '  stateDiagram-v2'
-  echo '    [*] --> Idle'
-  echo '    Idle --> Processing'
-  echo '  ```'
-  echo ""
+  cat >&2 <<'BLOCK'
+
+最低限の要件:
+  1. 「## 状態マシン図」見出し + mermaid or ASCII罫線による図
+  2. 「## データフロー図」見出し + mermaid or ASCII罫線による図
+
+図を省略する方法はありません。図を作成してください。
+===
+BLOCK
   exit 2
 fi
 
