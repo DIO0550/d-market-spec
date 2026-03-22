@@ -13,6 +13,7 @@ allowed-tools: Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING), Bash(co
 ## ⚠️ 重要: システム図は必須
 
 このスキルで生成するimplementation-plan.mdには**必ずシステム図（状態マシン図 + データフロー図）を含めること**。
+**ASCII罫線図を優先**し、mermaidは補助的に使用する。
 システム図がないimplementation-plan.mdは不完全であり、生成完了とみなさない。
 
 ## ⚠️ 重要: AutoCompact対策
@@ -151,7 +152,7 @@ Task tool:
     - .specs/{nnn}-{feature-name}/tasks.md
 
     ## 重要
-    - システム図（状態マシン図 + データフロー図）は必須。省略禁止。
+    - システム図（状態マシン図 + データフロー図）は必須。省略禁止。ASCII罫線図を優先。
     - exploration-report.md の制約・リスクを implementation-plan.md に反映すること。
     - implementation-plan.md に "## Definition of Done" セクションを必ず含めること。機能固有の受入条件を具体的に記載すること。
     - テスト要件がある場合、t-wada TDD ベースで tasks.md を構成すること（Red-Green-Refactor サイクル、TODOリスト駆動）。テンプレートの TDD 構成例を参照。

@@ -84,8 +84,8 @@ BLOCK
   cat >&2 <<'BLOCK'
 
 最低限の要件:
-  1. 「## 状態マシン図」見出し + mermaid or ASCII罫線による図
-  2. 「## データフロー図」見出し + mermaid or ASCII罫線による図
+  1. 「## 状態マシン図」見出し + ASCII罫線による図（優先）or mermaid
+  2. 「## データフロー図」見出し + ASCII罫線による図（優先）or mermaid
 
 図を省略する方法はありません。図を作成してください。
 ===
