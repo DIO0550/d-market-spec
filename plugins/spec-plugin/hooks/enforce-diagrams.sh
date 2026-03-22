@@ -1,9 +1,9 @@
 #!/bin/bash
 # implementation-plan / design-doc に状態マシン図・データフロー図が含まれているか検証するフック
-# PreToolUse: Write
+# PostToolUse: Write, Edit
 #
 # 対象: *implementation-plan*.md, *design-doc*.md
-# exit 0 = 許可, exit 2 = ブロック（メッセージ付き）
+# 書き込み後にファイルを読み、不足があれば標準出力でリマインドする
 
 input=$(cat)
 
@@ -16,22 +16,10 @@ case "$file_path" in
   *) exit 0 ;;
 esac
 
-# content を抽出（JSON文字列のエスケープを復元）
-content=$(echo "$input" | python3 -c "
-import sys, json
-try:
-    data = json.load(sys.stdin)
-    # tool_input.content or content
-    c = data.get('tool_input', data).get('content', '')
-    print(c)
-except:
-    sys.exit(1)
-" 2>/dev/null)
+# ファイルが存在しなければスキップ
+[ -f "$file_path" ] || exit 0
 
-if [ $? -ne 0 ] || [ -z "$content" ]; then
-  # content取得失敗時はブロックしない
-  exit 0
-fi
+content=$(cat "$file_path")
 
 missing=()
 
@@ -51,7 +39,6 @@ diagram_pattern='[┌┐└┘│─├┤┬┴┼▼▶▷▲◀◁→←↓�
 
 # 状態マシンセクションの図チェック（ヘッダーが存在する場合のみ）
 if echo "$content" | grep -qE '^#{1,4}.*状態マシン'; then
-  # セクション開始から次の同レベル以上のヘッダーまでを抽出
   section=$(echo "$content" | sed -n '/^#\{1,4\}.*状態マシン/,/^#\{1,4\} /p' | tail -n +2)
   if ! echo "$section" | grep -qE "$diagram_pattern"; then
     missing+=("状態マシン図セクション内の図表（ASCII罫線 or mermaidブロック）")
@@ -68,29 +55,20 @@ fi
 
 # 結果判定
 if [ ${#missing[@]} -gt 0 ]; then
-  cat >&2 <<'BLOCK'
-=== WRITE BLOCKED: 図表が不足しています ===
-
-このファイルは図表なしでは書き込めません。これはシステム制約です。
-cat・echo等の別コマンドによる迂回も禁止されています。
-
-【必須アクション】図表を含めた上で、再度 Write ツールで書き出してください。
-
-必要な図表:
-BLOCK
+  echo ""
+  echo "=== 図表が不足しています ==="
+  echo ""
+  echo "不足項目:"
   for item in "${missing[@]}"; do
-    echo "  - $item" >&2
+    echo "  - $item"
   done
-  cat >&2 <<'BLOCK'
-
-最低限の要件:
-  1. 「## 状態マシン図」見出し + ASCII罫線による図（優先）or mermaid
-  2. 「## データフロー図」見出し + ASCII罫線による図（優先）or mermaid
-
-図を省略する方法はありません。図を作成してください。
-===
-BLOCK
-  exit 2
+  echo ""
+  echo "このファイルには以下の図表が必要です:"
+  echo "  1. 「## 状態マシン図」見出し + ASCII罫線による図（優先）or mermaid"
+  echo "  2. 「## データフロー図」見出し + ASCII罫線による図（優先）or mermaid"
+  echo ""
+  echo "図表を追加してファイルを更新してください。"
+  echo "==="
 fi
 
 exit 0
