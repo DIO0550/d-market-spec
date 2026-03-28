@@ -120,7 +120,7 @@ TaskOutput:
   timeout: 300000
 ```
 
-探索の4カテゴリ: アーキテクチャ概要 / 関連コード分析 / 技術的制約・リスク / 変更影響範囲
+探索の5カテゴリ: アーキテクチャ概要 / 関連コード分析 / 技術的制約・リスク / 変更影響範囲 / テストインフラストラクチャ
 
 詳細は `references/exploration-perspectives.md` を参照。
 
@@ -153,6 +153,7 @@ Task tool:
     - システム図（状態マシン図 + データフロー図）は必須。省略禁止。ASCII罫線図を優先。
     - exploration-report.md の制約・リスクを implementation-plan.md に反映すること。
     - implementation-plan.md に "## Definition of Done" セクションを必ず含めること。機能固有の受入条件を具体的に記載すること。
+    - テスト戦略分析を必ず実施すること。references/test-design-patterns.md に基づき、機能タイプを分類してテストパターンを決定すること。
     - テスト要件がある場合、t-wada TDD ベースで tasks.md を構成すること（Red-Green-Refactor サイクル、TODOリスト駆動）。テンプレートの TDD 構成例を参照。
 ```
 

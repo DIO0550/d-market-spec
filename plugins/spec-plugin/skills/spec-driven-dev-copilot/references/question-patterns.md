@@ -81,18 +81,35 @@ questions:
 
 ```yaml
 questions:
-  - question: "テスト要件は？"
-    header: "テスト"
+  - question: "この機能に含まれる要素は？（テスト戦略の判断に使用します）"
+    header: "機能特性"
     multiSelect: true
     options:
-      - label: "ユニットテスト"
-        description: "関数・コンポーネント単位"
-      - label: "Storybook"
-        description: "UIカタログで確認"
-      - label: "E2Eテスト"
-        description: "統合テスト"
+      - label: "計算・変換・バリデーションロジック"
+        description: "純粋なロジック処理がある"
+      - label: "外部API・サービス連携"
+        description: "HTTP呼び出し・外部依存がある"
+      - label: "状態管理（作成・更新・削除）"
+        description: "アプリケーション状態を変更する"
+      - label: "ユーザー操作・UI表示のみ"
+        description: "ロジックを含まない見た目の変更"
+      - label: "認証・認可・セキュリティ"
+        description: "セキュリティに関わる処理"
+      - label: "非同期処理・タイマー"
+        description: "Promise, setTimeout, イベント"
+
+  - question: "テスト方針の希望は？"
+    header: "テスト方針"
+    multiSelect: false
+    options:
+      - label: "AIに任せる（推奨）"
+        description: "機能特性に基づいてAIが最適なテスト戦略を決定"
+      - label: "TDDで進めたい"
+        description: "テスト駆動開発で実装したい"
+      - label: "実装後にテスト追加"
+        description: "先に実装してからテストを書く"
       - label: "手動確認のみ"
-        description: "自動テストなし"
+        description: "自動テストは不要"
 
   - question: "エラーハンドリングの要件は？"
     header: "エラー"

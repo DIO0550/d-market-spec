@@ -61,11 +61,17 @@
 
 ## 検証計画
 
+### テスト戦略
+
+**機能タイプ**: {Pure Logic / API Integration / Data Transformation / State Management / UI Component / Async Operations / Security/Auth / Configuration / DOM Manipulation}
+**テスト方針**: {TDD / テスト追加 / 手動検証のみ}
+**根拠**: {なぜこのテスト方針を選択したか — 機能タイプと test-design-patterns.md の決定フローに基づく1-2文}
+
 ### 自動テスト
 
-<!-- テスト要件がある場合: TDD（t-wada式）で構成する -->
+<!-- テスト方針が「TDD」または「テスト追加」の場合に記載。test-design-patterns.md のタイプ別シナリオを参照して網羅的に列挙する -->
 
-**テストTODOリスト** <!-- TDD の場合、実装前にテストケースを洗い出す -->
+**テストTODOリスト** <!-- 機能タイプに基づくテストシナリオを列挙 -->
 
 - [ ] {正常系: 最もシンプルなケース}
 - [ ] {正常系: バリエーション}

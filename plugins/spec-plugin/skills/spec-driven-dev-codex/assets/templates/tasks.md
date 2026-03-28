@@ -90,10 +90,49 @@
 
 ---
 
-TDD タスク構成の判断基準:
-テスト要件が含まれる場合、またはロジック（計算、変換、バリデーション等）を含む機能の場合は
-TDD サイクル（Red-Green-Refactor）でタスクを構成する。
+使用例 (テスト追加構成 — TDD以外でテストが必要な場合):
+
+# Task: Implement API Client for User Service
+
+## Research & Planning
+
+- [ ] 既存テストインフラの確認（テストランナー、モック戦略）
+- [ ] API仕様の確認（エンドポイント、レスポンス形式）
+- [ ] テスト対象シナリオの洗い出し
+
+## Implementation
+
+- [ ] API クライアントの型定義
+- [ ] API クライアントの実装
+- [ ] エラーハンドリングの実装
+
+## Test
+
+- [ ] 正常系テスト: 成功レスポンスの処理
+- [ ] 異常系テスト: HTTPエラーレスポンス（4xx, 5xx）
+- [ ] 異常系テスト: ネットワークエラー・タイムアウト
+- [ ] エッジケーステスト: 空レスポンス・不正なJSON
+
+## Verification
+
+- [ ] 全テストがパスすることを確認
+- [ ] 既存APIクライアントに影響がないことを確認
+
+---
+
+タスク構成の判断基準（test-design-patterns.md に基づく）:
+
+TDD 構成:
+機能タイプが Pure Logic / Data Transformation / State Management / Security/Auth を含む場合、
+または hearing-notes.md にテスト要件が含まれる場合は TDD サイクルで構成する。
 順序: シンプルな正常系 → バリエーション → 境界値 → 異常系・エッジケース
+
+テスト追加構成:
+API Integration / Async Operations / UI Component 等で自動テストが有効な場合、
+Implementation の後に Test セクションを追加して構成する。
+
+手動検証のみ:
+純粋なUI/スタイリング変更で、ロジック・状態管理・外部依存を含まない場合。
 
 ---
 

@@ -32,11 +32,13 @@ Read: .specs/{nnn}-{feature-name}/exploration-report.md
 ```
 1. 入力ファイル読み込み
    ↓
+1.5. テスト戦略分析（機能タイプ分類 → テストパターン決定）
+   ↓
 2. システム図を生成（状態マシン図 + データフロー図）
    ↓
-3. implementation-plan.md の本文生成
+3. implementation-plan.md の本文生成（テスト戦略含む）
    ↓
-4. tasks.md 生成
+4. tasks.md 生成（テスト戦略に基づく構成）
 ```
 
 ## Step 1: 入力ファイル読み込み
@@ -49,6 +51,39 @@ exploration-report.md から特に以下を活用：
 - Section 2（関連コード分析）→ 再利用パターンの活用
 - Section 3（技術的制約）→ 実装時の制約として記載
 - Section 4（変更影響範囲）→ 検証計画に含める
+
+## Step 1.5: テスト戦略分析
+
+hearing-notes.md と exploration-report.md の情報を元に、テスト戦略を決定する。
+詳細は `references/test-design-patterns.md` を参照。
+
+### 1.5.1 機能タイプの分類
+
+hearing-notes.md の目的・技術詳細と exploration-report.md の関連コード分析から、
+機能がどのタイプに該当するかを判定する（複数該当可）：
+
+- Pure Logic / API Integration / Data Transformation / State Management
+- UI Component / Async Operations / Security/Auth / Configuration / DOM Manipulation
+
+`references/test-design-patterns.md` の「分類チェックリスト」を参照して判定する。
+
+### 1.5.2 テストパターンの決定
+
+判定した機能タイプに基づき、`references/test-design-patterns.md` の決定マトリクスとテスト戦略決定フローを参照して：
+- 必要なテストカテゴリ（Unit / Integration / E2E）を決定
+- 各カテゴリの具体的テストシナリオを列挙（タイプ別テストシナリオ列挙セクション参照）
+- exploration-report.md のテストインフラ情報と整合性を確認
+
+### 1.5.3 テスト戦略の結論
+
+以下のいずれかの結論を出す：
+- **TDD適用**: Pure Logic / Data Transformation / State Management / Security/Auth を含む → tasks.md を TDD サイクルで構成
+- **テスト追加**: API Integration / Async Operations 等でテストが有効 → 実装後にテスト追加タスクを含める
+- **手動検証のみ**: 純粋なUI/スタイリング変更 → 手動検証項目のみ記載
+
+hearing-notes.md でユーザーがテスト方針を明示的に指定している場合は、ユーザー指定を優先する。
+
+この結論は implementation-plan.md の検証計画セクションと tasks.md の構成に反映する。
 
 ## Step 2: システム図を生成（必須 — 省略禁止）
 
@@ -128,13 +163,23 @@ implementation-plan.md 生成後、以下を確認すること：
 
 ### テストが必要な場合: t-wada TDD ベースで構成する
 
-hearing-notes.md にテスト要件が含まれる場合、tasks.md を TDD（テスト駆動開発）サイクルで構成する。
-詳細は `references/tdd-guidelines.md` を参照。
+Step 1.5 のテスト戦略分析結果に基づき、tasks.md のテスト構成を決定する。
+TDD プロセスの詳細は `references/tdd-guidelines.md` を参照。
+テストパターンの詳細は `references/test-design-patterns.md` を参照。
 
-**判断基準**: 以下のいずれかに該当する場合、TDD ベースのタスク構成を採用する:
+**TDD 適用（Red-Green-Refactor サイクル）**: Step 1.5 で以下のいずれかに該当した場合:
+- 機能タイプが Pure Logic / Data Transformation / State Management を含む
+- Security/Auth タイプを含む（テスト必須）
 - hearing-notes.md にテスト要件が明記されている
-- 機能にロジック（計算、変換、バリデーション等）が含まれる
-- ユーザーが「テストも書きたい」と言及している
+- ユーザーが「TDDで進めたい」と指定している
+
+**テスト追加（非TDD）**: 以下の場合、Implementation の後に Test セクションを追加:
+- API Integration / Async Operations タイプでモックテストが必要
+- UI Component タイプでインタラクションテストが有効
+- exploration-report.md で既存テストパターンが確認された場合
+
+**手動検証のみ**: Step 1.5 で「手動検証のみ」と判断された場合。
+ただし手動検証項目は必ず記載すること。
 
 **TDD タスク構成:**
 
@@ -166,6 +211,30 @@ Task: {目的}
 ```
 
 **順序の原則**: シンプルな正常系 → バリエーション → 境界値 → 異常系・エッジケース
+
+### テスト追加構成（TDD以外でテストが必要な場合）
+
+```
+Task: {目的}
+
+□ Research & Planning
+  □ テストインフラ・既存テスト構成の確認
+  □ テスト対象シナリオの洗い出し
+  □ {その他の調査タスク}
+
+□ Implementation
+  □ {実装タスク1}
+  □ {実装タスク2}
+
+□ Test
+  □ 正常系テスト: {シナリオ}
+  □ 異常系テスト: {シナリオ}
+  □ エッジケーステスト: {シナリオ}
+
+□ Verification
+  □ 全テストがパスすることを確認
+  □ {手動検証タスク}
+```
 
 ### テストが不要な場合: 標準構成
 

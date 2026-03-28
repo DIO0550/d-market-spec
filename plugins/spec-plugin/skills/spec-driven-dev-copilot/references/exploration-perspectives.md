@@ -1,4 +1,4 @@
-# Exploration Perspectives（探索の4観点）
+# Exploration Perspectives（探索の5観点）
 
 各カテゴリで何を調べるべきかの具体的チェックリストと推奨検索パターン。
 
@@ -141,6 +141,55 @@ Grep:
   - pattern: "^export (function|const|class|interface|type)"
     output_mode: content
     context: 3
+```
+
+---
+
+## 5. テストインフラストラクチャ
+
+### チェック項目
+
+- [ ] テストフレームワーク: Jest, Vitest, pytest, cargo test 等
+- [ ] テストランナー: テスト実行コマンドとその設定
+- [ ] アサーションライブラリ: expect, assert, chai 等
+- [ ] モック戦略: jest.mock, vi.mock, sinon, nock 等
+- [ ] テストファイル構造: colocated (*.test.ts隣接) / __tests__/ / tests/
+- [ ] テストファイル命名規則: *.test.ts / *.spec.ts / test_*.py
+- [ ] テストヘルパー・フィクスチャ: 共通セットアップ、テストユーティリティ
+- [ ] カバレッジ設定: カバレッジツール、閾値設定
+- [ ] CI でのテスト実行: テスト関連の CI ジョブ
+
+### 推奨パターン
+
+```yaml
+Glob:
+  - "**/*.test.{ts,tsx,js,jsx}"  # Jest / Vitest テスト
+  - "**/*.spec.{ts,tsx,rs}"      # spec テスト
+  - "**/test_*.py"               # pytest テスト
+  - "**/__tests__/**"             # テストディレクトリ
+  - "**/tests/**"                 # テストディレクトリ
+  - "**/*.stories.{ts,tsx}"      # Storybook
+  - "**/jest.config.*"            # Jest 設定
+  - "**/vitest.config.*"          # Vitest 設定
+  - "**/pytest.ini"               # pytest 設定
+  - "**/.nycrc*"                  # カバレッジ設定
+
+Read:
+  - jest.config.ts               # Jest 設定
+  - vitest.config.ts             # Vitest 設定
+  - package.json                  # scripts セクションの test コマンド
+
+Grep:
+  - pattern: "describe\\(|it\\(|test\\("
+    output_mode: files_with_matches
+    head_limit: 20
+  - pattern: "jest\\.mock|vi\\.mock|sinon\\."
+    output_mode: content
+    context: 3
+    head_limit: 10
+  - pattern: "beforeEach|afterEach|beforeAll|afterAll"
+    output_mode: files_with_matches
+    head_limit: 10
 ```
 
 ---
