@@ -216,9 +216,15 @@ codex exec --cd "$PWD" --dangerously-bypass-approvals-and-sandbox "以下の実�
 
 生成したファイルをユーザーに提示:
 
-1. implementation-plan.md の内容サマリー
-2. tasks.md のタスク一覧
-3. 「修正が必要な場合はお知らせください」
+1. **specフォルダパス**: `.specs/{nnn}-{feature-name}/` を明示
+2. 生成ファイル一覧（各ファイルのフルパス）:
+   - `.specs/{nnn}-{feature-name}/hearing-notes.md`
+   - `.specs/{nnn}-{feature-name}/exploration-report.md`
+   - `.specs/{nnn}-{feature-name}/implementation-plan.md`
+   - `.specs/{nnn}-{feature-name}/tasks.md`
+3. implementation-plan.md の内容サマリー
+4. tasks.md のタスク一覧
+5. 「修正が必要な場合はお知らせください」
 
 ユーザーが修正を要求した場合は Step 5 のループに戻る。
 
