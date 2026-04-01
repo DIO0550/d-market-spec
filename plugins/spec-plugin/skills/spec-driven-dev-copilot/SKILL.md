@@ -180,10 +180,16 @@ mkdir -p .specs/{nnn}-{feature-name}/plan-review
 レビュー結果は `.specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md` に保存する。
 `{NNN}` は3桁の連番（001, 002, 003...）。
 
-### レビュー実行
+### コンテキストファイルの組み立て
 
-```bash
-cat .specs/{nnn}-{feature-name}/implementation-plan.md | copilot -p "以下の実装計画をレビューしてください。
+レビュー実行前に、Writeツールで `.specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt` にレビュー指示文を書き出す。
+`{NNN}` は `review-{NNN}.md` と同じ連番。再レビュー時はインクリメントする。
+コンテキストは `implementation-plan.md` をそのまま使用する（別ファイル不要）。
+
+**prompt-{NNN}.txt の内容**:
+
+```
+以下の実装計画をレビューしてください。
 
 【重要】ファイルの作成・編集は一切行わないでください。レビュー結果は標準出力のみで回答してください。
 
@@ -197,8 +203,13 @@ cat .specs/{nnn}-{feature-name}/implementation-plan.md | copilot -p "以下の�
 問題がなければ「問題なし」と回答してください。
 問題があれば具体的な指摘と改善案を提示してください。
 
-以下は implementation-plan.md の内容です:
-" > .specs/{nnn}-{feature-name}/plan-review/review-001.md
+以下は標準入力で渡される implementation-plan.md の内容です:
+```
+
+### レビュー実行
+
+```bash
+copilot -p "$(cat .specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt)" < .specs/{nnn}-{feature-name}/implementation-plan.md > .specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md
 ```
 
 ### ループ処理

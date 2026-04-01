@@ -103,22 +103,24 @@ mkdir -p .specs/{nnn}-{feature-name}/code-review
 レビュー結果は `.specs/{nnn}-{feature-name}/code-review/review-{NNN}.md` に保存する。
 `{NNN}` は3桁の連番（001, 002, 003...）。タスクをまたいで通し番号とする。
 
-### レビュー実行
+### コンテキストファイルの組み立て
 
-```bash
-{
-  echo "## 実装計画"
-  cat .specs/{nnn}-{feature-name}/implementation-plan.md
-  echo
-  echo "## 対象タスク"
-  echo "{現在のタスク内容}"
-  echo
-  echo "## 変更されたファイル"
-  git diff --name-only
-  echo
-  echo "## 変更内容"
-  git diff
-} | copilot -p "以下のタスクの実装をレビューしてください。
+レビュー実行前に、Writeツールで以下の2ファイルを作成する。`{NNN}` は `review-{NNN}.md` と同じ連番。再レビュー時はインクリメントする。
+
+**`.specs/{nnn}-{feature-name}/code-review/context-{NNN}.md`**:
+
+以下の内容を結合して書き出す:
+1. `## 実装計画` + implementation-plan.md の内容
+2. `## 対象タスク` + 現在のタスク内容
+3. `## 変更されたファイル` + `git diff --name-only` の結果
+4. `## 変更内容` + `git diff` の結果
+
+**`.specs/{nnn}-{feature-name}/code-review/prompt-{NNN}.txt`**:
+
+以下のレビュー指示文を書き出す:
+
+```
+以下のタスクの実装をレビューしてください。
 
 【重要】ファイルの作成・編集は一切行わないでください。レビュー結果は標準出力のみで回答してください。
 
@@ -133,7 +135,12 @@ mkdir -p .specs/{nnn}-{feature-name}/code-review
 
 問題がなければ「問題なし」と回答してください。
 問題があれば具体的な指摘と改善案を提示してください。
-" > .specs/{nnn}-{feature-name}/code-review/review-001.md
+```
+
+### レビュー実行
+
+```bash
+copilot -p "$(cat .specs/{nnn}-{feature-name}/code-review/prompt-{NNN}.txt)" < .specs/{nnn}-{feature-name}/code-review/context-{NNN}.md > .specs/{nnn}-{feature-name}/code-review/review-{NNN}.md
 ```
 
 ### ループ処理
@@ -222,3 +229,4 @@ Refs #42
 - 実装中に問題が発生した場合はユーザーに確認する
 - PLANNINGファイルの削除は全タスク完了後のみ
 - 関連Issue番号がある場合はコミットメッセージに含める
+- レビュー用Bashコマンドは**必ず1行**で、`copilot` で始めること。複数行コマンドやパイプ (`|`) は使わない
