@@ -95,6 +95,16 @@ mkdir -p .specs/.guard && touch .specs/.guard/${CLAUDE_SESSION_ID}
 
 hearing-notes.md を書き出したら、codebase-explorer サブエージェントを起動する。
 
+### 3-1. 探索ヒントの抽出
+
+サブエージェント起動前に、hearing-notes.md の内容から以下を抽出する：
+
+- **探索キーワード**: 機能名、技術用語、ライブラリ名、コンポーネント名など（5-10個）
+- **推定対象パス**: 影響しそうなディレクトリやファイルパターン（hearing-notesの技術スタック・影響範囲から推定）
+- **探索の重点**: 新規機能なら類似実装の発見を重視、既存修正なら依存の逆引きを重視
+
+### 3-2. サブエージェント起動
+
 ```
 Task tool:
   description: "codebase-explorer: {feature-name}"
@@ -104,6 +114,12 @@ Task tool:
     あなたはcodebase-explorerエージェントです。
     .specs/{nnn}-{feature-name}/hearing-notes.md を読み込み、
     その目的・スコープに基づいてコードベースを探索してください。
+
+    ## 探索ヒント（オーケストレーターが抽出）
+
+    **キーワード**: {hearing-notesから抽出したキーワード5-10個をカンマ区切りで列挙}
+    **推定対象パス**: {推定したディレクトリ/ファイルパターンを列挙}
+    **探索の重点**: {新規→類似実装発見 / 既存修正→依存逆引き / リファクタリング→全使用箇所 等}
 
     ## 参照スキル
     spec-driven-dev-codex:exploration-perspectives
@@ -115,9 +131,61 @@ Task tool:
     .specs/{nnn}-{feature-name}/exploration-report.md
 ```
 
+`{...}` はオーケストレーターが hearing-notes.md の内容に基づいて埋める。
+
 ```
 TaskOutput:
   task_id: "{codebase-explorerのtask_id}"
+  block: true
+  timeout: 300000
+```
+
+### 3-3. 探索結果の品質検証
+
+TaskOutput 受信後、exploration-report.md を読み込み、セクション 7「探索メトリクス」を確認する：
+
+1. **基準チェック**:
+   - Read したファイル数が 10 未満 → 補完探索を要求
+   - コードスニペット数が 5 未満 → 補完探索を要求
+   - 逆引き検索が「未実施」→ 補完探索を要求
+
+2. **空セクション検出**:
+   - セクション 1-5 のいずれかがテンプレートのプレースホルダのまま → 補完探索を要求
+
+3. **補完探索の実行**（品質基準未達の場合のみ、**最大 1 回**）:
+
+```
+Task tool:
+  description: "codebase-explorer (補完): {feature-name}"
+  subagent_type: general-purpose
+  run_in_background: true
+  prompt: |
+    あなたはcodebase-explorerエージェントです。
+    前回の探索レポートが品質基準に達していないため、補完探索を行います。
+
+    ## 前回のレポート
+    .specs/{nnn}-{feature-name}/exploration-report.md
+
+    ## 不足している項目
+    {具体的な不足項目を列挙}
+
+    ## 指示
+    前回のレポートに不足している情報を追加してください。
+    特に以下に重点を置いてください：
+    - 不足しているコードスニペットの追加（ファイルを Read して具体的なコードを記載）
+    - 不足しているセクションの探索と記入
+    - 探索メトリクスの更新
+
+    ## 参照スキル
+    spec-driven-dev-codex:exploration-perspectives
+
+    ## 出力先
+    .specs/{nnn}-{feature-name}/exploration-report.md（上書き更新）
+```
+
+```
+TaskOutput:
+  task_id: "{補完codebase-explorerのtask_id}"
   block: true
   timeout: 300000
 ```
