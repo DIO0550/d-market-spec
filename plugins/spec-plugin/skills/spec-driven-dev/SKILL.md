@@ -2,7 +2,7 @@
 name: spec-driven-dev
 description: 仕様策定ワークフローの標準版。AIレビューを省略して素早く実装計画を生成する。
 disable-model-invocation: true
-allowed-tools: Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING)
+allowed-tools: Bash(*spec-plugin/scripts/*), Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING)
 ---
 
 # Spec-Driven Development
@@ -47,11 +47,16 @@ allowed-tools: Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING)
 ヒアリング開始前に、specディレクトリとPLANNINGファイルを作成する。
 
 ```bash
-next_num=$(printf "%03d" $(( $(ls -1d .specs/[0-9][0-9][0-9]-* .specs/archive/[0-9][0-9][0-9]-* 2>/dev/null | sed 's|.*/\([0-9]\{3\}\)-.*|\1|' | sort -rn | head -1 | sed 's/^0*//; s/^$/0/') + 1 )))
-mkdir -p .specs/${next_num}-{feature-name}
-echo "${CLAUDE_SESSION_ID}" > .specs/${next_num}-{feature-name}/PLANNING
-mkdir -p .specs/.guard && touch .specs/.guard/${CLAUDE_SESSION_ID}
+bash plugins/spec-plugin/scripts/init-spec-folder.sh {feature-name} ${CLAUDE_SESSION_ID}
 ```
+
+スクリプトが以下を自動実行する:
+- 次のspec番号を算出（`.specs/` と `.specs/archive/` をスキャン）
+- `.specs/{nnn}-{feature-name}/` ディレクトリ作成
+- `PLANNING` ファイル作成（session-id を記録）
+- `.specs/.guard/${CLAUDE_SESSION_ID}` ガードファイル作成
+
+実行結果として作成されたディレクトリパス（例: `.specs/003-user-auth`）が出力される。
 
 **重要**: PLANNINGファイルが存在する間は計画フェーズであり、コードの実装は禁止。
 **ガード**: `.specs/.guard/${CLAUDE_SESSION_ID}` が存在する間、このセッションでは `.specs/` 以外への書き込みがhookによりブロックされる。

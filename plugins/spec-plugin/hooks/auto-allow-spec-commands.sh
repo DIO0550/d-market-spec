@@ -1,21 +1,53 @@
 #!/bin/bash
-# spec番号取得コマンドを自動許可する（完全一致）
+# spec関連コマンドを自動許可する
 # PreToolUse: Bash
 INPUT=$(cat)
 CMD=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 
-# SKILL.mdで指定されているspec番号取得の完全コマンド
-read -r -d '' FULL_CMD << 'EXPECTED'
-next_num=$(printf "%03d" $(( $(ls -1d .specs/[0-9][0-9][0-9]-* .specs/archive/[0-9][0-9][0-9]-* 2>/dev/null | sed 's|.*/\([0-9]\{3\}\)-.*|\1|' | sort -rn | head -1 | sed 's/^0*//; s/^$/0/') + 1 )))
-EXPECTED
+# 前後の空白を除去
+CMD=$(echo "$CMD" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
 
-# 内側のパイプラインだけの場合
-read -r -d '' INNER_CMD << 'EXPECTED'
-ls -1d .specs/[0-9][0-9][0-9]-* .specs/archive/[0-9][0-9][0-9]-* 2>/dev/null | sed 's|.*/\([0-9]\{3\}\)-.*|\1|' | sort -rn | head -1
-EXPECTED
-
-if [ "$CMD" = "$FULL_CMD" ] || [ "$CMD" = "$INNER_CMD" ]; then
+# --- プラグインスクリプトの実行 ---
+if echo "$CMD" | grep -qE 'spec-plugin/scripts/(get-next-spec-num|init-spec-folder)\.sh'; then
   echo '{"decision":"allow"}'
+  exit 0
+fi
+
+# --- spec番号取得コマンド（パターンマッチ・後方互換） ---
+if echo "$CMD" | grep -qE '^(next_num=.*)?ls -1d \.specs/\[0-9\].*sort -rn.*head -1'; then
+  echo '{"decision":"allow"}'
+  exit 0
+fi
+
+# --- .specs/ 配下のディレクトリ作成・ファイル操作 ---
+if echo "$CMD" | grep -qE '^mkdir -p \.specs/'; then
+  echo '{"decision":"allow"}'
+  exit 0
+fi
+
+if echo "$CMD" | grep -qE '^touch \.specs/'; then
+  echo '{"decision":"allow"}'
+  exit 0
+fi
+
+if echo "$CMD" | grep -qE '^mkdir -p \.specs/\.guard && touch \.specs/\.guard/'; then
+  echo '{"decision":"allow"}'
+  exit 0
+fi
+
+if echo "$CMD" | grep -qE '^rm \.specs/[^/]+/PLANNING$'; then
+  echo '{"decision":"allow"}'
+  exit 0
+fi
+
+if echo "$CMD" | grep -qE '^rm \.specs/\.guard/'; then
+  echo '{"decision":"allow"}'
+  exit 0
+fi
+
+if echo "$CMD" | grep -qE '^echo .* > \.specs/[^/]+/PLANNING$'; then
+  echo '{"decision":"allow"}'
+  exit 0
 fi
 
 exit 0
