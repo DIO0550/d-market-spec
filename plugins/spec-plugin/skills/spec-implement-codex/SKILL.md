@@ -1,6 +1,6 @@
 ---
 name: spec-implement-codex
-description: .specsの実装計画に沿って実装し、各タスク完了後にCodex CLIで自動コードレビュー。品質重視の実装に最適。
+description: .specsの実装計画に沿って実装し、全タスク完了後にCodex CLIで一括コードレビュー。品質重視の実装に最適。
 disable-model-invocation: true
 argument-hint: "[番号]"
 allowed-tools: Bash(codex *), Bash(mkdir *), Bash(rm .specs/*/PLANNING), Bash(rm .specs/.guard/*)
@@ -9,7 +9,7 @@ allowed-tools: Bash(codex *), Bash(mkdir *), Bash(rm .specs/*/PLANNING), Bash(rm
 # Spec Implement (Codex版)
 
 番号指定で `.specs/{nnn}-{feature-name}/` の実装計画に沿って実装を進めるスキル。
-各タスクの実装後に **Codex CLI** でコードレビューを行い、品質を担保する。
+全タスクの実装完了後に **Codex CLI** で一括コードレビューを行い、品質を担保する。
 
 ## ワークフロー
 
@@ -22,15 +22,13 @@ allowed-tools: Bash(codex *), Bash(mkdir *), Bash(rm .specs/*/PLANNING), Bash(rm
    ↓
 4. tasks.md を読み込み、未完了タスクを確認
    ↓
-5. タスクを順番に実装（□のタスクを処理）
+5. タスクを順番に実装（□のタスクを処理 → 完了時に tasks.md 更新）
    ↓
-6. 各タスク完了時に Codex レビュー → 修正ループ
+6. 全タスク完了後、Codex レビュー → 修正ループ
    ↓
-7. レビュー通過後、tasks.md を更新（□ → ■）
+7. PLANNINGファイルを削除
    ↓
-8. 全タスク完了後、PLANNINGファイルを削除
-   ↓
-9. DoD照合 → 完了報告
+8. DoD照合 → 完了報告
 ```
 
 ## Step 1: specフォルダの特定
@@ -88,10 +86,23 @@ tasks.md の未完了タスク（`□`）をすべて TaskCreate で登録し、
 2. タスク内容を確認
 3. implementation-plan.md の該当セクションを参照
 4. コードを実装
+5. TaskUpdate で該当タスクの status を `completed` に変更
+6. tasks.md の該当タスクを更新（`□` → `■`）
 
-## Step 5: Codex レビュー（各タスク完了後）
+### tasks.md の更新
 
-タスクの実装が完了したら、Codex CLI でコードレビューを実行する。
+タスク完了時に、該当行の `□` を `■` に変更する。
+
+```
+変更前: □ コンポーネントの型定義を作成
+変更後: ■ コンポーネントの型定義を作成
+```
+
+**重要**: 親タスクは、すべての子タスクが `■` になった時点で `■` に更新する。
+
+## Step 5: Codex レビュー（全タスク完了後）
+
+すべてのタスクの実装が完了したら、Codex CLI で全変更の一括コードレビューを実行する。
 レビュー結果はファイルに保存し、コンテキストの消費を抑える。
 
 ### レビュー結果の保存先
@@ -111,7 +122,7 @@ mkdir -p .specs/{nnn}-{feature-name}/code-review
 
 以下の内容を結合して書き出す:
 1. `## 実装計画` + implementation-plan.md の内容
-2. `## 対象タスク` + 現在のタスク内容
+2. `## 実装タスク一覧` + tasks.md の全タスク内容
 3. `## 変更されたファイル` + `git diff --name-only` の結果
 4. `## 変更内容` + `git diff` の結果
 
@@ -120,7 +131,7 @@ mkdir -p .specs/{nnn}-{feature-name}/code-review
 以下のレビュー指示文を書き出す。コンテキストファイルのパスを含め、codex に参照させる:
 
 ```
-以下のタスクの実装をレビューしてください。
+全タスクの実装をレビューしてください。
 
 【重要】ファイルの作成・編集は一切行わないでください。レビュー結果は標準出力のみで回答してください。
 
@@ -154,21 +165,7 @@ codex exec --cd "$PWD" --dangerously-bypass-approvals-and-sandbox "$(cat .specs/
    - 最大5回までループ
 4. 5回超えたらユーザーに相談
 
-## Step 6: タスク完了処理
-
-レビュー通過後、タスクを完了にする。
-
-1. TaskUpdate で該当タスクの status を `completed` に変更
-2. tasks.md の該当タスクを更新（`□` → `■`）
-
-```
-変更前: □ コンポーネントの型定義を作成
-変更後: ■ コンポーネントの型定義を作成
-```
-
-**重要**: 親タスクは、すべての子タスクが `■` になった時点で `■` に更新する。
-
-## Step 7: PLANNINGファイル + ガードファイルの削除
+## Step 6: PLANNINGファイル + ガードファイルの削除
 
 すべてのタスクが完了（`□` が残っていない）したら、PLANNINGファイルとガードファイルを削除する。
 
@@ -183,17 +180,17 @@ rm .specs/{nnn}-{feature-name}/PLANNING
 
 PLANNINGファイルが存在しない場合はスキップする。
 
-## Step 8: DoD照合
+## Step 7: DoD照合
 
 implementation-plan.md の "Definition of Done" セクションを読み込み、各条件の充足を確認する。
 
 1. DoDの各項目を順番にチェック
-2. すべて満たしていれば Step 9 へ
+2. すべて満たしていれば Step 8 へ
 3. 未達の項目がある場合はユーザーに報告し、対応方針を確認する
 
-**注意**: DoDセクションが存在しない場合はスキップして Step 9 へ進む。
+**注意**: DoDセクションが存在しない場合はスキップして Step 8 へ進む。
 
-## Step 9: 完了報告
+## Step 8: 完了報告
 
 実装完了後、ユーザーに以下を報告する：
 
@@ -225,8 +222,8 @@ Refs #42
 
 - implementation-plan.md に記載されていない変更は行わない
 - tasks.md の順序に従って実装する（スキップしない）
-- 各タスク完了ごとに Codex レビューを実施する
-- レビュー通過後に tasks.md を更新する（まとめて更新しない）
+- 全タスク完了後に Codex レビューを一括実施する（タスクごとのレビューは行わない）
+- 各タスク完了ごとに tasks.md を更新する（まとめて更新しない）
 - 実装中に問題が発生した場合はユーザーに確認する
 - PLANNINGファイルの削除は全タスク完了後のみ
 - 関連Issue番号がある場合はコミットメッセージに含める
