@@ -8,7 +8,7 @@ CMD=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 CMD=$(echo "$CMD" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
 
 # --- プラグインスクリプトの実行 ---
-if echo "$CMD" | grep -qE 'spec-plugin/scripts/(get-next-spec-num|init-spec-folder)\.sh'; then
+if echo "$CMD" | grep -qE 'spec-plugin/scripts/(get-next-spec-num|init-spec-folder|run-codex-review|run-copilot-review|run-claude-review)\.sh'; then
   echo '{"decision":"allow"}'
   exit 0
 fi

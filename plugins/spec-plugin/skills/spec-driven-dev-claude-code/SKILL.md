@@ -278,7 +278,10 @@ mkdir -p .specs/{nnn}-{feature-name}/plan-review
 ### レビュー実行
 
 ```bash
-claude -p "$(cat .specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt)" .specs/{nnn}-{feature-name}/implementation-plan.md > .specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md
+bash plugins/spec-plugin/scripts/run-claude-review.sh \
+  .specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt \
+  .specs/{nnn}-{feature-name}/implementation-plan.md \
+  .specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md
 ```
 
 ### ループ処理

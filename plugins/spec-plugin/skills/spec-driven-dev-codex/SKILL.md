@@ -281,7 +281,9 @@ mkdir -p .specs/{nnn}-{feature-name}/plan-review
 ### レビュー実行
 
 ```bash
-codex exec --cd "$PWD" --dangerously-bypass-approvals-and-sandbox "$(cat .specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt)" > .specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md
+bash plugins/spec-plugin/scripts/run-codex-review.sh \
+  .specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt \
+  .specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md
 ```
 
 ### ループ処理
