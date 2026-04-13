@@ -151,10 +151,10 @@ mkdir -p .specs/{nnn}-{feature-name}/code-review
 
 ### レビュー実行
 
+プロンプトファイルを `cat` で読み込んで `codex exec` に渡し、結果を `.specs/` 配下に出力する。
+
 ```bash
-bash plugins/spec-plugin/scripts/run-codex-review.sh \
-  .specs/{nnn}-{feature-name}/code-review/prompt-{NNN}.txt \
-  .specs/{nnn}-{feature-name}/code-review/review-{NNN}.md
+codex exec --cd "$PWD" --dangerously-bypass-approvals-and-sandbox "$(cat .specs/{nnn}-{feature-name}/code-review/prompt-{NNN}.txt)" > .specs/{nnn}-{feature-name}/code-review/review-{NNN}.md
 ```
 
 ### ループ処理

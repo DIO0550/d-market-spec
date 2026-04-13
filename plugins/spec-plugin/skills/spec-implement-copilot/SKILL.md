@@ -150,11 +150,10 @@ mkdir -p .specs/{nnn}-{feature-name}/code-review
 
 ### レビュー実行
 
+プロンプトファイルを `cat` で読み込んで `copilot -p` に渡し、コンテキストファイルを標準入力で渡した結果を `.specs/` 配下に出力する。
+
 ```bash
-bash plugins/spec-plugin/scripts/run-copilot-review.sh \
-  .specs/{nnn}-{feature-name}/code-review/prompt-{NNN}.txt \
-  .specs/{nnn}-{feature-name}/code-review/context-{NNN}.md \
-  .specs/{nnn}-{feature-name}/code-review/review-{NNN}.md
+copilot -p "$(cat .specs/{nnn}-{feature-name}/code-review/prompt-{NNN}.txt)" < .specs/{nnn}-{feature-name}/code-review/context-{NNN}.md > .specs/{nnn}-{feature-name}/code-review/review-{NNN}.md
 ```
 
 ### ループ処理

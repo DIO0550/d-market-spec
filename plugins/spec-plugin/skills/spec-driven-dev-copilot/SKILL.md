@@ -2,7 +2,7 @@
 name: spec-driven-dev-copilot
 description: 仕様策定ワークフロー。GitHub Copilot CLIで実装計画をレビューする版。Codexが使えない環境向け。
 disable-model-invocation: true
-allowed-tools: Bash(*spec-plugin/scripts/*), Bash(mkdir *), Bash(touch *), Bash(rm .specs/*/PLANNING), Bash(copilot *)
+allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(rm .specs/*/PLANNING), Bash(rm .specs/.guard/*), Bash(copilot *)
 ---
 
 # Spec-Driven Development (Copilot版)
@@ -45,19 +45,33 @@ allowed-tools: Bash(*spec-plugin/scripts/*), Bash(mkdir *), Bash(touch *), Bash(
 
 ## Step 1: specsフォルダ + PLANNINGファイル作成
 
-ヒアリング開始前に、specディレクトリとPLANNINGファイルを作成する。
+ヒアリング開始前に、specディレクトリとPLANNINGファイルを作成する。以下の3ブロックを順に実行する。
+
+### 1-a. 次のspec番号を算出
+
+`.specs/` と `.specs/archive/` の両方をスキャンし、最大番号+1 をゼロ埋め3桁で `$next_num` にセットする。
 
 ```bash
-bash plugins/spec-plugin/scripts/init-spec-folder.sh {feature-name} ${CLAUDE_SESSION_ID}
+next_num=$(ls -1d .specs/[0-9][0-9][0-9]-* .specs/archive/[0-9][0-9][0-9]-* 2>/dev/null | sed 's|.*/\([0-9]\{3\}\)-.*|\1|' | sort -rn | head -1)
+next_num=$(printf "%03d" $(( 10#${next_num:-0} + 1 )))
 ```
 
-スクリプトが以下を自動実行する:
-- 次のspec番号を算出（`.specs/` と `.specs/archive/` をスキャン）
-- `.specs/{nnn}-{feature-name}/` ディレクトリ作成
-- `PLANNING` ファイル作成（session-id を記録）
-- `.specs/.guard/${CLAUDE_SESSION_ID}` ガードファイル作成
+### 1-b. specディレクトリとPLANNINGファイル作成
 
-実行結果として作成されたディレクトリパス（例: `.specs/003-user-auth`）が出力される。
+`{feature-name}` は実際の機能名（kebab-case）に置き換えてコマンドを発行する。
+
+```bash
+mkdir -p .specs/${next_num}-{feature-name}
+echo "${CLAUDE_SESSION_ID}" > .specs/${next_num}-{feature-name}/PLANNING
+```
+
+### 1-c. ガードファイル作成
+
+```bash
+mkdir -p .specs/.guard && touch .specs/.guard/${CLAUDE_SESSION_ID}
+```
+
+作成されるディレクトリは例: `.specs/003-user-auth`。
 
 **重要**: PLANNINGファイルが存在する間は計画フェーズであり、コードの実装は禁止。
 **ガード**: `.specs/.guard/${CLAUDE_SESSION_ID}` が存在する間、このセッションでは `.specs/` 以外への書き込みがhookによりブロックされる。
@@ -281,11 +295,10 @@ mkdir -p .specs/{nnn}-{feature-name}/plan-review
 
 ### レビュー実行
 
+プロンプトファイルを `cat` で読み込んで `copilot -p` に渡し、対象の implementation-plan.md を標準入力で渡した結果を `.specs/` 配下に出力する。
+
 ```bash
-bash plugins/spec-plugin/scripts/run-copilot-review.sh \
-  .specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt \
-  .specs/{nnn}-{feature-name}/implementation-plan.md \
-  .specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md
+copilot -p "$(cat .specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt)" < .specs/{nnn}-{feature-name}/implementation-plan.md > .specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md
 ```
 
 ### ループ処理

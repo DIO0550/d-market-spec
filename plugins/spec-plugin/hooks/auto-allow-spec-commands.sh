@@ -24,21 +24,19 @@ notify() {
 }
 
 # ============================================================
-# 1. プラグインスクリプトの実行
-# ============================================================
-if echo "$CMD" | grep -qE 'spec-plugin/scripts/(get-next-spec-num|init-spec-folder|run-codex-review|run-copilot-review|run-claude-review)\.sh'; then
-  allow
-fi
-
-# ============================================================
-# 2. spec番号取得コマンド（後方互換）
+# 1. spec番号取得コマンド
 # ============================================================
 if echo "$CMD" | grep -qE '^(next_num=.*)?ls -1d \.specs/\[0-9\].*sort -rn.*head -1'; then
   allow
 fi
 
+# printf "%03d" $((...)) 形式（spec番号のゼロ埋めインクリメント）
+if [ "$CMD" = 'next_num=$(printf "%03d" $(( 10#${next_num:-0} + 1 )))' ]; then
+  allow
+fi
+
 # ============================================================
-# 3. .specs/ 配下のディレクトリ作成・ファイル操作
+# 2. .specs/ 配下のディレクトリ作成・ファイル操作
 # ============================================================
 if echo "$CMD" | grep -qE '^mkdir -p \.specs/'; then allow; fi
 if echo "$CMD" | grep -qE '^touch \.specs/'; then allow; fi
@@ -48,17 +46,17 @@ if echo "$CMD" | grep -qE '^rm \.specs/\.guard/'; then allow; fi
 if echo "$CMD" | grep -qE '^echo .* > \.specs/[^/]+/PLANNING$'; then allow; fi
 
 # ============================================================
-# 4. cat heredoc/redirect → .specs/
+# 3. cat heredoc/redirect → .specs/
 # ============================================================
 if echo "$CMD" | grep -qE '^cat >+ ?\.specs/'; then allow; fi
 
 # ============================================================
-# 5. 副作用のないコマンド（リダイレクトなし）
+# 4. 副作用のないコマンド（リダイレクトなし）
 # ============================================================
 if echo "$CMD" | grep -qE '^echo ' && ! echo "$CMD" | grep -qE '>'; then allow; fi
 
 # ============================================================
-# 6. レビューCLI (codex / copilot / claude) → .specs/ 限定
+# 5. レビューCLI (codex / copilot / claude) → .specs/ 限定
 #    複合コマンド対応: すべてのリダイレクト先が .specs/ 内か検証
 # ============================================================
 if echo "$CMD" | grep -qE '(codex exec|copilot|claude (-p|--print))'; then
@@ -81,7 +79,7 @@ if echo "$CMD" | grep -qE '(codex exec|copilot|claude (-p|--print))'; then
 fi
 
 # ============================================================
-# 7. 通知: .specs/ 関連だが自動許可されなかったコマンド
+# 6. 通知: .specs/ 関連だが自動許可されなかったコマンド
 #    systemMessage でAIにフィードバックする
 #    許可済みパターン一覧を提示してコマンド修正を促す
 # ============================================================
@@ -90,8 +88,8 @@ if echo "$CMD" | grep -qE '\.specs/'; then
 コマンド: ${CMD:0:200}
 
 自動許可されるパターン:
-- spec-plugin/scripts/{get-next-spec-num,init-spec-folder,run-codex-review,run-copilot-review,run-claude-review}.sh
 - ls -1d .specs/[0-9]... | sort -rn | head -1 (spec番号取得)
+- next_num=\$(printf \"%03d\" \$(( 10#\${next_num:-0} + 1 ))) (spec番号インクリメント)
 - mkdir -p .specs/...
 - touch .specs/...
 - rm .specs/{name}/PLANNING
