@@ -34,6 +34,8 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
    ↓
 3. codebase-explorer サブエージェント → exploration-report.md
    ↓
+3.5. (条件付き) 探索後ヒアリング → hearing-notes.md 追記
+   ↓
 4. spec-planner サブエージェント → implementation-plan.md + tasks.md
    ↓
 5. Claude Codeレビュー → 修正ループ（自動）
@@ -154,7 +156,7 @@ TaskOutput:
 
 ### 3-3. 探索結果の品質検証
 
-TaskOutput 受信後、exploration-report.md を読み込み、セクション 7「探索メトリクス」を確認する：
+TaskOutput 受信後、exploration-report.md を読み込み、セクション 8「探索メトリクス」を確認する：
 
 1. **基準チェック**:
    - Read したファイル数が 10 未満 → 補完探索を要求
@@ -205,6 +207,42 @@ TaskOutput:
 探索の5カテゴリ: アーキテクチャ概要 / 関連コード分析 / 技術的制約・リスク / 変更影響範囲 / テストインフラストラクチャ
 
 詳細は `references/exploration-perspectives.md` を参照。
+
+## Step 3.5: 探索後ヒアリング (条件付き)
+
+exploration-report.md を読み込み、ユーザー判断が必要な論点を抽出する。論点が無ければスキップして Step 4 へ進む。
+
+### 3.5-1. 論点抽出
+
+以下のセクションをスキャンし、ユーザー確認が必要な論点を最大 5 件抽出する:
+
+- **Section 3 技術的制約・リスク**: 対応方針が複数ある場合
+- **Section 4 変更影響範囲**: 破壊的変更の方針判断が必要な場合
+- **Section 6 追加調査が必要な項目**: 設計判断に直結する未確定事項
+- **Section 2.2 再利用可能なパターン**: 候補が複数ある場合の選択
+
+抽出した論点を exploration-report.md の Section 7「ユーザー判断が必要な論点」に書き戻す（監査証跡）。
+
+### 3.5-2. 論点の有無で分岐
+
+- **論点 0 件**: Section 7 に「該当なし」と記載し、Step 4 へ進む
+- **論点 1 件以上**: 3.5-3 へ進む
+
+### 3.5-3. AskUserQuestion 発動
+
+論点を重要度順に並べ、上位 4 件 (AskUserQuestion 上限) を 1 ターンで一括聴取する。
+
+- **question**: 論点の概要 (1 文)
+- **header**: 12 文字以内の短いラベル
+- **options**: 探索で見つかった選択肢 + 推奨案を先頭に「(推奨)」付きで配置
+- 5 件以上ある場合、優先度の低いものは Section 7 末尾の「未確認論点」に記載し、spec-planner が assumption として扱う
+
+### 3.5-4. hearing-notes.md に追記
+
+AskUserQuestion の回答結果を hearing-notes.md 末尾の `## 探索後ユーザー判断` セクションに追記する:
+
+- 各論点 (question) と選択された option label
+- ユーザーが Other で自由記述した場合はその内容も含める
 
 ## Step 4: 実装計画生成（spec-planner サブエージェントに委譲）
 
