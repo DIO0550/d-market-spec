@@ -44,12 +44,28 @@
 - **スタイリング**: {該当する場合}
 - **ロジック**: {該当する場合}
 
+```{lang}
+// {ファイルパス}
+
+{export する型定義・インターフェース}
+
+{主要な関数シグネチャと処理概要コメント}
+```
+
 #### [MODIFY] `{ファイルパス}`
 
 {変更内容}
 
 - {変更点1}
 - {変更点2}
+
+```{lang}
+// before:
+{変更前の該当箇所}
+
+// after:
+{変更後の該当箇所}
+```
 
 #### [DELETE] `{ファイルパス}`
 
@@ -199,12 +215,55 @@ UI更新 (動画非表示)
 - **ロジック**: DOM監視でユーザー要素を検出し、ブロックボタンを注入
 - **依存**: `src/storage.ts` のブロックリスト操作
 
+```ts
+// src/content/ranking.ts
+
+import { getBlockList, addToBlockList } from "../storage";
+import { createBlockButton } from "../components/BlockButton";
+
+const RANKING_USER_SELECTOR = ".RankingVideo-userName";
+
+export function initRankingBlocker(): void {
+  const observer = new MutationObserver((mutations) => {
+    // ユーザー要素を検出し、ブロックボタンを注入
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+
+function injectBlockButtons(userElements: NodeListOf<Element>): void {
+  // 各ユーザー要素にブロックボタンを追加
+}
+```
+
 #### [MODIFY] `manifest.json`
 
 コンテンツスクリプトの登録を追加。
 
 - content_scriptsにranking.tsを追加
 - matchesに `*://www.nicovideo.jp/ranking/*` を追加
+
+```json
+// before:
+"content_scripts": [
+  {
+    "matches": ["*://www.nicovideo.jp/watch/*"],
+    "js": ["src/content/watch.js"]
+  }
+]
+
+// after:
+"content_scripts": [
+  {
+    "matches": ["*://www.nicovideo.jp/watch/*"],
+    "js": ["src/content/watch.js"]
+  },
+  {
+    "matches": ["*://www.nicovideo.jp/ranking/*"],
+    "js": ["src/content/ranking.js"]
+  }
+]
+```
 
 ### UI
 
@@ -214,6 +273,23 @@ UI更新 (動画非表示)
 
 - **Props**: userId: string, onBlock: () => void
 - **スタイリング**: 既存のニコニコUIに合わせたグレーボタン
+
+```ts
+// src/components/BlockButton.ts
+
+export interface BlockButtonProps {
+  userId: string;
+  onBlock: (userId: string) => void;
+}
+
+export function createBlockButton({ userId, onBlock }: BlockButtonProps): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.className = "block-button";
+  button.textContent = "ブロック";
+  button.addEventListener("click", () => onBlock(userId));
+  return button;
+}
+```
 
 ## 検証計画
 
