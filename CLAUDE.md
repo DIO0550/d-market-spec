@@ -25,6 +25,7 @@ plugins/spec-plugin/
 - スキルごとに `assets/templates/` と `references/` のサブディレクトリを持つ
 - テンプレートや参照資料はスキル単位で独立管理（コピーであっても各スキルに配置）
 - フックスクリプトは `plugins/spec-plugin/hooks/` に配置し、`hooks.json` で登録する
+- プラグインの内容（スキル・エージェント・フック等）を追加・変更した場合は `plugins/spec-plugin/plugin.json` の `version` を更新する
 
 ## 主要コンセプト
 
