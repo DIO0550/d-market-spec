@@ -7,6 +7,10 @@ CMD=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 # 前後の空白を除去
 CMD=$(echo "$CMD" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
 
+# 絶対パスを相対パスに正規化（AIがフルパスを使う場合の対策）
+CWD=$(pwd)
+CMD=$(echo "$CMD" | sed "s|${CWD}/\\.specs/|.specs/|g")
+
 allow() {
   jq -n '{
     hookSpecificOutput: {
