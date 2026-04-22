@@ -43,7 +43,7 @@ spec-driven-dev:exploration-perspectives
 探索開始前に、ヒアリング結果とプロジェクトの基本情報を把握する：
 
 ```
-Read: .specs/{nnn}-{feature-name}/hearing-notes.md（ヒアリング結果）
+Read: .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md（ヒアリング結果）
 Read: CLAUDE.md（プロジェクトルート）
 Read: README.md（プロジェクトルート）
 ```
@@ -134,7 +134,7 @@ hearing-notes.md とプロンプトの探索ヒントから、具体的な探索
 
 テンプレート: `spec-driven-dev:exploration-report`
 
-出力先はプロンプトで指定された `.specs/{nnn}-{feature-name}/exploration-report.md`
+出力先はプロンプトで指定された `.plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md`
 
 ### 必須セクション
 
@@ -160,7 +160,7 @@ hearing-notes.md とプロンプトの探索ヒントから、具体的な探索
 
 ## 完了条件
 
-`.specs/{nnn}-{feature-name}/exploration-report.md` を書き出す前に、以下の自己検証チェックリストをすべて満たしていることを確認する。
+`.plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md` を書き出す前に、以下の自己検証チェックリストをすべて満たしていることを確認する。
 
 ### 自己検証チェックリスト
 

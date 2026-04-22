@@ -53,7 +53,7 @@ allowed-tools: Bash(mkdir *)
 
 ## Step 2: 実装設計書生成
 
-ヒアリング結果を元に `.specs/{nnn}-{feature-name}/implementation-plan.md` を生成。
+ヒアリング結果を元に `.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.md` を生成。
 
 テンプレート: `assets/templates/implementation-plan-template.md`
 
@@ -108,10 +108,10 @@ allowed-tools: Bash(mkdir *)
 ## 出力
 
 ```
-.specs/
+.plugin-workspace/.specs/
 └── {feature-name}/
     └── implementation-plan.md
 ```
 
-`{nnn}` は `.specs/` 内の既存フォルダ数に基づく3桁の連番（001, 002, 003...）
+`{nnn}` は `.plugin-workspace/.specs/` 内の既存フォルダ数に基づく3桁の連番（001, 002, 003...）
 `{feature-name}` はケバブケースで命名。

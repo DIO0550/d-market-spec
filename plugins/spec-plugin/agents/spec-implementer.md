@@ -44,10 +44,10 @@ color: blue
 
 ## Step 1: specフォルダの特定
 
-引数の番号を使い、`.specs/` 配下から該当フォルダを検索する。
+引数の番号を使い、`.plugin-workspace/.specs/` 配下から該当フォルダを検索する。
 
 ```bash
-spec_dir=$(ls -1d .specs/${nnn}-* 2>/dev/null | head -1)
+spec_dir=$(ls -1d .plugin-workspace/.specs/${nnn}-* 2>/dev/null | head -1)
 ```
 
 - マッチしない場合はエラーメッセージを表示
@@ -93,7 +93,7 @@ spec_dir=$(ls -1d .specs/${nnn}-* 2>/dev/null | head -1)
 すべてのタスク（`□`が0個）が完了したら：
 
 ```bash
-rm .specs/{nnn}-{feature-name}/PLANNING
+rm .plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING
 ```
 
 PLANNINGファイルが存在しない場合はスキップ。

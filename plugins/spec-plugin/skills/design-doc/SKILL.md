@@ -60,7 +60,7 @@ allowed-tools: Bash(mkdir *)
 
 ## Step 2: Design Doc 生成
 
-ヒアリング結果を元に `.specs/{nnn}-{project-name}/design-doc.md` を生成。
+ヒアリング結果を元に `.plugin-workspace/.specs/{nnn}-{project-name}/design-doc.md` を生成。
 
 テンプレート: `assets/templates/design-doc-template.md`
 
@@ -91,10 +91,10 @@ allowed-tools: Bash(mkdir *)
 ## 出力
 
 ```
-.specs/
+.plugin-workspace/.specs/
 └── {project-name}/
     └── design-doc.md
 ```
 
-`{nnn}` は `.specs/` 内の既存フォルダ数に基づく3桁の連番（001, 002, 003...）
+`{nnn}` は `.plugin-workspace/.specs/` 内の既存フォルダ数に基づく3桁の連番（001, 002, 003...）
 `{project-name}` はケバブケースで命名。

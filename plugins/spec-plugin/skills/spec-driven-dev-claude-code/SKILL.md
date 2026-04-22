@@ -2,7 +2,7 @@
 name: spec-driven-dev-claude-code
 description: 仕様策定ワークフロー。Claude Code CLIで実装計画をレビューする版。Claude Codeでレビューしたい環境向け。
 disable-model-invocation: true
-allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(rm .specs/*/PLANNING), Bash(claude *)
+allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(claude *)
 ---
 
 # Spec-Driven Development (Claude Code版)
@@ -26,7 +26,7 @@ Step 1 が完了するまで、他の一切のアクションを取ってはな�
 計画フェーズ中にAutoCompactが発生すると、コンテキストが要約され意図しない実装が始まる可能性がある。
 これを防ぐため、**PLANNINGファイル**を使用して計画中であることを明示する。
 
-- `.specs/{nnn}-{feature-name}/PLANNING` ファイルが存在する間は**計画フェーズ**
+- `.plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING` ファイルが存在する間は**計画フェーズ**
 - AutoCompact時にPreCompact hookがPLANNINGファイルを検出し、警告を出力
 - **PLANNINGファイルがある限り、絶対にコードを実装しない**
 
@@ -56,10 +56,10 @@ Step 1 が完了するまで、他の一切のアクションを取ってはな�
 
 ### 1-a. 次のspec番号を算出
 
-`.specs/` と `.specs/archive/` の両方をスキャンし、最大番号+1 をゼロ埋め3桁で `$next_num` にセットする。
+`.plugin-workspace/.specs/` と `.plugin-workspace/.specs/archive/` の両方をスキャンし、最大番号+1 をゼロ埋め3桁で `$next_num` にセットする。
 
 ```bash
-next_num=$(ls -1d .specs/[0-9][0-9][0-9]-* .specs/archive/[0-9][0-9][0-9]-* 2>/dev/null | sed 's|.*/\([0-9]\{3\}\)-.*|\1|' | sort -rn | head -1)
+next_num=$(ls -1d .plugin-workspace/.specs/[0-9][0-9][0-9]-* .plugin-workspace/.specs/archive/[0-9][0-9][0-9]-* 2>/dev/null | sed 's|.*/\([0-9]\{3\}\)-.*|\1|' | sort -rn | head -1)
 next_num=$(printf "%03d" $(( 10#${next_num:-0} + 1 )))
 ```
 
@@ -68,17 +68,17 @@ next_num=$(printf "%03d" $(( 10#${next_num:-0} + 1 )))
 `{feature-name}` は実際の機能名（kebab-case）に置き換えてコマンドを発行する。
 
 ```bash
-mkdir -p .specs/${next_num}-{feature-name}
-echo "planning" > .specs/${next_num}-{feature-name}/PLANNING
+mkdir -p .plugin-workspace/.specs/${next_num}-{feature-name}
+echo "planning" > .plugin-workspace/.specs/${next_num}-{feature-name}/PLANNING
 ```
 
-作成されるディレクトリは例: `.specs/003-user-auth`。
+作成されるディレクトリは例: `.plugin-workspace/.specs/003-user-auth`。
 
 **重要**: PLANNINGファイルが存在する間は計画フェーズであり、コードの実装は禁止。
 
 ## Step 2: ヒアリング → hearing-notes.md 書き出し
 
-ユーザーの要求を受けたら、AskUserQuestion で質問し、結果を `.specs/{nnn}-{feature-name}/hearing-notes.md` に書き出す。
+ユーザーの要求を受けたら、AskUserQuestion で質問し、結果を `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md` に書き出す。
 
 一度に1-4個の質問をまとめて聞く。
 
@@ -108,7 +108,7 @@ echo "planning" > .specs/${next_num}-{feature-name}/PLANNING
 ヒアリング完了後、テンプレートに沿って結果をファイルに書き出す。
 
 テンプレート: `assets/templates/hearing-notes.md`
-出力先: `.specs/{nnn}-{feature-name}/hearing-notes.md`
+出力先: `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md`
 
 ## Step 3: コードベース探索（codebase-explorer サブエージェントに委譲）
 
@@ -131,7 +131,7 @@ Task tool:
   run_in_background: true
   prompt: |
     あなたはcodebase-explorerエージェントです。
-    .specs/{nnn}-{feature-name}/hearing-notes.md を読み込み、
+    .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md を読み込み、
     その目的・スコープに基づいてコードベースを探索してください。
 
     ## 探索ヒント（オーケストレーターが抽出）
@@ -147,7 +147,7 @@ Task tool:
     spec-driven-dev-claude-code:exploration-report
 
     ## 出力先
-    .specs/{nnn}-{feature-name}/exploration-report.md
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md
 ```
 
 `{...}` はオーケストレーターが hearing-notes.md の内容に基づいて埋める。
@@ -183,7 +183,7 @@ Task tool:
     前回の探索レポートが品質基準に達していないため、補完探索を行います。
 
     ## 前回のレポート
-    .specs/{nnn}-{feature-name}/exploration-report.md
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md
 
     ## 不足している項目
     {具体的な不足項目を列挙}
@@ -199,7 +199,7 @@ Task tool:
     spec-driven-dev-claude-code:exploration-perspectives
 
     ## 出力先
-    .specs/{nnn}-{feature-name}/exploration-report.md（上書き更新）
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md（上書き更新）
 ```
 
 ```
@@ -263,16 +263,16 @@ Task tool:
     以下のファイルを読み込み、implementation-plan.md と tasks.md を生成してください。
 
     ## 入力
-    - .specs/{nnn}-{feature-name}/hearing-notes.md
-    - .specs/{nnn}-{feature-name}/exploration-report.md
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md
 
     ## テンプレート
     - spec-driven-dev-claude-code:implementation-plan
     - spec-driven-dev-claude-code:tasks
 
     ## 出力先
-    - .specs/{nnn}-{feature-name}/implementation-plan.md
-    - .specs/{nnn}-{feature-name}/tasks.md
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.md
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/tasks.md
 
     ## 重要
     - システム図（状態マシン図 + データフロー図）は必須。省略禁止。ASCII罫線図を優先。
@@ -298,15 +298,15 @@ TaskOutput:
 ### レビュー結果の保存先
 
 ```bash
-mkdir -p .specs/{nnn}-{feature-name}/plan-review
+mkdir -p .plugin-workspace/.specs/{nnn}-{feature-name}/plan-review
 ```
 
-レビュー結果は `.specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md` に保存する。
+レビュー結果は `.plugin-workspace/.specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md` に保存する。
 `{NNN}` は3桁の連番（001, 002, 003...）。
 
 ### コンテキストファイルの組み立て
 
-レビュー実行前に、Writeツールで `.specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt` にレビュー指示文を書き出す。
+レビュー実行前に、Writeツールで `.plugin-workspace/.specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt` にレビュー指示文を書き出す。
 `{NNN}` は `review-{NNN}.md` と同じ連番。再レビュー時はインクリメントする。
 コンテキストは `implementation-plan.md` をそのまま使用する（別ファイル不要）。
 
@@ -330,10 +330,10 @@ mkdir -p .specs/{nnn}-{feature-name}/plan-review
 
 ### レビュー実行
 
-プロンプトファイルを `cat` で読み込んで `claude -p` に渡し、対象の implementation-plan.md をコンテキストとして渡した結果を `.specs/` 配下に出力する。
+プロンプトファイルを `cat` で読み込んで `claude -p` に渡し、対象の implementation-plan.md をコンテキストとして渡した結果を `.plugin-workspace/.specs/` 配下に出力する。
 
 ```bash
-claude -p "$(cat .specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt)" .specs/{nnn}-{feature-name}/implementation-plan.md > .specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md
+claude -p "$(cat .plugin-workspace/.specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt)" .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.md > .plugin-workspace/.specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md
 ```
 
 ### ループ処理
@@ -351,12 +351,12 @@ claude -p "$(cat .specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt)" .spe
 
 生成したファイルをユーザーに提示:
 
-1. **specフォルダパス**: `.specs/{nnn}-{feature-name}/` を明示
+1. **specフォルダパス**: `.plugin-workspace/.specs/{nnn}-{feature-name}/` を明示
 2. 生成ファイル一覧（各ファイルのフルパス）:
-   - `.specs/{nnn}-{feature-name}/hearing-notes.md`
-   - `.specs/{nnn}-{feature-name}/exploration-report.md`
-   - `.specs/{nnn}-{feature-name}/implementation-plan.md`
-   - `.specs/{nnn}-{feature-name}/tasks.md`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.md`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/tasks.md`
 3. implementation-plan.md の内容サマリー
 4. tasks.md のタスク一覧
 5. 「修正が必要な場合はお知らせください」
@@ -368,7 +368,7 @@ claude -p "$(cat .specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt)" .spe
 ユーザーから実装開始の許可を得たら、PLANNINGファイルを削除して実装フェーズに移行する。
 
 ```bash
-rm .specs/{nnn}-{feature-name}/PLANNING
+rm .plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING
 ```
 
 **注意**: PLANNINGファイル削除前に実装コードを書いてはならない。
@@ -376,7 +376,7 @@ rm .specs/{nnn}-{feature-name}/PLANNING
 ## 出力ディレクトリ
 
 ```
-.specs/
+.plugin-workspace/.specs/
 └── {nnn}-{feature-name}/
     ├── PLANNING                 # 計画中は存在、実装開始時に削除
     ├── hearing-notes.md         # ヒアリング結果（オーケストレーター生成）
@@ -389,5 +389,5 @@ rm .specs/{nnn}-{feature-name}/PLANNING
         └── ...
 ```
 
-`{nnn}` は `.specs/` 内の既存フォルダ数に基づく3桁の連番（001, 002, 003...）
+`{nnn}` は `.plugin-workspace/.specs/` 内の既存フォルダ数に基づく3桁の連番（001, 002, 003...）
 `{feature-name}` はケバブケースで命名（例: `001-user-authentication`, `002-block-button`）

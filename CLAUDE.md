@@ -29,11 +29,11 @@ plugins/spec-plugin/
 
 ## 主要コンセプト
 
-- **PLANNINGファイル**: `.specs/{nnn}-{feature}/PLANNING` が存在する間は計画フェーズ。フックにより実装（`.specs/` 外への書き込み）がブロックされる
-- **ガードファイル**: `.specs/.guard/{SESSION_ID}` でセッション単位のフェーズ保護を行う
+- **PLANNINGファイル**: `.plugin-workspace/.specs/{nnn}-{feature}/PLANNING` が存在する間は計画フェーズ。フックにより実装（`.plugin-workspace/.specs/` 外への書き込み）がブロックされる
+- **ガードファイル**: `.plugin-workspace/.specs/.guard/{SESSION_ID}` でセッション単位のフェーズ保護を行う
 - **システム図の必須化**: `enforce-diagrams.sh` が実装計画・設計書に状態遷移図とデータフロー図が含まれているかを検証する
 - **タスク進捗**: `tasks.md` 内の `□`（未完了）/ `■`（完了）で進捗を管理する
-- **自動アーカイブ**: セッション終了時、PLANNINGファイルのない spec フォルダは `.specs/archive/` に移動される
+- **自動アーカイブ**: セッション終了時、PLANNINGファイルのない spec フォルダは `.plugin-workspace/.specs/archive/` に移動される
 
 ## レビューバリアント
 

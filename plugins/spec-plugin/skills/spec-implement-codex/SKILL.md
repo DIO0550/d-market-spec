@@ -1,14 +1,14 @@
 ---
 name: spec-implement-codex
-description: .specsの実装計画に沿って実装し、全タスク完了後にCodex CLIで一括コードレビュー。品質重視の実装に最適。
+description: .plugin-workspace/.specsの実装計画に沿って実装し、全タスク完了後にCodex CLIで一括コードレビュー。品質重視の実装に最適。
 disable-model-invocation: true
 argument-hint: "[番号]"
-allowed-tools: Bash(codex *), Bash(mkdir *), Bash(rm .specs/*/PLANNING), Bash(rm .specs/.guard/*)
+allowed-tools: Bash(codex *), Bash(mkdir *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*)
 ---
 
 # Spec Implement (Codex版)
 
-番号指定で `.specs/{nnn}-{feature-name}/` の実装計画に沿って実装を進めるスキル。
+番号指定で `.plugin-workspace/.specs/{nnn}-{feature-name}/` の実装計画に沿って実装を進めるスキル。
 全タスクの実装完了後に **Codex CLI** で一括コードレビューを行い、品質を担保する。
 
 ## ワークフロー
@@ -16,7 +16,7 @@ allowed-tools: Bash(codex *), Bash(mkdir *), Bash(rm .specs/*/PLANNING), Bash(rm
 ```
 1. ユーザーが番号を指定して実行
    ↓
-2. .specs/ から {nnn}-* にマッチするフォルダを特定
+2. .plugin-workspace/.specs/ から {nnn}-* にマッチするフォルダを特定
    ↓
 3. implementation-plan.md を読み込み、変更内容を把握
    ↓
@@ -33,10 +33,10 @@ allowed-tools: Bash(codex *), Bash(mkdir *), Bash(rm .specs/*/PLANNING), Bash(rm
 
 ## Step 1: specフォルダの特定
 
-指定された番号 `$0` を使い、`.specs/` 配下からマッチするフォルダを検索する。
+指定された番号 `$0` を使い、`.plugin-workspace/.specs/` 配下からマッチするフォルダを検索する。
 
 ```bash
-spec_dir=$(ls -1d .specs/$0-* 2>/dev/null | head -1)
+spec_dir=$(ls -1d .plugin-workspace/.specs/$0-* 2>/dev/null | head -1)
 ```
 
 - マッチするフォルダが見つからない場合はエラーメッセージを表示して終了
@@ -44,7 +44,7 @@ spec_dir=$(ls -1d .specs/$0-* 2>/dev/null | head -1)
 
 ## Step 2: implementation-plan.md の読み込み
 
-`.specs/{nnn}-{feature-name}/implementation-plan.md` を読み込み、以下を把握する：
+`.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.md` を読み込み、以下を把握する：
 
 - 変更対象ファイル（`[NEW]` `[MODIFY]` `[DELETE]`）
 - 設計方針
@@ -59,7 +59,7 @@ Issue番号が記載されていない場合はスキップする。
 
 ## Step 3: tasks.md の読み込み
 
-`.specs/{nnn}-{feature-name}/tasks.md` を読み込み、タスク状態を確認する。
+`.plugin-workspace/.specs/{nnn}-{feature-name}/tasks.md` を読み込み、タスク状態を確認する。
 
 ### タスク状態の判定
 
@@ -108,17 +108,17 @@ tasks.md の未完了タスク（`□`）をすべて TaskCreate で登録し、
 ### レビュー結果の保存先
 
 ```bash
-mkdir -p .specs/{nnn}-{feature-name}/code-review
+mkdir -p .plugin-workspace/.specs/{nnn}-{feature-name}/code-review
 ```
 
-レビュー結果は `.specs/{nnn}-{feature-name}/code-review/review-{NNN}.md` に保存する。
+レビュー結果は `.plugin-workspace/.specs/{nnn}-{feature-name}/code-review/review-{NNN}.md` に保存する。
 `{NNN}` は3桁の連番（001, 002, 003...）。タスクをまたいで通し番号とする。
 
 ### コンテキストファイルの組み立て
 
 レビュー実行前に、Writeツールで以下の2ファイルを作成する。`{NNN}` は `review-{NNN}.md` と同じ連番。再レビュー時はインクリメントする。
 
-**`.specs/{nnn}-{feature-name}/code-review/context-{NNN}.md`**:
+**`.plugin-workspace/.specs/{nnn}-{feature-name}/code-review/context-{NNN}.md`**:
 
 以下の内容を結合して書き出す:
 1. `## 実装計画` + implementation-plan.md の内容
@@ -126,7 +126,7 @@ mkdir -p .specs/{nnn}-{feature-name}/code-review
 3. `## 変更されたファイル` + `git diff --name-only` の結果
 4. `## 変更内容` + `git diff` の結果
 
-**`.specs/{nnn}-{feature-name}/code-review/prompt-{NNN}.txt`**:
+**`.plugin-workspace/.specs/{nnn}-{feature-name}/code-review/prompt-{NNN}.txt`**:
 
 以下のレビュー指示文を書き出す。コンテキストファイルのパスを含め、codex に参照させる:
 
@@ -136,7 +136,7 @@ mkdir -p .specs/{nnn}-{feature-name}/code-review
 【重要】ファイルの作成・編集は一切行わないでください。レビュー結果は標準出力のみで回答してください。
 
 ## レビュー対象
-.specs/{nnn}-{feature-name}/code-review/context-{NNN}.md を読み込んでレビューしてください。
+.plugin-workspace/.specs/{nnn}-{feature-name}/code-review/context-{NNN}.md を読み込んでレビューしてください。
 
 ## レビュー観点
 1. 実装計画との整合性: 計画通りに実装されているか
@@ -151,10 +151,10 @@ mkdir -p .specs/{nnn}-{feature-name}/code-review
 
 ### レビュー実行
 
-プロンプトファイルを `cat` で読み込んで `codex exec` に渡し、結果を `.specs/` 配下に出力する。
+プロンプトファイルを `cat` で読み込んで `codex exec` に渡し、結果を `.plugin-workspace/.specs/` 配下に出力する。
 
 ```bash
-codex exec --cd "$PWD" --dangerously-bypass-approvals-and-sandbox "$(cat .specs/{nnn}-{feature-name}/code-review/prompt-{NNN}.txt)" > .specs/{nnn}-{feature-name}/code-review/review-{NNN}.md
+codex exec --cd "$PWD" --dangerously-bypass-approvals-and-sandbox "$(cat .plugin-workspace/.specs/{nnn}-{feature-name}/code-review/prompt-{NNN}.txt)" > .plugin-workspace/.specs/{nnn}-{feature-name}/code-review/review-{NNN}.md
 ```
 
 ### ループ処理
@@ -175,9 +175,9 @@ PLANNINGファイルには計画時のセッションIDが記録されている�
 
 ```bash
 # PLANNINGファイルからセッションIDを読み取り、ガードファイルを削除
-guard_session=$(cat .specs/{nnn}-{feature-name}/PLANNING 2>/dev/null)
-rm .specs/{nnn}-{feature-name}/PLANNING
-rm -f ".specs/.guard/$guard_session" 2>/dev/null
+guard_session=$(cat .plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING 2>/dev/null)
+rm .plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING
+rm -f ".plugin-workspace/.specs/.guard/$guard_session" 2>/dev/null
 ```
 
 PLANNINGファイルが存在しない場合はスキップする。

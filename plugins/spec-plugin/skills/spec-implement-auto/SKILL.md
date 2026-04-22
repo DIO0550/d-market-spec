@@ -1,14 +1,14 @@
 ---
 name: spec-implement-auto
-description: .specsの実装計画に沿ってタスクを順番に実装する（自動コンテキスト注入版）。起動時にimplementation-plan.mdとtasks.mdをシェルで強制読み込みし、確実にコンテキストに載せる。
+description: .plugin-workspace/.specsの実装計画に沿ってタスクを順番に実装する（自動コンテキスト注入版）。起動時にimplementation-plan.mdとtasks.mdをシェルで強制読み込みし、確実にコンテキストに載せる。
 disable-model-invocation: true
 argument-hint: "[番号]"
-allowed-tools: Bash(cat .specs/*), Bash(ls .specs/*), Bash(grep *), Bash(rm .specs/*/PLANNING), Bash(rm .specs/.guard/*)
+allowed-tools: Bash(cat .plugin-workspace/.specs/*), Bash(ls .plugin-workspace/.specs/*), Bash(grep *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*)
 ---
 
 # Spec Implement (Auto-Inject版)
 
-番号指定で `.specs/{nnn}-{feature-name}/` の実装計画に沿って実装を進めるスキル。
+番号指定で `.plugin-workspace/.specs/{nnn}-{feature-name}/` の実装計画に沿って実装を進めるスキル。
 起動時にシェルで計画・タスクを**強制注入**し、AIの判断に依存しない決定論的なコンテキスト読み込みを行う。
 
 ## Pre-flight: 実装計画の強制注入
@@ -18,21 +18,21 @@ allowed-tools: Bash(cat .specs/*), Bash(ls .specs/*), Bash(grep *), Bash(rm .spe
 （この注入内容は AutoCompact で失われる可能性があるため）。
 
 ### 対象spec
-!`ls -1d .specs/$0-* 2>/dev/null | head -1`
+!`ls -1d .plugin-workspace/.specs/$0-* 2>/dev/null | head -1`
 
 ### PLANNING状態
-!`ls .specs/$0-*/PLANNING > /dev/null 2>&1 && echo "⚠️ 計画中(実装禁止)。計画フェーズに戻ってください。" || echo "✅ 実装可能"`
+!`ls .plugin-workspace/.specs/$0-*/PLANNING > /dev/null 2>&1 && echo "⚠️ 計画中(実装禁止)。計画フェーズに戻ってください。" || echo "✅ 実装可能"`
 
 ### implementation-plan.md (全文)
 
-!`cat .specs/$0-*/implementation-plan.md 2>/dev/null || echo "FILE_NOT_FOUND"`
+!`cat .plugin-workspace/.specs/$0-*/implementation-plan.md 2>/dev/null || echo "FILE_NOT_FOUND"`
 
 ### tasks.md (全文)
 
-!`cat .specs/$0-*/tasks.md 2>/dev/null || echo "FILE_NOT_FOUND"`
+!`cat .plugin-workspace/.specs/$0-*/tasks.md 2>/dev/null || echo "FILE_NOT_FOUND"`
 
 ### 未完了タスク数
-!`grep -c '□' .specs/$0-*/tasks.md 2>/dev/null || echo "0"`
+!`grep -c '□' .plugin-workspace/.specs/$0-*/tasks.md 2>/dev/null || echo "0"`
 
 ---
 
@@ -106,9 +106,9 @@ tasks.md の未完了タスク（`□`）をすべて TaskCreate で登録し、
 PLANNINGファイルには計画時のセッションIDが記録されている。これを読み取り、対応するガードファイルも削除する。
 
 ```bash
-guard_session=$(cat .specs/{nnn}-{feature-name}/PLANNING 2>/dev/null)
-rm .specs/{nnn}-{feature-name}/PLANNING
-rm -f ".specs/.guard/$guard_session" 2>/dev/null
+guard_session=$(cat .plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING 2>/dev/null)
+rm .plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING
+rm -f ".plugin-workspace/.specs/.guard/$guard_session" 2>/dev/null
 ```
 
 PLANNINGファイルが存在しない場合はスキップする。
@@ -137,8 +137,8 @@ implementation-plan.md の "Definition of Done" セクションを読み込み�
 
 会話の流れで「要約された」「以前の会話」という言及や、計画の詳細が曖昧になった感覚がある場合、**次のアクションの前に以下を実行**する。
 
-1. Read `.specs/{nnn}-*/implementation-plan.md` で計画を再ロード
-2. Read `.specs/{nnn}-*/tasks.md` で現在の進捗を再ロード
+1. Read `.plugin-workspace/.specs/{nnn}-*/implementation-plan.md` で計画を再ロード
+2. Read `.plugin-workspace/.specs/{nnn}-*/tasks.md` で現在の進捗を再ロード
 3. TaskGet で作業中タスクの状態を確認
 4. 上記3点が揃ってから次のアクションに進む
 

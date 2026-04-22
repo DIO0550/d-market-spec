@@ -2,7 +2,7 @@
 name: spec-driven-dev
 description: 仕様策定ワークフローの標準版。AIレビューを省略して素早く実装計画を生成する。
 disable-model-invocation: true
-allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(rm .specs/*/PLANNING), Bash(rm .specs/.guard/*)
+allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*)
 ---
 
 # Spec-Driven Development
@@ -27,7 +27,7 @@ Step 1 が完了するまで、他の一切のアクションを取ってはな�
 計画フェーズ中にAutoCompactが発生すると、コンテキストが要約され意図しない実装が始まる可能性がある。
 これを防ぐため、**PLANNINGファイル**を使用して計画中であることを明示する。
 
-- `.specs/{nnn}-{feature-name}/PLANNING` ファイルが存在する間は**計画フェーズ**
+- `.plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING` ファイルが存在する間は**計画フェーズ**
 - AutoCompact時にPreCompact hookがPLANNINGファイルを検出し、警告を出力
 - **PLANNINGファイルがある限り、絶対にコードを実装しない**
 
@@ -55,10 +55,10 @@ Step 1 が完了するまで、他の一切のアクションを取ってはな�
 
 ### 1-a. 次のspec番号を算出
 
-`.specs/` と `.specs/archive/` の両方をスキャンし、最大番号+1 をゼロ埋め3桁で `$next_num` にセットする。
+`.plugin-workspace/.specs/` と `.plugin-workspace/.specs/archive/` の両方をスキャンし、最大番号+1 をゼロ埋め3桁で `$next_num` にセットする。
 
 ```bash
-next_num=$(ls -1d .specs/[0-9][0-9][0-9]-* .specs/archive/[0-9][0-9][0-9]-* 2>/dev/null | sed 's|.*/\([0-9]\{3\}\)-.*|\1|' | sort -rn | head -1)
+next_num=$(ls -1d .plugin-workspace/.specs/[0-9][0-9][0-9]-* .plugin-workspace/.specs/archive/[0-9][0-9][0-9]-* 2>/dev/null | sed 's|.*/\([0-9]\{3\}\)-.*|\1|' | sort -rn | head -1)
 next_num=$(printf "%03d" $(( 10#${next_num:-0} + 1 )))
 ```
 
@@ -67,24 +67,24 @@ next_num=$(printf "%03d" $(( 10#${next_num:-0} + 1 )))
 `{feature-name}` は実際の機能名（kebab-case）に置き換えてコマンドを発行する。
 
 ```bash
-mkdir -p .specs/${next_num}-{feature-name}
-echo "${CLAUDE_SESSION_ID}" > .specs/${next_num}-{feature-name}/PLANNING
+mkdir -p .plugin-workspace/.specs/${next_num}-{feature-name}
+echo "${CLAUDE_SESSION_ID}" > .plugin-workspace/.specs/${next_num}-{feature-name}/PLANNING
 ```
 
 ### 1-c. ガードファイル作成
 
 ```bash
-mkdir -p .specs/.guard && touch .specs/.guard/${CLAUDE_SESSION_ID}
+mkdir -p .plugin-workspace/.specs/.guard && touch .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID}
 ```
 
-作成されるディレクトリは例: `.specs/003-user-auth`。
+作成されるディレクトリは例: `.plugin-workspace/.specs/003-user-auth`。
 
 **重要**: PLANNINGファイルが存在する間は計画フェーズであり、コードの実装は禁止。
-**ガード**: `.specs/.guard/${CLAUDE_SESSION_ID}` が存在する間、このセッションでは `.specs/` 以外への書き込みがhookによりブロックされる。
+**ガード**: `.plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID}` が存在する間、このセッションでは `.plugin-workspace/.specs/` 以外への書き込みがhookによりブロックされる。
 
 ## Step 2: ヒアリング → hearing-notes.md 書き出し
 
-ユーザーの要求を受けたら、AskUserQuestion で質問し、結果を `.specs/{nnn}-{feature-name}/hearing-notes.md` に書き出す。
+ユーザーの要求を受けたら、AskUserQuestion で質問し、結果を `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md` に書き出す。
 
 一度に1-4個の質問をまとめて聞く。
 
@@ -114,7 +114,7 @@ mkdir -p .specs/.guard && touch .specs/.guard/${CLAUDE_SESSION_ID}
 ヒアリング完了後、テンプレートに沿って結果をファイルに書き出す。
 
 テンプレート: `assets/templates/hearing-notes.md`
-出力先: `.specs/{nnn}-{feature-name}/hearing-notes.md`
+出力先: `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md`
 
 ## Step 3: コードベース探索（codebase-explorer サブエージェントに委譲）
 
@@ -137,7 +137,7 @@ Task tool:
   run_in_background: true
   prompt: |
     あなたはcodebase-explorerエージェントです。
-    .specs/{nnn}-{feature-name}/hearing-notes.md を読み込み、
+    .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md を読み込み、
     その目的・スコープに基づいてコードベースを探索してください。
 
     ## 探索ヒント（オーケストレーターが抽出）
@@ -153,7 +153,7 @@ Task tool:
     spec-driven-dev:exploration-report
 
     ## 出力先
-    .specs/{nnn}-{feature-name}/exploration-report.md
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md
 ```
 
 `{...}` はオーケストレーターが hearing-notes.md の内容に基づいて埋める。
@@ -189,7 +189,7 @@ Task tool:
     前回の探索レポートが品質基準に達していないため、補完探索を行います。
 
     ## 前回のレポート
-    .specs/{nnn}-{feature-name}/exploration-report.md
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md
 
     ## 不足している項目
     {具体的な不足項目を列挙}
@@ -205,7 +205,7 @@ Task tool:
     spec-driven-dev:exploration-perspectives
 
     ## 出力先
-    .specs/{nnn}-{feature-name}/exploration-report.md（上書き更新）
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md（上書き更新）
 ```
 
 ```
@@ -269,16 +269,16 @@ Task tool:
     以下のファイルを読み込み、implementation-plan.md と tasks.md を生成してください。
 
     ## 入力
-    - .specs/{nnn}-{feature-name}/hearing-notes.md
-    - .specs/{nnn}-{feature-name}/exploration-report.md
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md
 
     ## テンプレート
     - spec-driven-dev:implementation-plan
     - spec-driven-dev:tasks
 
     ## 出力先
-    - .specs/{nnn}-{feature-name}/implementation-plan.md
-    - .specs/{nnn}-{feature-name}/tasks.md
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.md
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/tasks.md
 
     ## 重要
     - システム図（状態マシン図 + データフロー図）は必須。省略禁止。ASCII罫線図を優先。
@@ -300,12 +300,12 @@ TaskOutput:
 
 生成したファイルをユーザーに提示:
 
-1. **specフォルダパス**: `.specs/{nnn}-{feature-name}/` を明示
+1. **specフォルダパス**: `.plugin-workspace/.specs/{nnn}-{feature-name}/` を明示
 2. 生成ファイル一覧（各ファイルのフルパス）:
-   - `.specs/{nnn}-{feature-name}/hearing-notes.md`
-   - `.specs/{nnn}-{feature-name}/exploration-report.md`
-   - `.specs/{nnn}-{feature-name}/implementation-plan.md`
-   - `.specs/{nnn}-{feature-name}/tasks.md`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.md`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/tasks.md`
 3. implementation-plan.md の内容サマリー
 4. tasks.md のタスク一覧
 5. 「修正が必要な場合はお知らせください」
@@ -322,7 +322,7 @@ TaskOutput:
 ```
 ユーザーへの案内:
   実装を開始するには、以下のコマンドを実行してください:
-  rm .specs/.guard/${CLAUDE_SESSION_ID} .specs/{nnn}-{feature-name}/PLANNING
+  rm .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID} .plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING
 ```
 
 **注意**: ガードファイルはhookにより自動削除がブロックされる。必ずユーザーが手動で削除すること。
@@ -331,7 +331,7 @@ TaskOutput:
 ## 出力ディレクトリ
 
 ```
-.specs/
+.plugin-workspace/.specs/
 └── {nnn}-{feature-name}/
     ├── PLANNING                 # 計画中は存在、実装開始時に削除
     ├── hearing-notes.md         # ヒアリング結果（オーケストレーター生成）
@@ -340,5 +340,5 @@ TaskOutput:
     └── tasks.md                 # タスクリスト（spec-planner 生成）
 ```
 
-`{nnn}` は `.specs/` 内の既存フォルダ数に基づく3桁の連番（001, 002, 003...）
+`{nnn}` は `.plugin-workspace/.specs/` 内の既存フォルダ数に基づく3桁の連番（001, 002, 003...）
 `{feature-name}` はケバブケースで命名（例: `001-user-authentication`, `002-block-button`）

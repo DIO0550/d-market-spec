@@ -81,7 +81,7 @@ Claude Code の設定で本プラグインのパスを追加してください�
 
 | フック | タイミング | 説明 |
 |--------|-----------|------|
-| `guard-planning-writes.sh` | PreToolUse | 計画フェーズ中の `.specs/` 外への書き込みをブロック |
+| `guard-planning-writes.sh` | PreToolUse | 計画フェーズ中の `.plugin-workspace/.specs/` 外への書き込みをブロック |
 | `auto-allow-spec-commands.sh` | PreToolUse | spec フォルダ番号取得コマンドの自動許可 |
 | `enforce-diagrams.sh` | PostToolUse | 実装計画・設計書にシステム図が含まれているか検証 |
 | PreCompact | PreCompact | 計画中のコンテキスト圧縮時に実装禁止を警告 |
@@ -90,7 +90,7 @@ Claude Code の設定で本プラグインのパスを追加してください�
 ## 生成されるディレクトリ構造
 
 ```
-.specs/
+.plugin-workspace/.specs/
 ├── {nnn}-{feature-name}/
 │   ├── PLANNING                    # 計画フェーズ中マーカー
 │   ├── hearing-notes.md            # ヒアリング記録

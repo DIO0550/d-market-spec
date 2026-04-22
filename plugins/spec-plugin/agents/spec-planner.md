@@ -20,11 +20,11 @@ color: orange
 
 ## 入力ファイル
 
-プロンプトで指定された `.specs/{nnn}-{feature-name}/` ディレクトリから以下を読み込む：
+プロンプトで指定された `.plugin-workspace/.specs/{nnn}-{feature-name}/` ディレクトリから以下を読み込む：
 
 ```
-Read: .specs/{nnn}-{feature-name}/hearing-notes.md
-Read: .specs/{nnn}-{feature-name}/exploration-report.md
+Read: .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md
+Read: .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md
 ```
 
 ## ワークフロー
@@ -259,7 +259,7 @@ Task: {目的}
 ## 出力
 
 ```
-.specs/{nnn}-{feature-name}/
+.plugin-workspace/.specs/{nnn}-{feature-name}/
 ├── implementation-plan.md   # 実装計画（システム図必須）
 └── tasks.md                 # タスクリスト
 ```
@@ -273,6 +273,6 @@ Task: {目的}
 
 ## 完了条件
 
-- `.specs/{nnn}-{feature-name}/implementation-plan.md` が生成されていること（システム図含む）
-- `.specs/{nnn}-{feature-name}/tasks.md` が生成されていること
+- `.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.md` が生成されていること（システム図含む）
+- `.plugin-workspace/.specs/{nnn}-{feature-name}/tasks.md` が生成されていること
 - 完了チェックリストがすべて満たされていること

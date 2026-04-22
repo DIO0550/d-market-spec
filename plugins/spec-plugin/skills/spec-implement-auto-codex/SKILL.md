@@ -1,14 +1,14 @@
 ---
 name: spec-implement-auto-codex
-description: .specsの実装計画に沿って実装し、全タスク完了後にCodex CLIで一括コードレビュー（自動コンテキスト注入版）。
+description: .plugin-workspace/.specsの実装計画に沿って実装し、全タスク完了後にCodex CLIで一括コードレビュー（自動コンテキスト注入版）。
 disable-model-invocation: true
 argument-hint: "[番号]"
-allowed-tools: Bash(cat .specs/*), Bash(ls .specs/*), Bash(grep *), Bash(codex *), Bash(mkdir *), Bash(rm .specs/*/PLANNING), Bash(rm .specs/.guard/*)
+allowed-tools: Bash(cat .plugin-workspace/.specs/*), Bash(ls .plugin-workspace/.specs/*), Bash(grep *), Bash(codex *), Bash(mkdir *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*)
 ---
 
 # Spec Implement (Auto-Inject + Codex版)
 
-番号指定で `.specs/{nnn}-{feature-name}/` の実装計画に沿って実装を進めるスキル。
+番号指定で `.plugin-workspace/.specs/{nnn}-{feature-name}/` の実装計画に沿って実装を進めるスキル。
 起動時にシェルで計画・タスクを**強制注入**し、全タスク完了後に **Codex CLI** で一括コードレビューを行う。
 
 ## Pre-flight: 実装計画の強制注入
@@ -18,21 +18,21 @@ allowed-tools: Bash(cat .specs/*), Bash(ls .specs/*), Bash(grep *), Bash(codex *
 （この注入内容は AutoCompact で失われる可能性があるため）。
 
 ### 対象spec
-!`ls -1d .specs/$0-* 2>/dev/null | head -1`
+!`ls -1d .plugin-workspace/.specs/$0-* 2>/dev/null | head -1`
 
 ### PLANNING状態
-!`ls .specs/$0-*/PLANNING > /dev/null 2>&1 && echo "⚠️ 計画中(実装禁止)。計画フェーズに戻ってください。" || echo "✅ 実装可能"`
+!`ls .plugin-workspace/.specs/$0-*/PLANNING > /dev/null 2>&1 && echo "⚠️ 計画中(実装禁止)。計画フェーズに戻ってください。" || echo "✅ 実装可能"`
 
 ### implementation-plan.md (全文)
 
-!`cat .specs/$0-*/implementation-plan.md 2>/dev/null || echo "FILE_NOT_FOUND"`
+!`cat .plugin-workspace/.specs/$0-*/implementation-plan.md 2>/dev/null || echo "FILE_NOT_FOUND"`
 
 ### tasks.md (全文)
 
-!`cat .specs/$0-*/tasks.md 2>/dev/null || echo "FILE_NOT_FOUND"`
+!`cat .plugin-workspace/.specs/$0-*/tasks.md 2>/dev/null || echo "FILE_NOT_FOUND"`
 
 ### 未完了タスク数
-!`grep -c '□' .specs/$0-*/tasks.md 2>/dev/null || echo "0"`
+!`grep -c '□' .plugin-workspace/.specs/$0-*/tasks.md 2>/dev/null || echo "0"`
 
 ---
 
@@ -109,17 +109,17 @@ tasks.md の未完了タスク（`□`）をすべて TaskCreate で登録し、
 ### レビュー結果の保存先
 
 ```bash
-mkdir -p .specs/{nnn}-{feature-name}/code-review
+mkdir -p .plugin-workspace/.specs/{nnn}-{feature-name}/code-review
 ```
 
-レビュー結果は `.specs/{nnn}-{feature-name}/code-review/review-{NNN}.md` に保存する。
+レビュー結果は `.plugin-workspace/.specs/{nnn}-{feature-name}/code-review/review-{NNN}.md` に保存する。
 `{NNN}` は3桁の連番（001, 002, 003...）。タスクをまたいで通し番号とする。
 
 ### コンテキストファイルの組み立て
 
 レビュー実行前に、Writeツールで以下の2ファイルを作成する。`{NNN}` は `review-{NNN}.md` と同じ連番。再レビュー時はインクリメントする。
 
-**`.specs/{nnn}-{feature-name}/code-review/context-{NNN}.md`**:
+**`.plugin-workspace/.specs/{nnn}-{feature-name}/code-review/context-{NNN}.md`**:
 
 以下の内容を結合して書き出す:
 1. `## 実装計画` + implementation-plan.md の内容
@@ -127,7 +127,7 @@ mkdir -p .specs/{nnn}-{feature-name}/code-review
 3. `## 変更されたファイル` + `git diff --name-only` の結果
 4. `## 変更内容` + `git diff` の結果
 
-**`.specs/{nnn}-{feature-name}/code-review/prompt-{NNN}.txt`**:
+**`.plugin-workspace/.specs/{nnn}-{feature-name}/code-review/prompt-{NNN}.txt`**:
 
 以下のレビュー指示文を書き出す。コンテキストファイルのパスを含め、codex に参照させる:
 
@@ -137,7 +137,7 @@ mkdir -p .specs/{nnn}-{feature-name}/code-review
 【重要】ファイルの作成・編集は一切行わないでください。レビュー結果は標準出力のみで回答してください。
 
 ## レビュー対象
-.specs/{nnn}-{feature-name}/code-review/context-{NNN}.md を読み込んでレビューしてください。
+.plugin-workspace/.specs/{nnn}-{feature-name}/code-review/context-{NNN}.md を読み込んでレビューしてください。
 
 ## レビュー観点
 1. 実装計画との整合性: 計画通りに実装されているか
@@ -152,10 +152,10 @@ mkdir -p .specs/{nnn}-{feature-name}/code-review
 
 ### レビュー実行
 
-プロンプトファイルを `cat` で読み込んで `codex exec` に渡し、結果を `.specs/` 配下に出力する。
+プロンプトファイルを `cat` で読み込んで `codex exec` に渡し、結果を `.plugin-workspace/.specs/` 配下に出力する。
 
 ```bash
-codex exec --cd "$PWD" --dangerously-bypass-approvals-and-sandbox "$(cat .specs/{nnn}-{feature-name}/code-review/prompt-{NNN}.txt)" > .specs/{nnn}-{feature-name}/code-review/review-{NNN}.md
+codex exec --cd "$PWD" --dangerously-bypass-approvals-and-sandbox "$(cat .plugin-workspace/.specs/{nnn}-{feature-name}/code-review/prompt-{NNN}.txt)" > .plugin-workspace/.specs/{nnn}-{feature-name}/code-review/review-{NNN}.md
 ```
 
 ### ループ処理
@@ -175,9 +175,9 @@ codex exec --cd "$PWD" --dangerously-bypass-approvals-and-sandbox "$(cat .specs/
 PLANNINGファイルには計画時のセッションIDが記録されている。これを読み取り、対応するガードファイルも削除する。
 
 ```bash
-guard_session=$(cat .specs/{nnn}-{feature-name}/PLANNING 2>/dev/null)
-rm .specs/{nnn}-{feature-name}/PLANNING
-rm -f ".specs/.guard/$guard_session" 2>/dev/null
+guard_session=$(cat .plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING 2>/dev/null)
+rm .plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING
+rm -f ".plugin-workspace/.specs/.guard/$guard_session" 2>/dev/null
 ```
 
 PLANNINGファイルが存在しない場合はスキップする。
@@ -207,8 +207,8 @@ implementation-plan.md の "Definition of Done" セクションを読み込み�
 
 会話の流れで「要約された」「以前の会話」という言及や、計画の詳細が曖昧になった感覚がある場合、**次のアクションの前に以下を実行**する。
 
-1. Read `.specs/{nnn}-*/implementation-plan.md` で計画を再ロード
-2. Read `.specs/{nnn}-*/tasks.md` で現在の進捗を再ロード
+1. Read `.plugin-workspace/.specs/{nnn}-*/implementation-plan.md` で計画を再ロード
+2. Read `.plugin-workspace/.specs/{nnn}-*/tasks.md` で現在の進捗を再ロード
 3. TaskGet で作業中タスクの状態を確認
 4. 上記3点が揃ってから次のアクションに進む
 

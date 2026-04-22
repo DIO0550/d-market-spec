@@ -55,18 +55,18 @@ spec-driven-dev:question-patterns
 
 ## ⚠️ PLANNINGファイルによる計画フェーズ管理
 
-- ヒアリング開始前に `.specs/{nnn}-{feature-name}/PLANNING` ファイルを作成する
+- ヒアリング開始前に `.plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING` ファイルを作成する
 - **PLANNINGファイルが存在する間は計画フェーズであり、コードの実装は禁止**
 - ユーザーから実装開始の許可を得たら削除して実装フェーズに移行
 
 ```bash
-next_num=$(printf "%03d" $(( $(ls -1d .specs/[0-9][0-9][0-9]-* .specs/archive/[0-9][0-9][0-9]-* 2>/dev/null | sed 's|.*/\([0-9]\{3\}\)-.*|\1|' | sort -rn | head -1 | sed 's/^0*//; s/^$/0/') + 1 )))
-mkdir -p .specs/${next_num}-{feature-name} && touch .specs/${next_num}-{feature-name}/PLANNING
+next_num=$(printf "%03d" $(( $(ls -1d .plugin-workspace/.specs/[0-9][0-9][0-9]-* .plugin-workspace/.specs/archive/[0-9][0-9][0-9]-* 2>/dev/null | sed 's|.*/\([0-9]\{3\}\)-.*|\1|' | sort -rn | head -1 | sed 's/^0*//; s/^$/0/') + 1 )))
+mkdir -p .plugin-workspace/.specs/${next_num}-{feature-name} && touch .plugin-workspace/.specs/${next_num}-{feature-name}/PLANNING
 ```
 
 ## Step 1: ヒアリング → hearing-notes.md 書き出し
 
-AskUserQuestion でヒアリングし、結果を `.specs/{nnn}-{feature-name}/hearing-notes.md` に書き出す。
+AskUserQuestion でヒアリングし、結果を `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md` に書き出す。
 
 一度に1-4個の質問をまとめて聞く。
 
@@ -91,7 +91,7 @@ AskUserQuestion でヒアリングし、結果を `.specs/{nnn}-{feature-name}/h
 ヒアリング完了後、テンプレートに沿って結果をファイルに書き出す。
 
 テンプレート: `spec-driven-dev:hearing-notes`
-出力先: `.specs/{nnn}-{feature-name}/hearing-notes.md`
+出力先: `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md`
 
 ## Step 2: codebase-explorer サブエージェント起動
 
@@ -104,7 +104,7 @@ Task tool:
   run_in_background: true
   prompt: |
     あなたはcodebase-explorerエージェントです。
-    .specs/{nnn}-{feature-name}/hearing-notes.md を読み込み、
+    .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md を読み込み、
     その目的・スコープに基づいてコードベースを探索してください。
 
     ## 参照スキル
@@ -114,7 +114,7 @@ Task tool:
     spec-driven-dev:exploration-report
 
     ## 出力先
-    .specs/{nnn}-{feature-name}/exploration-report.md
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md
 ```
 
 ```
@@ -138,16 +138,16 @@ Task tool:
     以下のファイルを読み込み、implementation-plan.md と tasks.md を生成してください。
 
     ## 入力
-    - .specs/{nnn}-{feature-name}/hearing-notes.md
-    - .specs/{nnn}-{feature-name}/exploration-report.md
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md
 
     ## テンプレート
     - spec-driven-dev:implementation-plan
     - spec-driven-dev:tasks
 
     ## 出力先
-    - .specs/{nnn}-{feature-name}/implementation-plan.md
-    - .specs/{nnn}-{feature-name}/tasks.md
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.md
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/tasks.md
 
     ## 重要
     - システム図（状態マシン図 + データフロー図）は必須。省略禁止。
@@ -176,7 +176,7 @@ TaskOutput:
 ユーザーから実装開始の許可を得たら、PLANNINGファイルを削除して実装フェーズに移行する。
 
 ```bash
-rm .specs/{nnn}-{feature-name}/PLANNING
+rm .plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING
 ```
 
 **注意**: PLANNINGファイル削除前に実装コードを書いてはならない。
@@ -184,7 +184,7 @@ rm .specs/{nnn}-{feature-name}/PLANNING
 ## 出力ディレクトリ
 
 ```
-.specs/
+.plugin-workspace/.specs/
 └── {nnn}-{feature-name}/
     ├── PLANNING                 # 計画中は存在、実装開始時に削除
     ├── hearing-notes.md         # ヒアリング結果（オーケストレーター生成）
@@ -197,7 +197,7 @@ rm .specs/{nnn}-{feature-name}/PLANNING
 
 - AskUserQuestionを使用して対話的にヒアリングを行う
 - 曖昧な点は必ず確認してから進める
-- `{nnn}` は `.specs/` 内の既存フォルダ数に基づく3桁の連番
+- `{nnn}` は `.plugin-workspace/.specs/` 内の既存フォルダ数に基づく3桁の連番
 - `{feature-name}` はケバブケースで命名
 - 生成後は必ずユーザーに確認を取る
 - **他のAIによるレビューは実施しない**

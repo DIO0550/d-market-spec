@@ -1,21 +1,21 @@
 ---
 name: spec-implement
-description: .specsの実装計画に沿ってタスクを順番に実装する。番号を指定すると、該当specのtasks.mdを読み込み、未完了タスクを順次実装していく。
+description: .plugin-workspace/.specsの実装計画に沿ってタスクを順番に実装する。番号を指定すると、該当specのtasks.mdを読み込み、未完了タスクを順次実装していく。
 disable-model-invocation: true
 argument-hint: "[番号]"
-allowed-tools: Bash(rm .specs/*/PLANNING), Bash(rm .specs/.guard/*)
+allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*)
 ---
 
 # Spec Implement
 
-番号指定で `.specs/{nnn}-{feature-name}/` の実装計画に沿って実装を進めるスキル。
+番号指定で `.plugin-workspace/.specs/{nnn}-{feature-name}/` の実装計画に沿って実装を進めるスキル。
 
 ## ワークフロー
 
 ```
 1. ユーザーが `/implement {nnn}` を実行
    ↓
-2. .specs/ から {nnn}-* にマッチするフォルダを特定
+2. .plugin-workspace/.specs/ から {nnn}-* にマッチするフォルダを特定
    ↓
 3. implementation-plan.md を読み込み、変更内容を把握
    ↓
@@ -32,10 +32,10 @@ allowed-tools: Bash(rm .specs/*/PLANNING), Bash(rm .specs/.guard/*)
 
 ## Step 1: specフォルダの特定
 
-指定された番号 `$0` を使い、`.specs/` 配下からマッチするフォルダを検索する。
+指定された番号 `$0` を使い、`.plugin-workspace/.specs/` 配下からマッチするフォルダを検索する。
 
 ```bash
-spec_dir=$(ls -1d .specs/$0-* 2>/dev/null | head -1)
+spec_dir=$(ls -1d .plugin-workspace/.specs/$0-* 2>/dev/null | head -1)
 ```
 
 - マッチするフォルダが見つからない場合はエラーメッセージを表示して終了
@@ -43,7 +43,7 @@ spec_dir=$(ls -1d .specs/$0-* 2>/dev/null | head -1)
 
 ## Step 2: implementation-plan.md の読み込み
 
-`.specs/{nnn}-{feature-name}/implementation-plan.md` を読み込み、以下を把握する：
+`.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.md` を読み込み、以下を把握する：
 
 - 変更対象ファイル（`[NEW]` `[MODIFY]` `[DELETE]`）
 - 設計方針
@@ -58,7 +58,7 @@ Issue番号が記載されていない場合はスキップする。
 
 ## Step 3: tasks.md の読み込み
 
-`.specs/{nnn}-{feature-name}/tasks.md` を読み込み、タスク状態を確認する。
+`.plugin-workspace/.specs/{nnn}-{feature-name}/tasks.md` を読み込み、タスク状態を確認する。
 
 ### タスク状態の判定
 
@@ -107,9 +107,9 @@ PLANNINGファイルには計画時のセッションIDが記録されている�
 
 ```bash
 # PLANNINGファイルからセッションIDを読み取り、ガードファイルを削除
-guard_session=$(cat .specs/{nnn}-{feature-name}/PLANNING 2>/dev/null)
-rm .specs/{nnn}-{feature-name}/PLANNING
-rm -f ".specs/.guard/$guard_session" 2>/dev/null
+guard_session=$(cat .plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING 2>/dev/null)
+rm .plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING
+rm -f ".plugin-workspace/.specs/.guard/$guard_session" 2>/dev/null
 ```
 
 PLANNINGファイルが存在しない場合はスキップする。

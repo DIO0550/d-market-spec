@@ -78,7 +78,7 @@ implementation-plan:implementation-plan-template
 実装設計書を以下の構造で生成します：
 
 ```
-.specs/
+.plugin-workspace/.specs/
 └── {nnn}-{feature-name}/
     └── implementation-plan.md
 ```
@@ -173,7 +173,7 @@ Component C
 
 - AskUserQuestionを使用して対話的にヒアリングを行う
 - 曖昧な点は必ず確認してから進める
-- `{nnn}` は `.specs/` 内の既存フォルダ数に基づく3桁の連番（001, 002, 003...）
+- `{nnn}` は `.plugin-workspace/.specs/` 内の既存フォルダ数に基づく3桁の連番（001, 002, 003...）
 - `{feature-name}` はケバブケースで命名
 - コード例はプロジェクトの言語・規約に合わせる
 - 生成後は必ずユーザーに確認を取る
