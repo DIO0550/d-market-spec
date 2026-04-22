@@ -21,7 +21,7 @@ allowed-tools: Bash(cat .specs/*), Bash(ls .specs/*), Bash(grep *), Bash(claude 
 !`ls -1d .specs/$0-* 2>/dev/null | head -1`
 
 ### PLANNING状態
-!`[ -f .specs/$0-*/PLANNING ] && echo "⚠️ 計画中(実装禁止)。計画フェーズに戻ってください。" || echo "✅ 実装可能"`
+!`ls .specs/$0-*/PLANNING > /dev/null 2>&1 && echo "⚠️ 計画中(実装禁止)。計画フェーズに戻ってください。" || echo "✅ 実装可能"`
 
 ### implementation-plan.md (全文)
 
@@ -174,7 +174,7 @@ PLANNINGファイルには計画時のセッションIDが記録されている�
 ```bash
 guard_session=$(cat .specs/{nnn}-{feature-name}/PLANNING 2>/dev/null)
 rm .specs/{nnn}-{feature-name}/PLANNING
-[ -n "$guard_session" ] && rm -f .specs/.guard/$guard_session
+rm -f ".specs/.guard/$guard_session" 2>/dev/null
 ```
 
 PLANNINGファイルが存在しない場合はスキップする。

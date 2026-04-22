@@ -109,7 +109,7 @@ PLANNINGファイルには計画時のセッションIDが記録されている�
 # PLANNINGファイルからセッションIDを読み取り、ガードファイルを削除
 guard_session=$(cat .specs/{nnn}-{feature-name}/PLANNING 2>/dev/null)
 rm .specs/{nnn}-{feature-name}/PLANNING
-[ -n "$guard_session" ] && rm -f .specs/.guard/$guard_session
+rm -f ".specs/.guard/$guard_session" 2>/dev/null
 ```
 
 PLANNINGファイルが存在しない場合はスキップする。
