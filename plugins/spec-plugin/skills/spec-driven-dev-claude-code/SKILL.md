@@ -342,6 +342,7 @@ claude -p "$(cat .plugin-workspace/.specs/{nnn}-{feature-name}/plan-review/promp
 2. 「問題なし」なら Step 6 へ
 3. 問題があれば:
    - 指摘内容を元に implementation-plan.md を修正
+   - **反映履歴は書かない**: 指摘を反映する際、implementation-plan.md にレビュー反映履歴・変更履歴を追記しないこと。設計内容そのものだけを修正する
    - 連番をインクリメントして再度 Claude Code レビューを実行・保存
    - 最大5回までループ
 
