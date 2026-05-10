@@ -85,7 +85,9 @@ UI Update
 ```{lang}
 // before:
 {変更前の該当箇所}
+```
 
+```{lang}
 // after:
 {変更後の該当箇所}
 ```
@@ -274,7 +276,9 @@ function injectBlockButtons(userElements: NodeListOf<Element>): void {
     "js": ["src/content/watch.js"]
   }
 ]
+```
 
+```json
 // after:
 "content_scripts": [
   {
