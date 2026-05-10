@@ -10,22 +10,13 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 spec-driven-devと同じ仕様策定ワークフローを実行し、**全生成物をHTML形式で出力**するバリアント。
 CSSを埋め込んだ自己完結型HTMLを生成するため、ブラウザで開くだけで見やすいドキュメントになる。
 
-## 🚨 絶対厳守: 最初にフォルダとPLANNINGファイルを作成
+## 絶対厳守事項
 
-**このスキルが起動されたら、ユーザーへの質問・コード探索・実装の前に、必ず最初に Step 1（specフォルダ + PLANNINGファイル作成）を実行すること。**
-Step 1 が完了するまで、他の一切のアクションを取ってはならない。
+1. **最初にフォルダとPLANNINGファイルを作成** — 質問・探索・実装の前に必ず Step 1 を実行
+2. **システム図は必須** — implementation-plan.html には状態マシン図 + データフロー図を含める（ASCII罫線優先）
+3. **PLANNINGファイルがある間はコード実装禁止** — AutoCompact対策
 
-## ⚠️ 重要: システム図は必須
-
-生成する implementation-plan.html には**必ずシステム図（状態マシン図 + データフロー図）を含めること**。
-**ASCII罫線図を優先**し、mermaidは補助的に使用する。
-
-## ⚠️ 重要: AutoCompact対策
-
-PLANNINGファイルが存在する間は計画フェーズ。AutoCompact時にPreCompact hookがPLANNINGファイルを検出し警告を出力。
-**PLANNINGファイルがある限り、絶対にコードを実装しない。**
-
-## ⚠️ HTML出力ルール
+## HTML出力ルール
 
 全生成物は `.html` 形式で出力する。HTML生成時:
 
@@ -52,32 +43,18 @@ PLANNINGファイルが存在する間は計画フェーズ。AutoCompact時にP
 6. 実装開始許可後、PLANNINGファイル削除
 ```
 
+## バリアントパラメータ
+
+| パラメータ | 値 |
+|-----------|-----|
+| SKILL_NAME | `spec-driven-dev-html` |
+| PLANNING_CONTENT | `${CLAUDE_SESSION_ID}` |
+| USE_GUARD | `true` |
+| OUTPUT_EXT | `.html` |
+
 ## Step 1: specsフォルダ + PLANNINGファイル作成
 
-spec-driven-dev と同一。以下の3ブロックを順に実行する。
-
-### 1-a. 次のspec番号を算出
-
-```bash
-next_num=$(ls -1d .plugin-workspace/.specs/[0-9][0-9][0-9]-* .plugin-workspace/.specs/archive/[0-9][0-9][0-9]-* 2>/dev/null | sed 's|.*/\([0-9]\{3\}\)-.*|\1|' | sort -rn | head -1)
-next_num=$(printf "%03d" $(( 10#${next_num:-0} + 1 )))
-```
-
-### 1-b. specディレクトリとPLANNINGファイル作成
-
-```bash
-mkdir -p .plugin-workspace/.specs/${next_num}-{feature-name}
-echo "${CLAUDE_SESSION_ID}" > .plugin-workspace/.specs/${next_num}-{feature-name}/PLANNING
-```
-
-### 1-c. ガードファイル作成
-
-```bash
-mkdir -p .plugin-workspace/.specs/.guard && touch .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID}
-```
-
-**重要**: PLANNINGファイルが存在する間は計画フェーズであり、コードの実装は禁止。
-**ガード**: `.plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID}` が存在する間、`.plugin-workspace/.specs/` 以外への書き込みがhookによりブロックされる。
+**[references/workflow-steps.md](references/workflow-steps.md) の Step 1 を参照。**
 
 ## Step 2: ヒアリング → hearing-notes.html 書き出し
 
@@ -92,106 +69,63 @@ AskUserQuestion でヒアリングし、結果を **hearing-notes.html** とし�
 4. プレースホルダ `{...}` をヒアリング結果で置換する
 5. `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.html` に Write する
 
-## Step 3: コードベース探索（codebase-explorer サブエージェントに委譲）
+## Step 3: コードベース探索
 
-hearing-notes.html を書き出したら、codebase-explorer サブエージェントを起動する。
+hearing-notes.html から探索ヒント（キーワード5-10個、推定対象パス、探索の重点）を抽出し、codebase-explorer サブエージェントを起動する。
 
-### 3-1. 探索ヒントの抽出
+### サブエージェントへのHTML出力指示
 
-hearing-notes.html から探索キーワード（5-10個）、推定対象パス、探索の重点を抽出する。
-
-### 3-2. サブエージェント起動
+サブエージェントプロンプトに以下を追加する:
 
 ```
-Task tool:
-  description: "codebase-explorer: {feature-name}"
-  subagent_type: general-purpose
-  run_in_background: true
-  prompt: |
-    あなたはcodebase-explorerエージェントです。
-    .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.html を読み込み、
-    その目的・スコープに基づいてコードベースを探索してください。
-
-    ## 探索ヒント（オーケストレーターが抽出）
-    **キーワード**: {キーワード5-10個}
-    **推定対象パス**: {推定パターン}
-    **探索の重点**: {重点事項}
-
-    ## 参照スキル
-    spec-driven-dev-html:exploration-perspectives
-
-    ## 出力形式
-    **HTML形式で出力すること。**
-    1. spec-driven-dev-html:style を Read してCSSを取得
-    2. spec-driven-dev-html:exploration-report を Read してテンプレートを取得
-    3. テンプレートの <link> を <style>{CSS}</style> に置換
-    4. プレースホルダを探索結果で埋める
-    5. 自己完結型HTMLとして出力
-
-    ## 出力先
-    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.html
+## 出力形式
+**HTML形式で出力すること。**
+1. spec-driven-dev-html:style を Read してCSSを取得
+2. spec-driven-dev-html:exploration-report を Read してテンプレートを取得
+3. テンプレートの <link> を <style>{CSS}</style> に置換
+4. プレースホルダを探索結果で埋める
+5. 自己完結型HTMLとして出力
 ```
 
-### 3-3. 探索結果の品質検証
-
-exploration-report.html を読み込み、セクション 8「探索メトリクス」を確認。品質基準未達なら補完探索を最大1回実行する。
+**基本プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の Step 3 を参照。**
+品質基準未達なら補完探索を最大1回実行する。
 
 ## Step 3.5: 探索後ヒアリング (条件付き)
 
-spec-driven-dev と同一ロジック。論点があれば AskUserQuestion で聴取し、hearing-notes.html に追記する。
+**[references/workflow-steps.md](references/workflow-steps.md) の Step 3.5 と同一ロジック。** 論点があれば AskUserQuestion で聴取し、hearing-notes.html に追記する。
 
-## Step 4: 実装計画生成（spec-planner サブエージェントに委譲）
+## Step 4: 実装計画生成
+
+spec-planner サブエージェントを起動し、implementation-plan.html と tasks.html を生成する。
+
+### サブエージェントへのHTML出力指示
+
+サブエージェントプロンプトに以下を追加する:
 
 ```
-Task tool:
-  description: "spec-planner: {feature-name}"
-  subagent_type: general-purpose
-  run_in_background: true
-  prompt: |
-    あなたはspec-plannerエージェントです。
-    以下のファイルを読み込み、implementation-plan.html と tasks.html を生成してください。
+## 出力形式
+**HTML形式で出力すること。**
+1. spec-driven-dev-html:style を Read してCSSを取得
+2. spec-driven-dev-html:implementation-plan と spec-driven-dev-html:tasks を Read してテンプレートを取得
+3. テンプレートの <link> を <style>{CSS}</style> に置換
+4. プレースホルダを計画内容で埋める
+5. 自己完結型HTMLとして出力
 
-    ## 入力
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.html
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.html
-
-    ## 出力形式
-    **HTML形式で出力すること。**
-    1. spec-driven-dev-html:style を Read してCSSを取得
-    2. spec-driven-dev-html:implementation-plan と spec-driven-dev-html:tasks を Read してテンプレートを取得
-    3. テンプレートの <link> を <style>{CSS}</style> に置換
-    4. プレースホルダを計画内容で埋める
-    5. 自己完結型HTMLとして出力
-
-    ## 出力先
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.html
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/tasks.html
-
-    ## 重要
-    - システム図（状態マシン図 + データフロー図）は必須。省略禁止。ASCII罫線図を <pre><code> 内に記述。
-    - exploration-report.html の制約・リスクを implementation-plan.html に反映すること。
-    - "Definition of Done" セクションを必ず含めること。
-    - テスト戦略分析を必ず実施すること。
-    - 変更案の [NEW] には実装骨格、[MODIFY] には before/after コードスニペットを含めること。
+## 追加要件
+- システム図（ASCII罫線図）は <pre><code> 内に記述
 ```
+
+**基本プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の Step 4 を参照。**
 
 ## Step 5: ユーザー確認
 
-生成したファイルをユーザーに提示:
-
 1. **specフォルダパス**: `.plugin-workspace/.specs/{nnn}-{feature-name}/` を明示
-2. 生成ファイル一覧（各ファイルのフルパス）:
-   - `hearing-notes.html`
-   - `exploration-report.html`
-   - `implementation-plan.html`
-   - `tasks.html`
+2. 生成ファイル一覧（hearing-notes.html, exploration-report.html, implementation-plan.html, tasks.html）
 3. **ブラウザで開く方法を案内**: `open .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.html`
 4. implementation-plan.html の内容サマリー
 5. tasks.html のタスク一覧
 
 ## Step 6: 実装開始（ユーザーによるガード解除）
-
-spec-driven-dev と同一。ガードファイルとPLANNINGファイルの手動削除を案内する。
 
 ```
 ユーザーへの案内:
