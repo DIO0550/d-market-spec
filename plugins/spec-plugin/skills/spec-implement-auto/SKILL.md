@@ -1,15 +1,27 @@
 ---
 name: spec-implement-auto
-description: .plugin-workspace/.specsの実装計画に沿ってタスクを順番に実装する（自動コンテキスト注入版）。起動時にimplementation-plan.mdとtasks.mdをシェルで強制読み込みし、確実にコンテキストに載せる。
+description: .plugin-workspace/.specsの実装計画に沿ってタスクを順番に実装する（自動コンテキスト注入版）。起動時にimplementation-plan.mdとtasks.mdをシェルで強制読み込みし、確実にコンテキストに載せる。全タスク完了後にオプションでCodex/Copilot/Claude Codeによるコードレビューを実行可能。「実装 auto」「自動注入」「auto implement」「コードレビュー付き」「codexレビュー」「copilotレビュー」などでトリガー。
 disable-model-invocation: true
-argument-hint: "[番号]"
-allowed-tools: Bash(cat .plugin-workspace/.specs/*), Bash(ls .plugin-workspace/.specs/*), Bash(grep *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*)
+argument-hint: "[番号] [--review codex|copilot|claude-code]"
+allowed-tools: Bash(cat .plugin-workspace/.specs/*), Bash(ls .plugin-workspace/.specs/*), Bash(grep *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(mkdir *), Bash(codex *), Bash(copilot *), Bash(claude *)
 ---
 
 # Spec Implement (Auto-Inject版)
 
 番号指定で `.plugin-workspace/.specs/{nnn}-{feature-name}/` の実装計画に沿って実装を進めるスキル。
 起動時にシェルで計画・タスクを**強制注入**し、AIの判断に依存しない決定論的なコンテキスト読み込みを行う。
+全タスク完了後にオプションで AIレビュー（Codex / Copilot / Claude Code CLI）を実行可能。
+
+## レビューツール引数
+
+`--review` 引数でレビューツールを指定可能。未指定の場合は全タスク完了後に AskUserQuestion で選択を求める。
+
+| 引数 | レビューツール |
+|------|-------------|
+| `--review codex` | Codex CLI |
+| `--review copilot` | GitHub Copilot CLI |
+| `--review claude-code` | Claude Code CLI |
+| (未指定) | 全タスク完了後に AskUserQuestion |
 
 ## Pre-flight: 実装計画の強制注入
 
@@ -32,7 +44,7 @@ allowed-tools: Bash(cat .plugin-workspace/.specs/*), Bash(ls .plugin-workspace/.
 !`cat .plugin-workspace/.specs/$0-*/tasks.md 2>/dev/null || echo "FILE_NOT_FOUND"`
 
 ### 未完了タスク数
-!`grep -c '□' .plugin-workspace/.specs/$0-*/tasks.md 2>/dev/null || echo "0"`
+!`grep -c '��' .plugin-workspace/.specs/$0-*/tasks.md 2>/dev/null || echo "0"`
 
 ---
 
@@ -47,9 +59,11 @@ allowed-tools: Bash(cat .plugin-workspace/.specs/*), Bash(ls .plugin-workspace/.
    ↓
 4. 各タスク完了時に tasks.md を更新（□ → ■）
    ↓
-5. 全タスク完了後、PLANNINGファイルを削除
+5. 全タスク完了後、AIレビュー（オプション）
    ↓
-6. DoD照合 → 完了報告
+6. PLANNINGファイルを削除
+   ↓
+7. DoD照合 → 完了報告
 ```
 
 ## Step 1: 注入内容の確認
@@ -90,7 +104,7 @@ tasks.md の未完了タスク（`□`）をすべて TaskCreate で登録し、
 
 ### tasks.md の更新
 
-タスク完了時に、該当行の `□` を `■` に変更する。
+タスク完了時に、該当���の `□` を `■` に変更する。
 
 ```
 変更前: □ コンポーネントの型定義を作成
@@ -99,7 +113,28 @@ tasks.md の未完了タスク（`□`）をすべて TaskCreate で登録し、
 
 **重要**: 親タスクは、すべての子タスクが `■` になった時点で `■` に更新する。
 
-## Step 4: PLANNINGファイル + ガードファイルの削除
+## Step 4: AIレビュー（オプション）
+
+すべてのタスクの実装が完了したら、レビューツールの選択を行う。
+
+`--review` 引数が指定されている場合はそのツールを使用する。
+未指定の場合、AskUserQuestion で選択を求める:
+
+- **レビューなし（最速）** → Step 5 へスキップ
+- **Codex CLI**
+- **GitHub Copilot CLI**
+- **Claude Code CLI**
+
+「レビューなし」選択時は Step 5 へ直接進む。
+
+ツール選択後:
+1. `code-review/context-{NNN}.md` と `code-review/prompt-{NNN}.txt` を生成
+2. [references/review-tools.md](references/review-tools.md) のコマンド構文に従い実行
+3. `code-review/review-{NNN}.md` に出力を保存
+4. レビュー結果を解析し、問題があれば修正 → 再レビュー（最大5回）
+5. レビュー結果を要約してユーザーに提示
+
+## Step 5: PLANNINGファイル + ガードファイルの削除
 
 すべてのタスクが完了（`□` が残っていない）したら、PLANNINGファイルとガードファイルを削除する。
 
@@ -113,25 +148,26 @@ rm -f ".plugin-workspace/.specs/.guard/$guard_session" 2>/dev/null
 
 PLANNINGファイルが存在しない場合はスキップする。
 
-## Step 5: DoD照合
+## Step 6: DoD照合
 
 implementation-plan.md の "Definition of Done" セクションを読み込み、各条件の充足を確認する。
 
 1. DoDの各項目を順番にチェック
-2. すべて満たしていれば Step 6 へ
+2. すべて満たしていれば Step 7 へ
 3. 未達の項目がある場合はユーザーに報告し、対応方針を確認する
 
-**注意**: DoDセクションが存在しない場合はスキップして Step 6 へ進む。
+**注意**: DoDセクションが存在しない場合はスキップして Step 7 へ進む。
 
-## Step 6: 完了報告
+## Step 7: 完了報告
 
 実装完了後、ユーザーに以下を報告する:
 
 1. 実装したタスクの一覧
 2. 変更したファイルの一覧
 3. 関連Issue番号（あれば）
-4. PLANNINGファイルの削除状態
-5. DoD充足状況（DoDがある場合）
+4. AIレビューの結果サマリー（レビュー実行時）
+5. PLANNINGファイルの削除状態
+6. DoD充足状況（DoDがある場合）
 
 ## AutoCompact後の復帰プロトコル
 

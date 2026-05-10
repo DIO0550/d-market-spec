@@ -35,16 +35,18 @@ plugins/spec-plugin/
 - **タスク進捗**: `tasks.md` 内の `□`（未完了）/ `■`（完了）で進捗を管理する
 - **自動アーカイブ**: セッション終了時、PLANNINGファイルのない spec フォルダは `.plugin-workspace/.specs/archive/` に移動される
 
-## レビューバリアント
+## レビューツール統合
 
-同一ワークフローに対して複数のレビュー方式バリアントが存在する:
+レビューツール（Codex / Copilot / Claude Code CLI）はベーススキルにパラメータとして統合されている:
 
-- `(base)` — レビューなし（最速）
-- `-copilot` — GitHub Copilot CLI
-- `-codex` — Codex CLI
-- `-claude-code` — Claude Code CLI
+- `--review codex` — Codex CLI
+- `--review copilot` — GitHub Copilot CLI
+- `--review claude-code` — Claude Code CLI
+- (未指定) — ワークフロー内で AskUserQuestion により選択
 
-スキル名のサフィックスでバリアントを区別する（例: `spec-driven-dev` / `spec-driven-dev-codex`）。
+対象スキル: `spec-driven-dev`, `spec-implement`, `spec-implement-auto`
+
+構造的に異なるバリアント（`-lite`, `-html`）は独立スキルとして維持。
 
 ## コマンド
 
