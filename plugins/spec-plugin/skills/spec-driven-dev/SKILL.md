@@ -97,8 +97,14 @@ spec-planner サブエージェントを起動し、implementation-plan.md と t
 
 ## Step 5: AIレビュー（オプション）
 
-`--review` 引数が指定されている場合はそのツールを使用する。
-未指定の場合、AskUserQuestion で選択を求める:
+レビューツールの決定は以下の優先順:
+
+1. `--review` 引数（明示的オーバーライド）
+2. `.plugin-workspace/.specs/.config.yml` の `review-tool` 値（設定ファイル）
+3. AskUserQuestion（上記いずれもない場合のフォールバック）
+
+設定ファイルが存在し `review-tool: none` の場合は Step 6 へスキップ。
+AskUserQuestion の選択肢:
 
 - **レビューなし（最速）** → Step 6 へスキップ
 - **Codex CLI**

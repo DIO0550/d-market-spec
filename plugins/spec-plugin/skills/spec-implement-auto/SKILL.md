@@ -117,8 +117,14 @@ tasks.md の未完了タスク（`□`）をすべて TaskCreate で登録し、
 
 すべてのタスクの実装が完了したら、レビューツールの選択を行う。
 
-`--review` 引数が指定されている場合はそのツールを使用する。
-未指定の場合、AskUserQuestion で選択を求める:
+レビューツールの決定は以下の優先順:
+
+1. `--review` 引数（明示的オーバーライド）
+2. `.plugin-workspace/.specs/.config.yml` の `review-tool` 値（設定ファイル）
+3. AskUserQuestion（上記いずれもない場合のフォールバック）
+
+設定ファイルが存在し `review-tool: none` の場合は Step 5 へスキップ。
+AskUserQuestion の選択肢:
 
 - **レビューなし（最速）** → Step 5 へスキップ
 - **Codex CLI**
