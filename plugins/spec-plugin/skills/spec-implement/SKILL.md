@@ -11,20 +11,11 @@ allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-wor
 番号指定で `.plugin-workspace/.specs/{nnn}-{feature-name}/` の実装計画に沿って実装を進めるスキル。
 全タスク完了後にオプションで AIレビュー（Codex / Copilot / Claude Code CLI）を実行可能。
 
-## レビューツール引数
-
-`--review` 引数でレビューツールを指定可能。未指定の場合は全タスク完了後に AskUserQuestion で選択を求める。
-
-| 引数 | レビューツール |
-|------|-------------|
-| `--review codex` | Codex CLI |
-| `--review copilot` | GitHub Copilot CLI |
-| `--review claude-code` | Claude Code CLI |
-| (未指定) | 全タスク完了後に AskUserQuestion |
-
 ## ワークフロー
 
 ```
+0. レビューツール解決（引数 → .config.yml → 初回のみ AskUserQuestion）
+   ↓
 1. ユーザーが `/spec-implement {nnn}` を実行
    ↓
 2. .plugin-workspace/.specs/ から {nnn}-* にマッチするフォルダを特定
@@ -43,6 +34,24 @@ allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-wor
    ↓
 9. DoD照合 → 完了報告
 ```
+
+## Step 0: レビューツール解決
+
+ワークフロー開始時に、使用するレビューツールを以下の優先順で決定する:
+
+1. `--review` 引数（`codex` / `copilot` / `claude-code` / `none`）
+2. `.plugin-workspace/.specs/.config.yml` の `review-tool` 値
+3. AskUserQuestion（上記いずれもない場合のみ）
+
+AskUserQuestion の選択肢:
+- **レビューなし（最速）**
+- **Codex CLI**
+- **GitHub Copilot CLI**
+- **Claude Code CLI**
+
+**AskUserQuestion で選択された場合、その結果を `.plugin-workspace/.specs/.config.yml` に自動保存する。** 次回以降は問い合わせなしで同じツールが使われる。設定変更は `/spec-setup` で可能。
+
+決定した値を以降のステップで `{REVIEW_TOOL}` として参照する。
 
 ## Step 1: specフォルダの特定
 
@@ -115,25 +124,9 @@ tasks.md の未完了タスク（`□`）をすべて TaskCreate で登録し、
 
 ## Step 5: AIレビュー（オプション）
 
-すべてのタスクの実装が完了したら、レビューツールの選択を行う。
+Step 0 で決定した `{REVIEW_TOOL}` を使用する。`none` の場合は Step 6 へスキップ。
 
-レビューツールの決定は以下の優先順:
-
-1. `--review` 引数（明示的オーバーライド）
-2. `.plugin-workspace/.specs/.config.yml` の `review-tool` 値（設定ファイル）
-3. AskUserQuestion（上記いずれもない場合のフォールバック）
-
-設定ファイルが存在し `review-tool: none` の場合は Step 6 へスキップ。
-AskUserQuestion の選択肢:
-
-- **レビューなし（最速）** → Step 6 へスキップ
-- **Codex CLI**
-- **GitHub Copilot CLI**
-- **Claude Code CLI**
-
-「レビューなし」選択時は Step 6 へ直接進む。
-
-ツール選択後:
+ツール選択済みの場合:
 1. `code-review/context-{NNN}.md` と `code-review/prompt-{NNN}.txt` を生成
 2. [references/review-tools.md](references/review-tools.md) のコマンド構文に従い実行
 3. `code-review/review-{NNN}.md` に出力を保存
