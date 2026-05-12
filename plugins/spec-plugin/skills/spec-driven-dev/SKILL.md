@@ -17,20 +17,11 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 2. **システム図は必須** — implementation-plan.md には状態マシン図 + データフロー図を含める（ASCII罫線優先、mermaid補助）
 3. **PLANNINGファイルがある間はコード実装禁止** — AutoCompact対策としてPLANNINGファイルで計画フェーズを明示
 
-## レビューツール引数
-
-`--review` 引数でレビューツールを指定可能。未指定の場合は Step 5 到達時に AskUserQuestion で選択を求める。
-
-| 引数 | レビューツール |
-|------|-------------|
-| `--review codex` | Codex CLI |
-| `--review copilot` | GitHub Copilot CLI |
-| `--review claude-code` | Claude Code CLI |
-| (未指定) | Step 5 で AskUserQuestion |
-
 ## ワークフロー概要
 
 ```
+0. レビューツール解決（引数 → .config.yml → 初回のみ AskUserQuestion）
+   ↓
 1. specsフォルダ作成 + PLANNINGファイル配置
    ↓
 2. AskUserQuestion形式でヒアリング → hearing-notes.md 書き出し
@@ -56,6 +47,24 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 | PLANNING_CONTENT | `${CLAUDE_SESSION_ID}` |
 | USE_GUARD | `true` |
 | OUTPUT_EXT | `.md` |
+
+## Step 0: レビューツール解決
+
+ワークフロー開始時に、使用するレビューツールを以下の優先順で決定する:
+
+1. `--review` 引数（`codex` / `copilot` / `claude-code` / `none`）
+2. `.plugin-workspace/.specs/.config.yml` の `review-tool` 値
+3. AskUserQuestion（上記いずれもない場合のみ）
+
+AskUserQuestion の選択肢:
+- **レビューなし（最速）**
+- **Codex CLI**
+- **GitHub Copilot CLI**
+- **Claude Code CLI**
+
+**AskUserQuestion で選択された場合、その結果を `.plugin-workspace/.specs/.config.yml` に自動保存する。** 次回以降は問い合わせなしで同じツールが使われる。設定変更は `/spec-setup` で可能。
+
+決定した値を以降のステップで `{REVIEW_TOOL}` として参照する。
 
 ## Step 1: specsフォルダ + PLANNINGファイル作成
 
@@ -97,23 +106,9 @@ spec-planner サブエージェントを起動し、implementation-plan.md と t
 
 ## Step 5: AIレビュー（オプション）
 
-レビューツールの決定は以下の優先順:
+Step 0 で決定した `{REVIEW_TOOL}` を使用する。`none` の場合は Step 6 へスキップ。
 
-1. `--review` 引数（明示的オーバーライド）
-2. `.plugin-workspace/.specs/.config.yml` の `review-tool` 値（設定ファイル）
-3. AskUserQuestion（上記いずれもない場合のフォールバック）
-
-設定ファイルが存在し `review-tool: none` の場合は Step 6 へスキップ。
-AskUserQuestion の選択肢:
-
-- **レビューなし（最速）** → Step 6 へスキップ
-- **Codex CLI**
-- **GitHub Copilot CLI**
-- **Claude Code CLI**
-
-「レビューなし」選択時は Step 6 へ直接進む。
-
-ツール選択後:
+ツール選択済みの場合:
 1. `plan-review/prompt-{NNN}.txt` を生成
 2. [references/review-tools.md](references/review-tools.md) のコマンド構文に従い実行
 3. `plan-review/review-{NNN}.md` に出力を保存

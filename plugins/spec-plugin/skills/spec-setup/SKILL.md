@@ -30,23 +30,17 @@ spec-plugin のワークスペース初期化と設定を行うスキル。
 - **存在しない場合**: `mkdir -p .plugin-workspace/.specs/.guard` で作成し、ユーザーに報告
 - **存在する場合**: 既存のspecフォルダ数を表示
 
-### Step 2: 既存設定の確認
+### Step 2: レビューツールの選択
 
-`.plugin-workspace/.specs/.config.yml` が存在するか確認する。
-
-- **存在する場合**: 現在の設定内容を表示し、AskUserQuestion で変更するか確認。変更不要なら終了
-- **存在しない場合**: Step 3 へ
-
-### Step 3: レビューツールの選択
-
-AskUserQuestion でデフォルトのレビューツールを選択:
+`.plugin-workspace/.specs/.config.yml` が存在する場合は現在の設定を表示する。
+設定の有無に関わらず、常に AskUserQuestion でレビューツールを選択:
 
 - **レビューなし（最速）** → `review-tool: none`
 - **Codex CLI** → `review-tool: codex`
 - **GitHub Copilot CLI** → `review-tool: copilot`
 - **Claude Code CLI** → `review-tool: claude-code`
 
-### Step 4: 設定ファイルの書き出し
+### Step 3: 設定ファイルの書き出し
 
 Write ツールで `.plugin-workspace/.specs/.config.yml` に書き出す:
 
@@ -57,7 +51,7 @@ Write ツールで `.plugin-workspace/.specs/.config.yml` に書き出す:
 review-tool: {選択した値}
 ```
 
-### Step 5: 完了報告
+### Step 4: 完了報告
 
 設定内容をユーザーに提示し、以下を案内:
 
