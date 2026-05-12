@@ -1,21 +1,32 @@
 ---
 name: spec-driven-dev
-description: 仕様策定ワークフローの標準版。AIレビューを省略して素早く実装計画を生成する。
+description: 新機能の仕様策定から実装計画まで一気通貫で進めるワークフロー。ヒアリング→コード探索→計画生成→オプションでAIレビュー。Codex/Copilot/Claude Code CLIでのレビューオプション付き。「仕様策定」「spec」「実装計画」「レビュー付き」「codexでレビュー」「copilotでレビュー」「claude codeでレビュー」「レビュー省略」などでトリガー。
 disable-model-invocation: true
-allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*)
+allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(codex *), Bash(copilot *), Bash(claude *)
 ---
 
 # Spec-Driven Development
 
 機能実装前に仕様を明確化し、実装計画とタスクリストを生成するスキル。
-**他のAI（Codex/Copilot）によるレビューを省略した標準版。**
 ヒアリングはオーケストレーターが行い、**探索と計画生成は別々のサブエージェントに委譲**する。
+オプションで AIレビュー（Codex / Copilot / Claude Code CLI）を実行可能。
 
 ## 絶対厳守事項
 
 1. **最初にフォルダとPLANNINGファイルを作成** — 質問・探索・実装の前に必ず Step 1 を実行
 2. **システム図は必須** — implementation-plan.md には状態マシン図 + データフロー図を含める（ASCII罫線優先、mermaid補助）
 3. **PLANNINGファイルがある間はコード実装禁止** — AutoCompact対策としてPLANNINGファイルで計画フェーズを明示
+
+## レビューツール引数
+
+`--review` 引数でレビューツールを指定可能。未指定の場合は Step 5 到達時に AskUserQuestion で選択を求める。
+
+| 引数 | レビューツール |
+|------|-------------|
+| `--review codex` | Codex CLI |
+| `--review copilot` | GitHub Copilot CLI |
+| `--review claude-code` | Claude Code CLI |
+| (未指定) | Step 5 で AskUserQuestion |
 
 ## ワークフロー概要
 
@@ -30,9 +41,11 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
    ↓
 4. spec-planner サブエージェント → implementation-plan.md + tasks.md
    ↓
-5. ユーザーに提示
+5. AIレビュー（オプション）→ 修正ループ
    ↓
-6. 実装開始許可後、PLANNINGファイル削除
+6. ユーザーに提示
+   ↓
+7. 実装開始許可後、PLANNINGファイル削除
 ```
 
 ## バリアントパラメータ
@@ -82,7 +95,34 @@ spec-planner サブエージェントを起動し、implementation-plan.md と t
 
 **プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の Step 4 を参照。**
 
-## Step 5: ユーザー確認
+## Step 5: AIレビュー（オプション）
+
+レビューツールの決定は以下の優先順:
+
+1. `--review` 引数（明示的オーバーライド）
+2. `.plugin-workspace/.specs/.config.yml` の `review-tool` 値（設定ファイル）
+3. AskUserQuestion（上記いずれもない場合のフォールバック）
+
+設定ファイルが存在し `review-tool: none` の場合は Step 6 へスキップ。
+AskUserQuestion の選択肢:
+
+- **レビューなし（最速）** → Step 6 へスキップ
+- **Codex CLI**
+- **GitHub Copilot CLI**
+- **Claude Code CLI**
+
+「レビューなし」選択時は Step 6 へ直接進む。
+
+ツール選択後:
+1. `plan-review/prompt-{NNN}.txt` を生成
+2. [references/review-tools.md](references/review-tools.md) のコマンド構文に従い実行
+3. `plan-review/review-{NNN}.md` に出力を保存
+4. レビュー結果を解析し、問題があれば修正 → 再レビュー（最大5回）
+5. レビュー結果を要約してユーザーに提示
+
+レビュー観点の詳細は `references/review-criteria.md` を参照。
+
+## Step 6: ユーザー確認
 
 生成したファイルをユーザーに提示:
 
@@ -94,7 +134,7 @@ spec-planner サブエージェントを起動し、implementation-plan.md と t
 
 ユーザーが修正を要求した場合は Step 4 に戻って修正する。
 
-## Step 6: 実装開始（ユーザーによるガード解除）
+## Step 7: 実装開始（ユーザーによるガード解除）
 
 **詳細は [references/workflow-steps.md](references/workflow-steps.md) のガード解除を参照。**
 
@@ -113,7 +153,11 @@ spec-planner サブエージェントを起動し、implementation-plan.md と t
     ├── hearing-notes.md         # ヒアリング結果（オーケストレーター生成）
     ├── exploration-report.md    # 探索レポート（codebase-explorer 生成）
     ├── implementation-plan.md   # 実装計画（spec-planner 生成）
-    └── tasks.md                 # タスクリスト（spec-planner 生成）
+    ├── tasks.md                 # タスクリスト（spec-planner 生成）
+    └── plan-review/             # AIレビュー結果（レビュー実行時のみ）
+        ├── prompt-001.txt
+        ├── review-001.md
+        └── ...
 ```
 
 `{nnn}` は `.plugin-workspace/.specs/` 内の既存フォルダ数に基づく3桁の連番（001, 002, 003...）
