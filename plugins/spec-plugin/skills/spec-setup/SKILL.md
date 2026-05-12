@@ -32,13 +32,13 @@ spec-plugin のワークスペース初期化と設定を行うスキル。
 
 ### Step 2: レビューツールの選択
 
-`.plugin-workspace/.specs/.config.yml` が存在する場合は現在の設定を表示した上で、AskUserQuestion でレビューツールを選択:
+`.plugin-workspace/.specs/.config.yml` が存在する場合は現在の設定を表示する。
+設定の有無に関わらず、常に AskUserQuestion でレビューツールを選択:
 
 - **レビューなし（最速）** → `review-tool: none`
 - **Codex CLI** → `review-tool: codex`
 - **GitHub Copilot CLI** → `review-tool: copilot`
 - **Claude Code CLI** → `review-tool: claude-code`
-- **変更しない**（既存設定がある場合のみ）→ 終了
 
 ### Step 3: 設定ファイルの書き出し
 
