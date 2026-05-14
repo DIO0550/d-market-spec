@@ -124,6 +124,10 @@ spec-planner サブエージェントを起動し、implementation-plan.html と
 3. **ブラウザで開く方法を案内**: `open .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.html`
 4. implementation-plan.html の内容サマリー
 5. tasks.html のタスク一覧
+6. 「修正が必要な場合はお知らせください」
+
+ユーザーが修正を要求した場合は、フィードバックの明確性を確認する（[references/feedback-clarification.md](references/feedback-clarification.md) 参照）。
+曖昧な場合は AskUserQuestion で具体化してから Step 4 に戻る。明確な場合はそのまま Step 4 に戻る。
 
 ## Step 6: 実装開始（ユーザーによるガード解除）
 

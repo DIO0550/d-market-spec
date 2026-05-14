@@ -291,7 +291,11 @@ TaskOutput:
 4. tasks のタスク一覧
 5. 「修正が必要な場合はお知らせください」
 
-ユーザーが修正を要求した場合は Step 4（レビュー付きバリアントはレビューループ）に戻る。
+ユーザーが修正を要求した場合:
+
+1. フィードバック明確性チェック（[feedback-clarification.md](feedback-clarification.md) 参照）
+2. 曖昧な場合 → AskUserQuestion で具体化してから Step 4 に戻る
+3. 明確な場合 → そのまま Step 4（レビュー付きバリアントはレビューループ）に戻る
 
 ---
 

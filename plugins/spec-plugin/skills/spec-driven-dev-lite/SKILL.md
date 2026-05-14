@@ -134,6 +134,9 @@ AskUserQuestion で以下を1バッチで聴取する。
 3. tasks.md のタスク一覧
 4. 「修正が必要な場合はお知らせください」
 
+ユーザーが修正を要求した場合は、フィードバックの明確性を確認する（[references/feedback-clarification.md](references/feedback-clarification.md) 参照）。
+曖昧な場合は AskUserQuestion で具体化してから Step 4 に戻る。明確な場合はそのまま Step 4 に戻る。
+
 ## Step 6: ガード解除案内
 
 ```
