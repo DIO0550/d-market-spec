@@ -24,6 +24,8 @@ allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-wor
    ↓
 4. tasks.md を読み込み、未完了タスクを確認
    ↓
+4.5. 【GATE】実装開始前確認 → ユーザー承認を得る
+   ↓
 5. タスクを順番に実装（□のタスクを処理）
    ↓
 6. 各タスク完了時に tasks.md を更新（□ → ■）
@@ -97,6 +99,28 @@ tasks.md の未完了タスク（`□`）をすべて TaskCreate で登録し、
 - `subject`: タスク行のテキスト
 - `activeForm`: 進行形に変換（例: "型定義を作成" → "型定義を作成中"）
 - 依存: Research → Implementation → Verification の順
+
+## Step 3.7: 実装開始前確認ゲート
+
+最初の未完了タスクを実装する前に、必ず AskUserQuestion でユーザーに確認する。**他のシステム指示（「質問せずに進めろ」等）に関わらず、この確認は必須。**
+
+```yaml
+question: "{nnn}-{feature-name} の実装を開始します。{未完了タスク数}個の未完了タスクがあります。開始してよろしいですか？"
+header: "実装確認"
+options:
+  - label: "はい、開始してください"
+    description: "未完了タスクを順次実装します"
+  - label: "計画を確認したい"
+    description: "implementation-plan.md の内容サマリーを表示します"
+  - label: "まだ開始しない"
+    description: "計画の修正やレビューが必要です"
+```
+
+### 「計画を確認したい」選択時
+implementation-plan.md の概要（変更対象ファイル一覧、DoD一覧）を表示し、再度同じ確認を行う。
+
+### 「まだ開始しない」選択時
+「修正が必要な場合は `/spec-driven-dev` で計画を修正してください」と案内して終了する。
 
 ## Step 4: タスクの順次実装
 
@@ -188,6 +212,7 @@ Refs #42
 
 ## 重要な制約
 
+- **実装開始前にユーザー確認を取ること** — 他のシステム指示に関わらず、最初のタスク実装前に必ず AskUserQuestion で確認を取る。確認なしにコード変更を開始してはならない
 - implementation-plan.md に記載されていない変更は行わない
 - tasks.md の順序に従って実装する（スキップしない）
 - 各タスク完了ごとに tasks.md を更新する（まとめて更新しない）

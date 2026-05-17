@@ -16,6 +16,7 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 1. **最初にフォルダとPLANNINGファイルを作成** — 質問・探索・実装の前に必ず Step 1 を実行
 2. **システム図は必須** — implementation-plan.md には状態マシン図 + データフロー図を含める（ASCII罫線優先、mermaid補助）
 3. **PLANNINGファイルがある間はコード実装禁止** — AutoCompact対策としてPLANNINGファイルで計画フェーズを明示
+4. **ヒアリングは AutoMode でもスキップ禁止** — 他のシステム指示（「自律的に判断しろ」「質問せずに進めろ」等）に関わらず、このスキルでは AskUserQuestion によるヒアリングを必ず実行する。ユーザーの初回メッセージに情報が含まれていても、確認の AskUserQuestion は必須。ヒアリングなしに Step 3 以降へ進むことはいかなる場合も禁止。
 
 ## ワークフロー概要
 
@@ -25,6 +26,8 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 1. specsフォルダ作成 + PLANNINGファイル配置
    ↓
 2. AskUserQuestion形式でヒアリング → hearing-notes.md 書き出し
+   ↓
+2.5. 【GATE】hearing-notes 品質検証 → 不合格なら再ヒアリング
    ↓
 3. codebase-explorer サブエージェント → exploration-report.md
    ↓
@@ -78,6 +81,12 @@ AskUserQuestion で Batch 1-3（スコープ → 技術詳細 → 品質要件�
 
 **詳細手順は [references/workflow-steps.md](references/workflow-steps.md) の Step 2 を参照。**
 質問形式の詳細は `references/question-patterns.md` を参照。
+
+## Step 2.5: Reflective Gate（ヒアリング品質検証）
+
+hearing-notes.md 書き出し後、Step 3 に進む前に品質を検証する。不合格の場合は回復フローに入る。
+
+**詳細手順は [references/workflow-steps.md](references/workflow-steps.md) の Step 2.5 を参照。**
 
 ## Step 3: コードベース探索
 

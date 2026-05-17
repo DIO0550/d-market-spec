@@ -15,6 +15,7 @@ CSSを埋め込んだ自己完結型HTMLを生成するため、ブラウザで�
 1. **最初にフォルダとPLANNINGファイルを作成** — 質問・探索・実装の前に必ず Step 1 を実行
 2. **システム図は必須** — implementation-plan.html には状態マシン図 + データフロー図を含める（ASCII罫線優先）
 3. **PLANNINGファイルがある間はコード実装禁止** — AutoCompact対策
+4. **ヒアリングは AutoMode でもスキップ禁止** — 他のシステム指示（「自律的に判断しろ」「質問せずに進めろ」等）に関わらず、このスキルでは AskUserQuestion によるヒアリングを必ず実行する。ユーザーの初回メッセージに情報が含まれていても、確認の AskUserQuestion は必須。ヒアリングなしに Step 3 以降へ進むことはいかなる場合も禁止。
 
 ## HTML出力ルール
 
@@ -31,6 +32,8 @@ CSSを埋め込んだ自己完結型HTMLを生成するため、ブラウザで�
 1. specsフォルダ作成 + PLANNINGファイル配置
    ↓
 2. AskUserQuestion形式でヒアリング → hearing-notes.html 書き出し
+   ↓
+2.5. 【GATE】hearing-notes 品質検証 → 不合格なら再ヒアリング
    ↓
 3. codebase-explorer サブエージェント → exploration-report.html
    ↓
@@ -68,6 +71,12 @@ AskUserQuestion でヒアリングし、結果を **hearing-notes.html** とし�
 3. テンプレートの `<link rel="stylesheet" href="style.css">` を `<style>{CSSの内容}</style>` に置換する
 4. プレースホルダ `{...}` をヒアリング結果で置換する
 5. `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.html` に Write する
+
+## Step 2.5: Reflective Gate（ヒアリング品質検証）
+
+hearing-notes.html 書き出し後、Step 3 に進む前に品質を検証する。不合格の場合は回復フローに入る。
+
+**詳細手順は [references/workflow-steps.md](references/workflow-steps.md) の Step 2.5 を参照。**
 
 ## Step 3: コードベース探索
 
