@@ -12,6 +12,7 @@ SKILL.md本文で宣言されたパラメータを参照して実行する。
 - [Step 3.5: 探索後ヒアリング](#step-35-探索後ヒアリング-条件付き)
 - [Step 4: 実装計画生成](#step-4-実装計画生成spec-planner-サブエージェントに委譲)
 - [ユーザー確認](#ユーザー確認)
+- [tech-reference 生成](#tech-reference-生成サブエージェントに委譲)
 - [ガード解除 / PLANNINGファイル削除](#ガード解除use_guard--true-の場合)
 
 **パラメータ一覧**（SKILL.md本文で宣言）:
@@ -331,6 +332,7 @@ TaskOutput:
    - `.plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{OUTPUT_EXT}`
    - `.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{OUTPUT_EXT}`
    - `.plugin-workspace/.specs/{nnn}-{feature-name}/tasks{OUTPUT_EXT}`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/tech-reference{OUTPUT_EXT}`（tech-reference 生成後に追加提示）
 3. implementation-plan の内容サマリー
 4. tasks のタスク一覧
 5. 「修正が必要な場合はお知らせください」
@@ -340,6 +342,67 @@ TaskOutput:
 1. フィードバック明確性チェック（[feedback-clarification.md](feedback-clarification.md) 参照）
 2. 曖昧な場合 → AskUserQuestion で具体化してから Step 4 に戻る
 3. 明確な場合 → そのまま Step 4（レビュー付きバリアントはレビューループ）に戻る
+
+---
+
+## tech-reference 生成（サブエージェントに委譲）
+
+ユーザー確認完了後、サブエージェントを起動して tech-reference を生成する。
+implementation-plan に登場するすべての技術を、初学者向けに解説するコンパニオンドキュメントを作成する。
+
+### サブエージェント起動
+
+```
+Task tool:
+  description: "tech-reference-writer: {feature-name}"
+  subagent_type: general-purpose
+  run_in_background: true
+  prompt: |
+    あなたは技術リファレンスライターです。
+    implementation-plan を読み込み、そこに登場するすべての技術を
+    初学者向けに解説する tech-reference ドキュメントを生成してください。
+
+    読者は、言語やライブラリ、作ろうとしているものの初心者です。
+    前提知識ゼロでも理解できる平易な説明を心がけてください。
+
+    ## 入力
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{OUTPUT_EXT}
+
+    ## テンプレート
+    - {SKILL_NAME}:tech-reference
+
+    ## 出力先
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/tech-reference{OUTPUT_EXT}
+
+    ## 執筆ルール
+    - implementation-plan の変更案セクションに登場するすべての技術をカバーする
+    - 各技術に「何か」「なぜ使うか」「知っておくべきコンセプト(3-5個)」「コード例(5-10行)」を含める
+    - コード例は implementation-plan の変更案に沿った文脈のものにする
+    - 外部URLは含めない（Web検索なしで完結させる）
+    - Glossary に implementation-plan の専門用語をすべて収集する
+    - Tools & Infrastructure セクションには主なコマンドも記載する
+    - 該当する技術がないカテゴリセクションは省略する
+
+    ## 品質チェック
+    - [ ] implementation-plan の変更案に登場するすべての技術名が含まれているか
+    - [ ] 各エントリに「なぜ使うか」の説明があるか
+    - [ ] コード例が implementation-plan の文脈に沿っているか
+    - [ ] Glossary に専門用語がすべて含まれているか
+```
+
+```
+TaskOutput:
+  task_id: "{tech-reference-writerのtask_id}"
+  block: true
+  timeout: 180000
+```
+
+### 生成後の提示
+
+tech-reference 生成完了後、ユーザーに以下を追加提示する:
+
+- `tech-reference{OUTPUT_EXT}` のファイルパス
+- 「技術リファレンスを生成しました。implementation-plan と合わせてご参照ください。」
 
 ---
 

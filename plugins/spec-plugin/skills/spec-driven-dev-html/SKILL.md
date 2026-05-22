@@ -43,6 +43,8 @@ CSSを埋め込んだ自己完結型HTMLを生成するため、ブラウザで�
    ↓
 5. ユーザーに提示
    ↓
+5.5. tech-reference 生成（サブエージェント）→ tech-reference.html
+   ↓
 6. 実装開始許可後、PLANNINGファイル削除
 ```
 
@@ -138,6 +140,30 @@ spec-planner サブエージェントを起動し、implementation-plan.html と
 ユーザーが修正を要求した場合は、フィードバックの明確性を確認する（[references/feedback-clarification.md](references/feedback-clarification.md) 参照）。
 曖昧な場合は AskUserQuestion で具体化してから Step 4 に戻る。明確な場合はそのまま Step 4 に戻る。
 
+## Step 5.5: 技術リファレンス生成
+
+ユーザー確認完了後、サブエージェントを起動して tech-reference.html を生成する。
+
+implementation-plan.html に登場するすべての技術（言語・フレームワーク・ライブラリ・ツール・概念）を
+初学者向けに解説するドキュメントを生成する。
+読者は、言語やライブラリ、作ろうとしているものの初心者であることを前提とする。
+
+### サブエージェントへのHTML出力指示
+
+サブエージェントプロンプトに以下を追加する:
+
+```
+## 出力形式
+**HTML形式で出力すること。**
+1. spec-driven-dev-html:style を Read してCSSを取得
+2. spec-driven-dev-html:tech-reference を Read してテンプレートを取得
+3. テンプレートの <link> を <style>{CSS}</style> に置換
+4. プレースホルダを技術リファレンス内容で埋める
+5. 自己完結型HTMLとして出力
+```
+
+**基本プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の tech-reference 生成を参照。**
+
 ## Step 6: 実装開始（ユーザーによるガード解除）
 
 ```
@@ -155,5 +181,6 @@ spec-planner サブエージェントを起動し、implementation-plan.html と
     ├── hearing-notes.html          # ヒアリング結果（HTML）
     ├── exploration-report.html     # 探索レポート（HTML）
     ├── implementation-plan.html    # 実装計画（HTML）
-    └── tasks.html                  # タスクリスト（HTML）
+    ├── tasks.html                  # タスクリスト（HTML）
+    └── tech-reference.html         # 技術リファレンス（初学者向け、HTML）
 ```

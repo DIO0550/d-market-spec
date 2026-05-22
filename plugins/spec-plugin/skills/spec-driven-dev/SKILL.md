@@ -39,6 +39,8 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
    ↓
 6. ユーザーに提示
    ↓
+6.5. tech-reference 生成（サブエージェント）→ tech-reference.md
+   ↓
 7. 実装開始許可後、PLANNINGファイル削除
 ```
 
@@ -139,6 +141,16 @@ Step 0 で決定した `{REVIEW_TOOL}` を使用する。`none` の場合は Ste
 ユーザーが修正を要求した場合は、フィードバックの明確性を確認する（[references/feedback-clarification.md](references/feedback-clarification.md) 参照）。
 曖昧な場合は AskUserQuestion で具体化してから Step 4 に戻る。明確な場合はそのまま Step 4 に戻る。
 
+## Step 6.5: 技術リファレンス生成
+
+ユーザー確認完了後、サブエージェントを起動して tech-reference.md を生成する。
+
+implementation-plan.md に登場するすべての技術（言語・フレームワーク・ライブラリ・ツール・概念）を
+初学者向けに解説するドキュメントを生成する。
+読者は、言語やライブラリ、作ろうとしているものの初心者であることを前提とする。
+
+**詳細は [references/workflow-steps.md](references/workflow-steps.md) の tech-reference 生成を参照。**
+
 ## Step 7: 実装開始（ユーザーによるガード解除）
 
 **詳細は [references/workflow-steps.md](references/workflow-steps.md) のガード解除を参照。**
@@ -159,6 +171,7 @@ Step 0 で決定した `{REVIEW_TOOL}` を使用する。`none` の場合は Ste
     ├── exploration-report.md    # 探索レポート（codebase-explorer 生成）
     ├── implementation-plan.md   # 実装計画（spec-planner 生成）
     ├── tasks.md                 # タスクリスト（spec-planner 生成）
+    ├── tech-reference.md        # 技術リファレンス（初学者向け、サブエージェント生成）
     └── plan-review/             # AIレビュー結果（レビュー実行時のみ）
         ├── prompt-001.txt
         ├── review-001.md

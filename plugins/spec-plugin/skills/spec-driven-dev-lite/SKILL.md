@@ -33,6 +33,8 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
    ↓
 5. ユーザー確認
    ↓
+5.5. tech-reference 生成（サブエージェント）→ tech-reference.md
+   ↓
 6. ガード解除案内
 ```
 
@@ -178,6 +180,16 @@ hearing-notes.md を Read し、以下の3項目を検証する:
 ユーザーが修正を要求した場合は、フィードバックの明確性を確認する（[references/feedback-clarification.md](references/feedback-clarification.md) 参照）。
 曖昧な場合は AskUserQuestion で具体化してから Step 4 に戻る。明確な場合はそのまま Step 4 に戻る。
 
+## Step 5.5: 技術リファレンス生成
+
+ユーザー確認完了後、サブエージェントを起動して tech-reference.md を生成する。
+
+implementation-plan.md に登場するすべての技術（言語・フレームワーク・ライブラリ・ツール・概念）を
+初学者向けに解説するドキュメントを生成する。
+読者は、言語やライブラリ、作ろうとしているものの初心者であることを前提とする。
+
+**詳細は [references/workflow-steps.md](../spec-driven-dev/references/workflow-steps.md) の tech-reference 生成を参照。**
+
 ## Step 6: ガード解除案内
 
 ```
@@ -195,5 +207,6 @@ rm .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID} .plugin-workspace/.specs
     ├── PLANNING                 # 計画中は存在、実装開始時に削除
     ├── hearing-notes.md         # ヒアリング結果
     ├── implementation-plan.md   # 実装計画（システム図・変更案・DoD含む）
-    └── tasks.md                 # タスクリスト
+    ├── tasks.md                 # タスクリスト
+    └── tech-reference.md        # 技術リファレンス（初学者向け、サブエージェント生成）
 ```
