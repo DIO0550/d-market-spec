@@ -19,6 +19,7 @@
 <nav class="toc">
   <h2>目次</h2>
   <ul>
+    <li><a href="#stack-overview">Technology Stack Overview</a></li>
     <li><a href="#language">Language</a></li>
     <li><a href="#frameworks">Frameworks</a></li>
     <li><a href="#libraries">Libraries</a></li>
@@ -27,6 +28,30 @@
     <li><a href="#glossary">Glossary</a></li>
   </ul>
 </nav>
+
+<section id="stack-overview" class="section">
+  <h2>Technology Stack Overview</h2>
+  <div class="diagram">
+    <div class="diagram-label">Tech Stack Relationships</div>
+    <pre><code>{この機能で使う技術同士の関係をASCII図で俯瞰する}
+
+例:
+┌─────────────┐     ┌──────────────┐
+│ TypeScript  │────▶│    React     │
+│  (言語)     │     │ (フレームワーク) │
+└─────────────┘     └──────┬───────┘
+                           │ 使用
+                    ┌──────┴───────┐
+                    │   zustand    │
+                    │  (状態管理)   │
+                    └──────┬───────┘
+                           │ 保存先
+                    ┌──────┴───────┐
+                    │ chrome.storage│
+                    │   (API)      │
+                    └──────────────┘</code></pre>
+  </div>
+</section>
 
 <section id="language" class="section">
   <h2>Language</h2>
@@ -40,14 +65,38 @@
         <div><dt>何か</dt><dd>{1-2文の平易な説明。前提知識ゼロで理解できるように}</dd></div>
         <div><dt>なぜ使うか</dt><dd>{この機能の implementation-plan でどう使われるか}</dd></div>
       </dl>
-      <h4>知っておくべきコンセプト</h4>
-      <ul>
-        <li><strong>{コンセプト1}</strong>: {1文の説明}</li>
-        <li><strong>{コンセプト2}</strong>: {1文の説明}</li>
-        <li><strong>{コンセプト3}</strong>: {1文の説明}</li>
-      </ul>
-      <h4>コード例</h4>
-      <pre><code>{implementation-plan の変更案に関連する最小限のコード例 (5-10行)}</code></pre>
+
+      <h4>仕組みの概念図</h4>
+      <div class="diagram">
+        <pre><code>{この言語の基本的な動作モデルをASCII図で示す}</code></pre>
+      </div>
+
+      <h4>学習ステップ</h4>
+      <ol>
+        <li><strong>まず知るべきこと</strong>: {この機能を理解するための最低限の知識}
+          <ul>
+            <li><strong>{コンセプト1}</strong>: {1文の説明}</li>
+            <li><strong>{コンセプト2}</strong>: {1文の説明}</li>
+          </ul>
+        </li>
+        <li><strong>次に知るべきこと</strong>: {実装計画を読み解くために必要な知識}
+          <ul>
+            <li><strong>{コンセプト3}</strong>: {1文の説明}</li>
+            <li><strong>{コンセプト4}</strong>: {1文の説明}</li>
+          </ul>
+        </li>
+        <li><strong>実践で使う</strong>: {implementation-plan の変更案で実際に使うパターン}
+          <ul>
+            <li><strong>{コンセプト5}</strong>: {1文の説明}</li>
+          </ul>
+        </li>
+      </ol>
+
+      <h4>コード例 — before / after</h4>
+      <p>この技術を使わない場合:</p>
+      <pre><code>{この技術なしで同じことをする場合のコード (3-5行)}</code></pre>
+      <p>この技術を使う場合:</p>
+      <pre><code>{この技術を使った場合のコード (5-10行)}</code></pre>
     </div>
   </div>
 </section>
@@ -64,14 +113,24 @@
         <div><dt>何か</dt><dd>{1-2文の平易な説明}</dd></div>
         <div><dt>なぜ使うか</dt><dd>{この機能でどう使うか}</dd></div>
       </dl>
-      <h4>知っておくべきコンセプト</h4>
-      <ul>
-        <li><strong>{コンセプト1}</strong>: {1文の説明}</li>
-        <li><strong>{コンセプト2}</strong>: {1文の説明}</li>
-        <li><strong>{コンセプト3}</strong>: {1文の説明}</li>
-      </ul>
-      <h4>コード例</h4>
-      <pre><code>{implementation-plan の変更案に関連する最小限のコード例 (5-10行)}</code></pre>
+
+      <h4>仕組みの概念図</h4>
+      <div class="diagram">
+        <pre><code>{このフレームワークの基本的な動作モデルをASCII図で示す}</code></pre>
+      </div>
+
+      <h4>学習ステップ</h4>
+      <ol>
+        <li><strong>まず知るべきこと</strong>: <ul><li><strong>{コンセプト}</strong>: {説明}</li></ul></li>
+        <li><strong>次に知るべきこと</strong>: <ul><li><strong>{コンセプト}</strong>: {説明}</li></ul></li>
+        <li><strong>実践で使う</strong>: <ul><li><strong>{コンセプト}</strong>: {説明}</li></ul></li>
+      </ol>
+
+      <h4>コード例 — before / after</h4>
+      <p>この技術を使わない場合:</p>
+      <pre><code>{before}</code></pre>
+      <p>この技術を使う場合:</p>
+      <pre><code>{after}</code></pre>
     </div>
   </div>
 </section>
@@ -88,14 +147,24 @@
         <div><dt>何か</dt><dd>{1-2文の平易な説明}</dd></div>
         <div><dt>なぜ使うか</dt><dd>{この機能でどう使うか}</dd></div>
       </dl>
-      <h4>知っておくべきコンセプト</h4>
-      <ul>
-        <li><strong>{コンセプト1}</strong>: {1文の説明}</li>
-        <li><strong>{コンセプト2}</strong>: {1文の説明}</li>
-        <li><strong>{コンセプト3}</strong>: {1文の説明}</li>
-      </ul>
-      <h4>コード例</h4>
-      <pre><code>{implementation-plan の変更案に関連する最小限のコード例 (5-10行)}</code></pre>
+
+      <h4>仕組みの概念図</h4>
+      <div class="diagram">
+        <pre><code>{このライブラリの基本的な動作モデルをASCII図で示す}</code></pre>
+      </div>
+
+      <h4>学習ステップ</h4>
+      <ol>
+        <li><strong>まず知るべきこと</strong>: <ul><li><strong>{コンセプト}</strong>: {説明}</li></ul></li>
+        <li><strong>次に知るべきこと</strong>: <ul><li><strong>{コンセプト}</strong>: {説明}</li></ul></li>
+        <li><strong>実践で使う</strong>: <ul><li><strong>{コンセプト}</strong>: {説明}</li></ul></li>
+      </ol>
+
+      <h4>コード例 — before / after</h4>
+      <p>この技術を使わない場合:</p>
+      <pre><code>{before}</code></pre>
+      <p>この技術を使う場合:</p>
+      <pre><code>{after}</code></pre>
     </div>
   </div>
 </section>
@@ -133,8 +202,18 @@
         <div><dt>何か</dt><dd>{1-2文の平易な説明}</dd></div>
         <div><dt>なぜ重要か</dt><dd>{この機能の実装でどう関係するか}</dd></div>
       </dl>
-      <h4>仕組み（簡潔に）</h4>
-      <p>{3-5文の説明}</p>
+
+      <h4>仕組みの概念図</h4>
+      <div class="diagram">
+        <pre><code>{この概念の動作をASCII図で示す}</code></pre>
+      </div>
+
+      <h4>学習ステップ</h4>
+      <ol>
+        <li><strong>まず知るべきこと</strong>: <ul><li><strong>{コンセプト}</strong>: {説明}</li></ul></li>
+        <li><strong>次に知るべきこと</strong>: <ul><li><strong>{コンセプト}</strong>: {説明}</li></ul></li>
+        <li><strong>実践で使う</strong>: <ul><li><strong>{コンセプト}</strong>: {説明}</li></ul></li>
+      </ol>
     </div>
   </div>
 </section>
