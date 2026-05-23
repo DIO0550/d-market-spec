@@ -273,6 +273,64 @@ blockquote {
   gap: 0.5rem;
 }
 
+/* ==================== SVG Diagrams ==================== */
+.svg-diagram {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+  text-align: center;
+}
+.svg-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+.svg-diagram svg text {
+  font-family: "Hiragino Sans", "Noto Sans JP", sans-serif;
+  font-size: 13px;
+  fill: var(--text);
+}
+.svg-diagram svg text.label-small {
+  font-size: 11px;
+  fill: var(--text-muted);
+}
+.svg-diagram svg text.label-bold {
+  font-weight: 700;
+  font-size: 14px;
+}
+.svg-diagram svg rect.node {
+  fill: var(--primary-light);
+  stroke: var(--primary);
+  stroke-width: 2;
+  rx: 8;
+  ry: 8;
+}
+.svg-diagram svg rect.node-alt {
+  fill: var(--success-light);
+  stroke: var(--success);
+  stroke-width: 2;
+  rx: 8;
+  ry: 8;
+}
+.svg-diagram svg rect.node-warn {
+  fill: var(--warning-light);
+  stroke: var(--warning);
+  stroke-width: 2;
+  rx: 8;
+  ry: 8;
+}
+.svg-diagram svg line, .svg-diagram svg path {
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+  fill: none;
+}
+.svg-diagram svg polygon.arrow {
+  fill: var(--text-muted);
+  stroke: none;
+}
+
 /* ==================== Responsive ==================== */
 @media (max-width: 768px) {
   body { padding: 1.25rem 1rem; font-size: 14px; }

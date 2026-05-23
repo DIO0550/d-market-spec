@@ -31,25 +31,42 @@
 
 <section id="stack-overview" class="section">
   <h2>Technology Stack Overview</h2>
-  <div class="diagram">
-    <div class="diagram-label">Tech Stack Relationships</div>
-    <pre><code>{この機能で使う技術同士の関係をASCII図で俯瞰する}
+  <div class="svg-diagram">
+    <!--
+      技術同士の依存関係をSVGで描画する。
+      CSSクラス: node(青系), node-alt(緑系), node-warn(黄系) で色分け。
+      text.label-bold でノード名、text.label-small で補足ラベル。
+      line + polygon.arrow で矢印を描く。
 
-例:
-┌─────────────┐     ┌──────────────┐
-│ TypeScript  │────▶│    React     │
-│  (言語)     │     │ (フレームワーク) │
-└─────────────┘     └──────┬───────┘
-                           │ 使用
-                    ┌──────┴───────┐
-                    │   zustand    │
-                    │  (状態管理)   │
-                    └──────┬───────┘
-                           │ 保存先
-                    ┌──────┴───────┐
-                    │ chrome.storage│
-                    │   (API)      │
-                    └──────────────┘</code></pre>
+      例:
+    -->
+    <svg viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg">
+      <!-- Language -->
+      <rect class="node" x="130" y="10" width="140" height="50"/>
+      <text class="label-bold" x="200" y="32" text-anchor="middle">{言語名}</text>
+      <text class="label-small" x="200" y="48" text-anchor="middle">Language</text>
+      <!-- Arrow -->
+      <line x1="200" y1="60" x2="200" y2="85"/>
+      <polygon class="arrow" points="195,85 205,85 200,95"/>
+      <!-- Framework -->
+      <rect class="node-alt" x="130" y="95" width="140" height="50"/>
+      <text class="label-bold" x="200" y="117" text-anchor="middle">{フレームワーク名}</text>
+      <text class="label-small" x="200" y="133" text-anchor="middle">Framework</text>
+      <!-- Arrow -->
+      <line x1="200" y1="145" x2="200" y2="170"/>
+      <polygon class="arrow" points="195,170 205,170 200,180"/>
+      <!-- Library -->
+      <rect class="node" x="130" y="180" width="140" height="50"/>
+      <text class="label-bold" x="200" y="202" text-anchor="middle">{ライブラリ名}</text>
+      <text class="label-small" x="200" y="218" text-anchor="middle">Library</text>
+      <!-- Arrow -->
+      <line x1="200" y1="230" x2="200" y2="255"/>
+      <polygon class="arrow" points="195,255 205,255 200,265"/>
+      <!-- External -->
+      <rect class="node-warn" x="130" y="265" width="140" height="50"/>
+      <text class="label-bold" x="200" y="287" text-anchor="middle">{外部API等}</text>
+      <text class="label-small" x="200" y="303" text-anchor="middle">External</text>
+    </svg>
   </div>
 </section>
 
@@ -67,8 +84,26 @@
       </dl>
 
       <h4>仕組みの概念図</h4>
-      <div class="diagram">
-        <pre><code>{この言語の基本的な動作モデルをASCII図で示す}</code></pre>
+      <div class="svg-diagram">
+        <!--
+          この言語の基本的な動作モデルをSVGで描画する。
+          例: ソースコード → コンパイル → 実行 のフロー
+        -->
+        <svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+          <rect class="node" x="20" y="55" width="100" height="50"/>
+          <text class="label-bold" x="70" y="77" text-anchor="middle">{入力}</text>
+          <text class="label-small" x="70" y="93" text-anchor="middle">{補足}</text>
+          <line x1="120" y1="80" x2="150" y2="80"/>
+          <polygon class="arrow" points="150,75 150,85 160,80"/>
+          <rect class="node-alt" x="160" y="55" width="100" height="50"/>
+          <text class="label-bold" x="210" y="77" text-anchor="middle">{処理}</text>
+          <text class="label-small" x="210" y="93" text-anchor="middle">{補足}</text>
+          <line x1="260" y1="80" x2="290" y2="80"/>
+          <polygon class="arrow" points="290,75 290,85 300,80"/>
+          <rect class="node" x="300" y="55" width="100" height="50"/>
+          <text class="label-bold" x="350" y="77" text-anchor="middle">{出力}</text>
+          <text class="label-small" x="350" y="93" text-anchor="middle">{補足}</text>
+        </svg>
       </div>
 
       <h4>学習ステップ</h4>
@@ -115,8 +150,11 @@
       </dl>
 
       <h4>仕組みの概念図</h4>
-      <div class="diagram">
-        <pre><code>{このフレームワークの基本的な動作モデルをASCII図で示す}</code></pre>
+      <div class="svg-diagram">
+        <!-- このフレームワークの基本的な動作モデルをSVGで描画する -->
+        <svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+          {SVGで動作モデルを描画}
+        </svg>
       </div>
 
       <h4>学習ステップ</h4>
@@ -149,8 +187,11 @@
       </dl>
 
       <h4>仕組みの概念図</h4>
-      <div class="diagram">
-        <pre><code>{このライブラリの基本的な動作モデルをASCII図で示す}</code></pre>
+      <div class="svg-diagram">
+        <!-- このライブラリの基本的な動作モデルをSVGで描画する -->
+        <svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+          {SVGで動作モデルを描画}
+        </svg>
       </div>
 
       <h4>学習ステップ</h4>
@@ -204,8 +245,11 @@
       </dl>
 
       <h4>仕組みの概念図</h4>
-      <div class="diagram">
-        <pre><code>{この概念の動作をASCII図で示す}</code></pre>
+      <div class="svg-diagram">
+        <!-- この概念の動作をSVGで描画する -->
+        <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+          {SVGで動作モデルを描画}
+        </svg>
       </div>
 
       <h4>学習ステップ</h4>

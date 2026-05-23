@@ -429,12 +429,15 @@ Task tool:
 
     ## 執筆ルール
     - implementation-plan の変更案セクションに登場するすべての技術をカバーする
-    - 冒頭に **Technology Stack Overview** として、この機能で使う技術同士の関係をASCII図で俯瞰する（言語→フレームワーク→ライブラリ→APIの依存関係）
+    - 冒頭に **Technology Stack Overview** として、この機能で使う技術同士の関係を俯瞰図で示す（言語→フレームワーク→ライブラリ→APIの依存関係）
     - 各技術エントリに以下を含める:
       - 「何か」「なぜ使うか」
-      - **仕組みの概念図**: その技術の動作モデルをASCII図で示す
+      - **仕組みの概念図**: その技術の動作モデルを図で示す
       - **学習ステップ**: 「まず知るべきこと → 次に知るべきこと → 実践で使う」の3段階
       - **コード例 — before / after**: この技術を使わない場合と使う場合の比較
+    - **図の描画形式**:
+      - .md 出力の場合: ASCII罫線図を使用する
+      - .html 出力の場合: **SVG を使用する**。`<div class="svg-diagram"><svg>` 内に描画する。テンプレートで定義された CSS クラス（`rect.node`, `rect.node-alt`, `rect.node-warn`, `text.label-bold`, `text.label-small`, `polygon.arrow`）を活用して、色分けされた見やすい図を描く。テンプレートの SVG 例を参考にすること
     - コード例は implementation-plan の変更案に沿った文脈のものにする
     - 外部URLは含めない（Web検索なしで完結させる）
     - Glossary に implementation-plan の専門用語をすべて収集する
@@ -444,7 +447,7 @@ Task tool:
     ## 品質チェック
     - [ ] 冒頭に Technology Stack Overview の俯瞰図があるか
     - [ ] implementation-plan の変更案に登場するすべての技術名が含まれているか
-    - [ ] 各エントリに仕組みの概念図（ASCII図）があるか
+    - [ ] 各エントリに仕組みの概念図があるか（.md → ASCII図、.html → SVG図）
     - [ ] 各エントリに学習ステップ（3段階）があるか
     - [ ] 各エントリにbefore/afterのコード比較があるか
     - [ ] 各エントリに「なぜ使うか」の説明があるか
