@@ -25,6 +25,7 @@ spec-plugin のワークスペース初期化と設定を行うスキル。
 | `output-formats.implementation-plan` | `md` / `html` | implementation-plan の出力形式 |
 | `output-formats.tasks` | `md` / `html` | tasks の出力形式 |
 | `output-formats.tech-reference` | `md` / `html` | tech-reference の出力形式 |
+| `skip-files` | リスト | 生成をスキップするファイル（例: `[tech-reference]`） |
 
 ## ワークフロー
 
@@ -75,6 +76,23 @@ options:
 
 **何も選択されなかった場合**: すべて `md` として設定する。
 
+### Step 3.5: スキップするファイルの選択
+
+AskUserQuestion（multiSelect）で、**生成をスキップするファイル**を選択させる。
+
+既存の `.config.yml` に `skip-files` が設定済みの場合は、現在の設定を表示してから質問する。
+
+```
+question: "生成をスキップするファイルがあれば選んでください（未選択＝すべて生成）"
+header: "スキップ"
+multiSelect: true
+options:
+  - label: "tech-reference"
+    description: "技術リファレンス（初学者向け解説）を生成しない"
+```
+
+選択結果から `skip-files` リストを構築する。何も選択されなかった場合は `skip-files` キーを出力しない。
+
 ### Step 4: 設定ファイルの書き出し
 
 Write ツールで `.plugin-workspace/.specs/.config.yml` に書き出す:
@@ -92,6 +110,10 @@ output-formats:
   implementation-plan: {md or html}
   tasks: {md or html}
   tech-reference: {md or html}
+
+# 生成をスキップするファイル（Step 3.5 で選択された場合のみ出力）
+skip-files:
+  - tech-reference
 ```
 
 ### Step 5: 完了報告

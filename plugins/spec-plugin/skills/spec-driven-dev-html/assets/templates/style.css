@@ -273,6 +273,12 @@ blockquote {
   gap: 0.5rem;
 }
 
+/* ==================== Library-Doc Body Reset ==================== */
+body:has(.lib-doc) {
+  max-width: none;
+  padding: 0;
+}
+
 /* ==================== Library-Doc Layout ==================== */
 .lib-doc {
   display: flex;
@@ -341,8 +347,8 @@ blockquote {
 .lib-doc .lib-toc a.indent { padding-left: 24px; }
 .lib-doc .lib-main {
   flex: 1;
+  min-width: 0;
   padding: 44px 64px 80px;
-  max-width: 880px;
 }
 
 /* ==================== Library-Doc Breadcrumb ==================== */
