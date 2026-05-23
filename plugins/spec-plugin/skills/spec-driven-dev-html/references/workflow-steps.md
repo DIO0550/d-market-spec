@@ -427,31 +427,59 @@ Task tool:
     対応する HTML テンプレートの <link> を <style>{CSS}</style> に置換して、
     自己完結型HTMLとして出力してください。
 
-    ## 執筆ルール
-    - implementation-plan の変更案セクションに登場するすべての技術をカバーする
-    - 冒頭に **Technology Stack Overview** として、この機能で使う技術同士の関係を俯瞰図で示す（言語→フレームワーク→ライブラリ→APIの依存関係）
-    - 各技術エントリに以下を含める:
-      - 「何か」「なぜ使うか」
-      - **仕組みの概念図**: その技術の動作モデルを図で示す
-      - **学習ステップ**: 「まず知るべきこと → 次に知るべきこと → 実践で使う」の3段階
-      - **コード例 — before / after**: この技術を使わない場合と使う場合の比較
-    - **図の描画形式**:
-      - .md 出力の場合: ASCII罫線図を使用する
-      - .html 出力の場合: **SVG を使用する**。`<div class="svg-diagram"><svg>` 内に描画する。テンプレートで定義された CSS クラス（`rect.node`, `rect.node-alt`, `rect.node-warn`, `text.label-bold`, `text.label-small`, `polygon.arrow`）を活用して、色分けされた見やすい図を描く。テンプレートの SVG 例を参考にすること
-    - コード例は implementation-plan の変更案に沿った文脈のものにする
+    ## 執筆スタイル — MDN / ライブラリドキュメント風
+    テンプレ的な箇条書き（What/Why/Concepts/Code の繰り返し）ではなく、
+    MDN や React 公式ドキュメントのように **流れる散文** で書くこと。
+    「実装で詰まった部分をその都度引ける辞書」として機能する粒度で記述する。
+
+    ## 構成ルール
+    - 冒頭に **概要セクション** を置き、この機能が何をするか・全体像を2-3段落で説明する
+    - 概要に **全体フロー図** を入れる（技術間の関係・データの流れ）
+    - 各技術は **1つのミニ記事** として書く（辞書エントリではなく）:
+      - 定義から入り、この機能での利用箇所に繋げる散文
+      - 仕組みを掘り下げ、メンタルモデルを説明する散文
+      - **動作モデルの図** で視覚化
+      - **実践的なコード例**（implementation-plan の変更案に沿ったもの）
+      - 重要な関数/API は **シグネチャ** + **パラメータ表** で詳細に記述
+      - 注意点・ヒントは **メモ / 注意** ブロックで囲む
+    - 末尾に **用語集** を置く
+    - implementation-plan の変更案に登場するすべての技術をカバーする
     - 外部URLは含めない（Web検索なしで完結させる）
-    - Glossary に implementation-plan の専門用語をすべて収集する
-    - Tools & Infrastructure セクションには主なコマンドも記載する
     - 該当する技術がないカテゴリセクションは省略する
 
+    ## 粒度の目安
+    - 読者が「この技術って何？」から「このコード、何をしてるか分かった」まで到達できる深さ
+    - 専門用語が出たら、その場で噛み砕いて説明を添える
+    - 図と文を連携させる（「上の図で◯◯が△△に渡され…」）
+
+    ## 図の描画形式
+    - .md 出力の場合: ASCII罫線図を使用する
+    - .html 出力の場合: **SVG を使用する**。
+      `<div class="svg-diagram"><svg>` または `<figure class="lib-figure">` 内に描画する。
+      テンプレートで定義された CSS クラスを活用すること。
+      テンプレートの SVG 例を参考にすること
+
+    ## HTML 出力時のスタイル
+    .html 出力の場合は、テンプレートのライブラリドキュメント用 CSS クラスを使用する:
+    - レイアウト: `lib-doc`, `lib-sidebar`, `lib-main`
+    - 見出し: `lib-h1`, `lib-h2`（`.kicker`, `.hash`）, `lib-h3`
+    - テキスト: `lib-p`, `lib-intro`, `lib-inline`
+    - コード: `lib-code-block`（`.lib-code-lang` + `pre`）
+    - シグネチャ: `lib-signature`（`.sig-key`, `.sig-str`, `.sig-type`）
+    - パラメータ表: `lib-param-table`（`.param-name`, `.param-tag`, `.param-type`）
+    - 注釈: `lib-note`（`lib-note-info` / `lib-note-warn`）
+    - 図: `lib-figure`, `lib-figure-inner`, `svg-diagram`
+    - 用語集: 通常の `<table>`
+    - フッター: `lib-footer`
+
     ## 品質チェック
-    - [ ] 冒頭に Technology Stack Overview の俯瞰図があるか
-    - [ ] implementation-plan の変更案に登場するすべての技術名が含まれているか
-    - [ ] 各エントリに仕組みの概念図があるか（.md → ASCII図、.html → SVG図）
-    - [ ] 各エントリに学習ステップ（3段階）があるか
-    - [ ] 各エントリにbefore/afterのコード比較があるか
-    - [ ] 各エントリに「なぜ使うか」の説明があるか
-    - [ ] Glossary に専門用語がすべて含まれているか
+    - [ ] 冒頭に概要セクションと全体フロー図があるか
+    - [ ] implementation-plan の変更案に登場するすべての技術が記事としてカバーされているか
+    - [ ] 各技術セクションが散文（箇条書きの羅列ではない）で書かれているか
+    - [ ] 各技術セクションに動作モデルの図があるか（.md → ASCII図、.html → SVG図）
+    - [ ] 重要な関数/API にシグネチャとパラメータ表があるか
+    - [ ] コード例が implementation-plan の変更案に沿った実践的なものか
+    - [ ] 用語集に implementation-plan の専門用語がすべて含まれているか
 ```
 
 ```
