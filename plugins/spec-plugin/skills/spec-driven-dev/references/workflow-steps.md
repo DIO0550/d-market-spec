@@ -5,6 +5,7 @@ SKILL.md本文で宣言されたパラメータを参照して実行する。
 
 ## 目次
 
+- [出力形式解決](#出力形式解決)
 - [Step 1: specsフォルダ + PLANNINGファイル作成](#step-1-specsフォルダ--planningファイル作成)
 - [Step 2: ヒアリング → hearing-notes 書き出し](#step-2-ヒアリング--hearing-notes-書き出し)
 - [Step 2.5: Reflective Gate（ヒアリング品質検証）](#step-25-reflective-gateヒアリング品質検証)
@@ -12,6 +13,7 @@ SKILL.md本文で宣言されたパラメータを参照して実行する。
 - [Step 3.5: 探索後ヒアリング](#step-35-探索後ヒアリング-条件付き)
 - [Step 4: 実装計画生成](#step-4-実装計画生成spec-planner-サブエージェントに委譲)
 - [ユーザー確認](#ユーザー確認)
+- [tech-reference 生成](#tech-reference-生成サブエージェントに委譲)
 - [ガード解除 / PLANNINGファイル削除](#ガード解除use_guard--true-の場合)
 
 **パラメータ一覧**（SKILL.md本文で宣言）:
@@ -21,7 +23,46 @@ SKILL.md本文で宣言されたパラメータを参照して実行する。
 | `{SKILL_NAME}` | 現在のスキル名 | `spec-driven-dev` |
 | `{PLANNING_CONTENT}` | PLANNINGファイルに書く内容 | `${CLAUDE_SESSION_ID}` |
 | `{USE_GUARD}` | ガードファイルを使用するか | `true` / `false` |
-| `{OUTPUT_EXT}` | 出力ファイル拡張子 | `.md` / `.html` |
+| `{HEARING_NOTES_EXT}` | hearing-notes の拡張子 | `.md` / `.html` |
+| `{EXPLORATION_REPORT_EXT}` | exploration-report の拡張子 | `.md` / `.html` |
+| `{IMPLEMENTATION_PLAN_EXT}` | implementation-plan の拡張子 | `.md` / `.html` |
+| `{TASKS_EXT}` | tasks の拡張子 | `.md` / `.html` |
+| `{TECH_REFERENCE_EXT}` | tech-reference の拡張子 | `.md` / `.html` |
+
+---
+
+## 出力形式解決
+
+`.plugin-workspace/.specs/.config.yml` の `output-formats` セクションを読み取り、ファイルごとの拡張子を決定する。
+
+### 解決ロジック
+
+1. `.plugin-workspace/.specs/.config.yml` を Read する
+2. `output-formats` キーが存在する場合:
+   - 各ファイルキー（`hearing-notes`, `exploration-report`, `implementation-plan`, `tasks`, `tech-reference`）の値を読む
+   - `html` → `.html`、`md` → `.md`
+3. `output-formats` キーが存在しない場合、またはキーが欠落している場合: `.md` をデフォルトとする
+
+### HTML出力時の共通ルール
+
+`.html` が指定されたファイルを生成する際は:
+
+1. `assets/templates/style.css` を Read してCSSを取得
+2. 対応する HTML テンプレート（`assets/templates/{ファイル名}.html`）を Read
+3. テンプレートの `<link rel="stylesheet" href="style.css">` を `<style>{CSS内容}</style>` に置換
+4. プレースホルダを内容で埋めて自己完結型HTMLとして出力
+
+サブエージェントに HTML 出力を委譲する場合は、プロンプトに以下を追加する:
+
+```
+## 出力形式
+**HTML形式で出力すること。**
+1. {SKILL_NAME}:style を Read してCSSを取得
+2. {SKILL_NAME}:{テンプレート名} を Read してHTMLテンプレートを取得
+3. テンプレートの <link> を <style>{CSS}</style> に置換
+4. プレースホルダを内容で埋める
+5. 自己完結型HTMLとして出力
+```
 
 ---
 
@@ -60,7 +101,7 @@ mkdir -p .plugin-workspace/.specs/.guard && touch .plugin-workspace/.specs/.guar
 
 ## Step 2: ヒアリング → hearing-notes 書き出し
 
-ユーザーの要求を受けたら、AskUserQuestion で質問し、結果を `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{OUTPUT_EXT}` に書き出す。
+ユーザーの要求を受けたら、AskUserQuestion で質問し、結果を `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT}` に書き出す。
 
 一度に1-4個の質問をまとめて聞く。
 
@@ -89,8 +130,8 @@ mkdir -p .plugin-workspace/.specs/.guard && touch .plugin-workspace/.specs/.guar
 
 ヒアリング完了後、テンプレートに沿って結果をファイルに書き出す。
 
-テンプレート: `assets/templates/hearing-notes{OUTPUT_EXT}`
-出力先: `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{OUTPUT_EXT}`
+テンプレート: `assets/templates/hearing-notes{HEARING_NOTES_EXT}`
+出力先: `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT}`
 
 ---
 
@@ -156,7 +197,7 @@ Task tool:
   run_in_background: true
   prompt: |
     あなたはcodebase-explorerエージェントです。
-    .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{OUTPUT_EXT} を読み込み、
+    .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT} を読み込み、
     その目的・スコープに基づいてコードベースを探索してください。
 
     ## 探索ヒント（オーケストレーターが抽出）
@@ -172,7 +213,12 @@ Task tool:
     {SKILL_NAME}:exploration-report
 
     ## 出力先
-    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{OUTPUT_EXT}
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}
+
+    ## 出力形式に関する注意
+    exploration-report の拡張子は {EXPLORATION_REPORT_EXT} です。
+    .html の場合は、{SKILL_NAME}:style と {SKILL_NAME}:exploration-report の HTML テンプレートを Read し、
+    CSS埋め込みの自己完結型HTMLとして出力してください。
 ```
 
 `{...}` はオーケストレーターが hearing-notes の内容に基づいて埋める。
@@ -208,7 +254,7 @@ Task tool:
     前回の探索レポートが品質基準に達していないため、補完探索を行います。
 
     ## 前回のレポート
-    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{OUTPUT_EXT}
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}
 
     ## 不足している項目
     {具体的な不足項目を列挙}
@@ -224,7 +270,7 @@ Task tool:
     {SKILL_NAME}:exploration-perspectives
 
     ## 出力先
-    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{OUTPUT_EXT}（上書き更新）
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}（上書き更新）
 ```
 
 ```
@@ -289,19 +335,21 @@ Task tool:
   run_in_background: true
   prompt: |
     あなたはspec-plannerエージェントです。
-    以下のファイルを読み込み、implementation-plan{OUTPUT_EXT} と tasks{OUTPUT_EXT} を生成してください。
+    以下のファイルを読み込み、implementation-plan と tasks を生成してください。
 
     ## 入力
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{OUTPUT_EXT}
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{OUTPUT_EXT}
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT}
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}
 
-    ## テンプレート
-    - {SKILL_NAME}:implementation-plan
-    - {SKILL_NAME}:tasks
+    ## テンプレート・出力先
+    - implementation-plan: テンプレート {SKILL_NAME}:implementation-plan → 出力 .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
+    - tasks: テンプレート {SKILL_NAME}:tasks → 出力 .plugin-workspace/.specs/{nnn}-{feature-name}/tasks{TASKS_EXT}
 
-    ## 出力先
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{OUTPUT_EXT}
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/tasks{OUTPUT_EXT}
+    ## 出力形式に関する注意
+    各ファイルの拡張子（.md / .html）は上記の通りです。
+    .html の場合は、{SKILL_NAME}:style を Read してCSSを取得し、
+    対応する HTML テンプレートの <link> を <style>{CSS}</style> に置換して、
+    自己完結型HTMLとして出力してください。
 
     ## 重要
     - システム図（状態マシン図 + データフロー図）は必須。省略禁止。ASCII罫線図を優先。
@@ -327,10 +375,11 @@ TaskOutput:
 
 1. **specフォルダパス**: `.plugin-workspace/.specs/{nnn}-{feature-name}/` を明示
 2. 生成ファイル一覧（各ファイルのフルパス）:
-   - `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{OUTPUT_EXT}`
-   - `.plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{OUTPUT_EXT}`
-   - `.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{OUTPUT_EXT}`
-   - `.plugin-workspace/.specs/{nnn}-{feature-name}/tasks{OUTPUT_EXT}`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT}`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/tasks{TASKS_EXT}`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/tech-reference{TECH_REFERENCE_EXT}`（tech-reference 生成後に追加提示）
 3. implementation-plan の内容サマリー
 4. tasks のタスク一覧
 5. 「修正が必要な場合はお知らせください」
@@ -340,6 +389,112 @@ TaskOutput:
 1. フィードバック明確性チェック（[feedback-clarification.md](feedback-clarification.md) 参照）
 2. 曖昧な場合 → AskUserQuestion で具体化してから Step 4 に戻る
 3. 明確な場合 → そのまま Step 4（レビュー付きバリアントはレビューループ）に戻る
+
+---
+
+## tech-reference 生成（サブエージェントに委譲）
+
+ユーザー確認完了後、サブエージェントを起動して tech-reference を生成する。
+implementation-plan に登場するすべての技術を、初学者向けに解説するコンパニオンドキュメントを作成する。
+
+### サブエージェント起動
+
+```
+Task tool:
+  description: "tech-reference-writer: {feature-name}"
+  subagent_type: general-purpose
+  run_in_background: true
+  prompt: |
+    あなたは技術リファレンスライターです。
+    implementation-plan を読み込み、そこに登場するすべての技術を
+    初学者向けに解説する tech-reference ドキュメントを生成してください。
+
+    読者は、言語やライブラリ、作ろうとしているものの初心者です。
+    前提知識ゼロでも理解できる平易な説明を心がけてください。
+
+    ## 入力
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
+
+    ## テンプレート
+    - {SKILL_NAME}:tech-reference（拡張子 {TECH_REFERENCE_EXT} に対応するテンプレートを使用）
+
+    ## 出力先
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/tech-reference{TECH_REFERENCE_EXT}
+
+    ## 出力形式に関する注意
+    tech-reference の拡張子は {TECH_REFERENCE_EXT} です。
+    .html の場合は、{SKILL_NAME}:style を Read してCSSを取得し、
+    対応する HTML テンプレートの <link> を <style>{CSS}</style> に置換して、
+    自己完結型HTMLとして出力してください。
+
+    ## 執筆スタイル — MDN / ライブラリドキュメント風
+    テンプレ的な箇条書き（What/Why/Concepts/Code の繰り返し）ではなく、
+    MDN や React 公式ドキュメントのように **流れる散文** で書くこと。
+    「実装で詰まった部分をその都度引ける辞書」として機能する粒度で記述する。
+
+    ## 構成ルール
+    - 冒頭に **概要セクション** を置き、この機能が何をするか・全体像を2-3段落で説明する
+    - 概要に **全体フロー図** を入れる（技術間の関係・データの流れ）
+    - 各技術は **1つのミニ記事** として書く（辞書エントリではなく）:
+      - 定義から入り、この機能での利用箇所に繋げる散文
+      - 仕組みを掘り下げ、メンタルモデルを説明する散文
+      - **動作モデルの図** で視覚化
+      - **実践的なコード例**（implementation-plan の変更案に沿ったもの）
+      - 重要な関数/API は **シグネチャ** + **パラメータ表** で詳細に記述
+      - 注意点・ヒントは **メモ / 注意** ブロックで囲む
+    - 末尾に **用語集** を置く
+    - implementation-plan の変更案に登場するすべての技術をカバーする
+    - 外部URLは含めない（Web検索なしで完結させる）
+    - 該当する技術がないカテゴリセクションは省略する
+
+    ## 粒度の目安
+    - 読者が「この技術って何？」から「このコード、何をしてるか分かった」まで到達できる深さ
+    - 専門用語が出たら、その場で噛み砕いて説明を添える
+    - 図と文を連携させる（「上の図で◯◯が△△に渡され…」）
+
+    ## 図の描画形式
+    - .md 出力の場合: ASCII罫線図を使用する
+    - .html 出力の場合: **SVG を使用する**。
+      `<div class="svg-diagram"><svg>` または `<figure class="lib-figure">` 内に描画する。
+      テンプレートで定義された CSS クラスを活用すること。
+      テンプレートの SVG 例を参考にすること
+
+    ## HTML 出力時のスタイル
+    .html 出力の場合は、テンプレートのライブラリドキュメント用 CSS クラスを使用する:
+    - レイアウト: `lib-doc`, `lib-sidebar`, `lib-main`
+    - 見出し: `lib-h1`, `lib-h2`（`.kicker`, `.hash`）, `lib-h3`
+    - テキスト: `lib-p`, `lib-intro`, `lib-inline`
+    - コード: `lib-code-block`（`.lib-code-lang` + `pre`）
+    - シグネチャ: `lib-signature`（`.sig-key`, `.sig-str`, `.sig-type`）
+    - パラメータ表: `lib-param-table`（`.param-name`, `.param-tag`, `.param-type`）
+    - 注釈: `lib-note`（`lib-note-info` / `lib-note-warn`）
+    - 図: `lib-figure`, `lib-figure-inner`, `svg-diagram`
+    - 用語集: 通常の `<table>`
+    - フッター: `lib-footer`
+
+    ## 品質チェック
+    - [ ] 冒頭に概要セクションと全体フロー図があるか
+    - [ ] implementation-plan の変更案に登場するすべての技術が記事としてカバーされているか
+    - [ ] 各技術セクションが散文（箇条書きの羅列ではない）で書かれているか
+    - [ ] 各技術セクションに動作モデルの図があるか（.md → ASCII図、.html → SVG図）
+    - [ ] 重要な関数/API にシグネチャとパラメータ表があるか
+    - [ ] コード例が implementation-plan の変更案に沿った実践的なものか
+    - [ ] 用語集に implementation-plan の専門用語がすべて含まれているか
+```
+
+```
+TaskOutput:
+  task_id: "{tech-reference-writerのtask_id}"
+  block: true
+  timeout: 180000
+```
+
+### 生成後の提示
+
+tech-reference 生成完了後、ユーザーに以下を追加提示する:
+
+- `tech-reference{TECH_REFERENCE_EXT}` のファイルパス
+- 「技術リファレンスを生成しました。implementation-plan と合わせてご参照ください。」
 
 ---
 
