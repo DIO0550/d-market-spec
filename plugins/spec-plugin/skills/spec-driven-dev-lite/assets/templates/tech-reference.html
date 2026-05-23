@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>技術リファレンス: {機能名}</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>技術リファレンス: {機能名}</h1>
+  <div class="callout callout-info">
+    <p>このドキュメントは implementation-plan で使用されるすべての技術を、初学者向けに解説したものです。<br>
+    言語・ライブラリ・概念に不慣れな方が implementation-plan を読む際のコンパニオンとしてお使いください。</p>
+  </div>
+</header>
+
+<nav class="toc">
+  <h2>目次</h2>
+  <ul>
+    <li><a href="#language">Language</a></li>
+    <li><a href="#frameworks">Frameworks</a></li>
+    <li><a href="#libraries">Libraries</a></li>
+    <li><a href="#tools">Tools &amp; Infrastructure</a></li>
+    <li><a href="#concepts">Key Concepts</a></li>
+    <li><a href="#glossary">Glossary</a></li>
+  </ul>
+</nav>
+
+<section id="language" class="section">
+  <h2>Language</h2>
+
+  <div class="change-item">
+    <div class="change-item-header">
+      <strong>{言語名}</strong>
+    </div>
+    <div class="change-item-body">
+      <dl class="metadata">
+        <div><dt>何か</dt><dd>{1-2文の平易な説明。前提知識ゼロで理解できるように}</dd></div>
+        <div><dt>なぜ使うか</dt><dd>{この機能の implementation-plan でどう使われるか}</dd></div>
+      </dl>
+      <h4>知っておくべきコンセプト</h4>
+      <ul>
+        <li><strong>{コンセプト1}</strong>: {1文の説明}</li>
+        <li><strong>{コンセプト2}</strong>: {1文の説明}</li>
+        <li><strong>{コンセプト3}</strong>: {1文の説明}</li>
+      </ul>
+      <h4>コード例</h4>
+      <pre><code>{implementation-plan の変更案に関連する最小限のコード例 (5-10行)}</code></pre>
+    </div>
+  </div>
+</section>
+
+<section id="frameworks" class="section">
+  <h2>Frameworks</h2>
+
+  <div class="change-item">
+    <div class="change-item-header">
+      <strong>{フレームワーク名}</strong>
+    </div>
+    <div class="change-item-body">
+      <dl class="metadata">
+        <div><dt>何か</dt><dd>{1-2文の平易な説明}</dd></div>
+        <div><dt>なぜ使うか</dt><dd>{この機能でどう使うか}</dd></div>
+      </dl>
+      <h4>知っておくべきコンセプト</h4>
+      <ul>
+        <li><strong>{コンセプト1}</strong>: {1文の説明}</li>
+        <li><strong>{コンセプト2}</strong>: {1文の説明}</li>
+        <li><strong>{コンセプト3}</strong>: {1文の説明}</li>
+      </ul>
+      <h4>コード例</h4>
+      <pre><code>{implementation-plan の変更案に関連する最小限のコード例 (5-10行)}</code></pre>
+    </div>
+  </div>
+</section>
+
+<section id="libraries" class="section">
+  <h2>Libraries</h2>
+
+  <div class="change-item">
+    <div class="change-item-header">
+      <strong>{ライブラリ名}</strong>
+    </div>
+    <div class="change-item-body">
+      <dl class="metadata">
+        <div><dt>何か</dt><dd>{1-2文の平易な説明}</dd></div>
+        <div><dt>なぜ使うか</dt><dd>{この機能でどう使うか}</dd></div>
+      </dl>
+      <h4>知っておくべきコンセプト</h4>
+      <ul>
+        <li><strong>{コンセプト1}</strong>: {1文の説明}</li>
+        <li><strong>{コンセプト2}</strong>: {1文の説明}</li>
+        <li><strong>{コンセプト3}</strong>: {1文の説明}</li>
+      </ul>
+      <h4>コード例</h4>
+      <pre><code>{implementation-plan の変更案に関連する最小限のコード例 (5-10行)}</code></pre>
+    </div>
+  </div>
+</section>
+
+<section id="tools" class="section">
+  <h2>Tools &amp; Infrastructure</h2>
+
+  <div class="change-item">
+    <div class="change-item-header">
+      <strong>{ツール名}</strong>
+    </div>
+    <div class="change-item-body">
+      <dl class="metadata">
+        <div><dt>何か</dt><dd>{1-2文の平易な説明}</dd></div>
+        <div><dt>なぜ使うか</dt><dd>{この機能でどう使うか}</dd></div>
+      </dl>
+      <h4>主なコマンド</h4>
+      <ul>
+        <li><code>{コマンド}</code> — {何をするか}</li>
+        <li><code>{コマンド}</code> — {何をするか}</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="concepts" class="section">
+  <h2>Key Concepts</h2>
+
+  <div class="change-item">
+    <div class="change-item-header">
+      <strong>{概念名}</strong>
+    </div>
+    <div class="change-item-body">
+      <dl class="metadata">
+        <div><dt>何か</dt><dd>{1-2文の平易な説明}</dd></div>
+        <div><dt>なぜ重要か</dt><dd>{この機能の実装でどう関係するか}</dd></div>
+      </dl>
+      <h4>仕組み（簡潔に）</h4>
+      <p>{3-5文の説明}</p>
+    </div>
+  </div>
+</section>
+
+<section id="glossary" class="section">
+  <h2>Glossary</h2>
+  <table>
+    <thead>
+      <tr><th>用語</th><th>意味</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>{用語}</td><td>{平易な定義}</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</body>
+</html>

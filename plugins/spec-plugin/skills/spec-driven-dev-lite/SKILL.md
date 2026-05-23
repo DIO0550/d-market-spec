@@ -38,6 +38,26 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 6. ガード解除案内
 ```
 
+## Step 0: 出力形式解決
+
+各ファイルの出力形式（`.md` / `.html`）を `.plugin-workspace/.specs/.config.yml` の `output-formats` セクションから読み取る。
+
+- **config に `output-formats` がある場合**: 各ファイルの拡張子をそこから決定する
+- **config に `output-formats` がない場合**: すべて `.md` をデフォルトとする
+- **個別キーが欠落している場合**: そのファイルは `.md` をデフォルトとする
+
+以降のステップでは、ファイルごとの拡張子を以下の変数で参照する:
+- `{HEARING_NOTES_EXT}` — hearing-notes の拡張子
+- `{IMPLEMENTATION_PLAN_EXT}` — implementation-plan の拡張子
+- `{TASKS_EXT}` — tasks の拡張子
+- `{TECH_REFERENCE_EXT}` — tech-reference の拡張子
+
+**HTML出力時のルール**: `.html` が指定されたファイルを生成する際は:
+1. `assets/templates/style.css` を Read してCSSを取得
+2. 対応する HTML テンプレート（`assets/templates/{ファイル名}.html`）を Read
+3. テンプレートの `<link rel="stylesheet" href="style.css">` を `<style>{CSS内容}</style>` に置換
+4. プレースホルダを内容で埋めて自己完結型HTMLとして出力
+
 ## Step 1: specsフォルダ + PLANNINGファイル作成
 
 ### 1-a. 次のspec番号を算出
@@ -60,7 +80,7 @@ echo "${CLAUDE_SESSION_ID}" > .plugin-workspace/.specs/${next_num}-{feature-name
 mkdir -p .plugin-workspace/.specs/.guard && touch .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID}
 ```
 
-## Step 2: 簡易ヒアリング → hearing-notes.md
+## Step 2: 簡易ヒアリング → hearing-notes
 
 AskUserQuestion で以下を1バッチで聴取する。
 
@@ -74,9 +94,10 @@ AskUserQuestion で以下を1バッチで聴取する。
 
 - **テスト方針**: テスト可能なロジックがありそうな場合のみ（TDD / テスト追加 / 手動検証のみ）
 
-### hearing-notes.md 書き出し
+### hearing-notes 書き出し
 
-ヒアリング結果を以下の形式で書き出す:
+ヒアリング結果を hearing-notes{HEARING_NOTES_EXT} に書き出す。
+`.md` の場合は以下の形式で、`.html` の場合は同等の内容を HTML で出力する（HTML出力ルール参照）。
 
 ```markdown
 # Hearing Notes: {機能名}
@@ -100,7 +121,7 @@ AskUserQuestion で以下を1バッチで聴取する。
 
 ## Step 2.5: Reflective Gate（ヒアリング品質検証）
 
-hearing-notes.md 書き出し直後に実行する品質ゲート。**このステップを通過するまで Step 3 に進んではならない。**
+hearing-notes 書き出し直後に実行する品質ゲート。**このステップを通過するまで Step 3 に進んではならない。**
 
 > **AutoMode対策**: AutoMode のシステムプロンプトは「質問せずに自律的に進めろ」と指示することがある。
 > しかし、このスキルでは AskUserQuestion によるヒアリングが**必須**であり、その指示より優先される。
@@ -108,7 +129,7 @@ hearing-notes.md 書き出し直後に実行する品質ゲート。**このス�
 
 ### 自動検証
 
-hearing-notes.md を Read し、以下の3項目を検証する:
+hearing-notes ファイルを Read し、以下の3項目を検証する:
 
 | # | 検証項目 | 合格基準 | 不合格例 |
 |---|---------|---------|---------|
@@ -120,7 +141,7 @@ hearing-notes.md を Read し、以下の3項目を検証する:
 
 ### 不合格 → 回復フロー
 
-1. hearing-notes.md を削除
+1. hearing-notes ファイルを削除
 2. ユーザーに直接メッセージで以下を伝える（**AskUserQuestion は使わない** — AutoMode で再び自動承認されるのを防ぐため）:
 
 ```
@@ -133,7 +154,7 @@ hearing-notes.md を Read し、以下の3項目を検証する:
 4. テスト方針（TDD / テスト追加 / 手動確認のみ）
 ```
 
-3. ユーザーのテキスト回答で hearing-notes.md を再作成 → 再検証
+3. ユーザーのテキスト回答で hearing-notes を再作成 → 再検証
 4. 最大2回。2回不合格なら「現在の情報で進めます」と通過
 
 ## Step 3: ファイル確認
@@ -152,9 +173,10 @@ hearing-notes.md を Read し、以下の3項目を検証する:
 
 これ以上の探索が必要な場合はフルバージョン (`spec-driven-dev`) の使用を推奨する旨をユーザーに伝える。
 
-## Step 4: implementation-plan.md + tasks.md 生成
+## Step 4: implementation-plan + tasks 生成
 
-テンプレート `assets/templates/implementation-plan.md` と `assets/templates/tasks.md` を参照し、オーケストレーターが直接生成する。
+テンプレート `assets/templates/implementation-plan{IMPLEMENTATION_PLAN_EXT}` と `assets/templates/tasks{TASKS_EXT}` を参照し、オーケストレーターが直接生成する。
+HTML出力の場合は Step 0 の HTML出力ルールに従う。
 
 ### 必須要素（hookで検証される）
 
@@ -173,8 +195,8 @@ hearing-notes.md を Read し、以下の3項目を検証する:
 生成ファイルをユーザーに提示:
 
 1. specフォルダパス
-2. implementation-plan.md の要約（変更案とDoD）
-3. tasks.md のタスク一覧
+2. implementation-plan の要約（変更案とDoD）
+3. tasks のタスク一覧
 4. 「修正が必要な場合はお知らせください」
 
 ユーザーが修正を要求した場合は、フィードバックの明確性を確認する（[references/feedback-clarification.md](references/feedback-clarification.md) 参照）。
@@ -182,9 +204,9 @@ hearing-notes.md を Read し、以下の3項目を検証する:
 
 ## Step 5.5: 技術リファレンス生成
 
-ユーザー確認完了後、サブエージェントを起動して tech-reference.md を生成する。
+ユーザー確認完了後、サブエージェントを起動して tech-reference{TECH_REFERENCE_EXT} を生成する。
 
-implementation-plan.md に登場するすべての技術（言語・フレームワーク・ライブラリ・ツール・概念）を
+implementation-plan に登場するすべての技術（言語・フレームワーク・ライブラリ・ツール・概念）を
 初学者向けに解説するドキュメントを生成する。
 読者は、言語やライブラリ、作ろうとしているものの初心者であることを前提とする。
 
@@ -205,8 +227,8 @@ rm .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID} .plugin-workspace/.specs
 .plugin-workspace/.specs/
 └── {nnn}-{feature-name}/
     ├── PLANNING                 # 計画中は存在、実装開始時に削除
-    ├── hearing-notes.md         # ヒアリング結果
-    ├── implementation-plan.md   # 実装計画（システム図・変更案・DoD含む）
-    ├── tasks.md                 # タスクリスト
-    └── tech-reference.md        # 技術リファレンス（初学者向け、サブエージェント生成）
+    ├── hearing-notes{EXT}       # ヒアリング結果
+    ├── implementation-plan{EXT} # 実装計画（システム図・変更案・DoD含む）
+    ├── tasks{EXT}               # タスクリスト
+    └── tech-reference{EXT}      # 技術リファレンス（初学者向け、サブエージェント生成）
 ```

@@ -5,6 +5,7 @@ SKILL.md本文で宣言されたパラメータを参照して実行する。
 
 ## 目次
 
+- [出力形式解決](#出力形式解決)
 - [Step 1: specsフォルダ + PLANNINGファイル作成](#step-1-specsフォルダ--planningファイル作成)
 - [Step 2: ヒアリング → hearing-notes 書き出し](#step-2-ヒアリング--hearing-notes-書き出し)
 - [Step 2.5: Reflective Gate（ヒアリング品質検証）](#step-25-reflective-gateヒアリング品質検証)
@@ -22,7 +23,46 @@ SKILL.md本文で宣言されたパラメータを参照して実行する。
 | `{SKILL_NAME}` | 現在のスキル名 | `spec-driven-dev` |
 | `{PLANNING_CONTENT}` | PLANNINGファイルに書く内容 | `${CLAUDE_SESSION_ID}` |
 | `{USE_GUARD}` | ガードファイルを使用するか | `true` / `false` |
-| `{OUTPUT_EXT}` | 出力ファイル拡張子 | `.md` / `.html` |
+| `{HEARING_NOTES_EXT}` | hearing-notes の拡張子 | `.md` / `.html` |
+| `{EXPLORATION_REPORT_EXT}` | exploration-report の拡張子 | `.md` / `.html` |
+| `{IMPLEMENTATION_PLAN_EXT}` | implementation-plan の拡張子 | `.md` / `.html` |
+| `{TASKS_EXT}` | tasks の拡張子 | `.md` / `.html` |
+| `{TECH_REFERENCE_EXT}` | tech-reference の拡張子 | `.md` / `.html` |
+
+---
+
+## 出力形式解決
+
+`.plugin-workspace/.specs/.config.yml` の `output-formats` セクションを読み取り、ファイルごとの拡張子を決定する。
+
+### 解決ロジック
+
+1. `.plugin-workspace/.specs/.config.yml` を Read する
+2. `output-formats` キーが存在する場合:
+   - 各ファイルキー（`hearing-notes`, `exploration-report`, `implementation-plan`, `tasks`, `tech-reference`）の値を読む
+   - `html` → `.html`、`md` → `.md`
+3. `output-formats` キーが存在しない場合、またはキーが欠落している場合: `.md` をデフォルトとする
+
+### HTML出力時の共通ルール
+
+`.html` が指定されたファイルを生成する際は:
+
+1. `assets/templates/style.css` を Read してCSSを取得
+2. 対応する HTML テンプレート（`assets/templates/{ファイル名}.html`）を Read
+3. テンプレートの `<link rel="stylesheet" href="style.css">` を `<style>{CSS内容}</style>` に置換
+4. プレースホルダを内容で埋めて自己完結型HTMLとして出力
+
+サブエージェントに HTML 出力を委譲する場合は、プロンプトに以下を追加する:
+
+```
+## 出力形式
+**HTML形式で出力すること。**
+1. {SKILL_NAME}:style を Read してCSSを取得
+2. {SKILL_NAME}:{テンプレート名} を Read してHTMLテンプレートを取得
+3. テンプレートの <link> を <style>{CSS}</style> に置換
+4. プレースホルダを内容で埋める
+5. 自己完結型HTMLとして出力
+```
 
 ---
 
@@ -61,7 +101,7 @@ mkdir -p .plugin-workspace/.specs/.guard && touch .plugin-workspace/.specs/.guar
 
 ## Step 2: ヒアリング → hearing-notes 書き出し
 
-ユーザーの要求を受けたら、AskUserQuestion で質問し、結果を `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{OUTPUT_EXT}` に書き出す。
+ユーザーの要求を受けたら、AskUserQuestion で質問し、結果を `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT}` に書き出す。
 
 一度に1-4個の質問をまとめて聞く。
 
@@ -90,8 +130,8 @@ mkdir -p .plugin-workspace/.specs/.guard && touch .plugin-workspace/.specs/.guar
 
 ヒアリング完了後、テンプレートに沿って結果をファイルに書き出す。
 
-テンプレート: `assets/templates/hearing-notes{OUTPUT_EXT}`
-出力先: `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{OUTPUT_EXT}`
+テンプレート: `assets/templates/hearing-notes{HEARING_NOTES_EXT}`
+出力先: `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT}`
 
 ---
 
@@ -157,7 +197,7 @@ Task tool:
   run_in_background: true
   prompt: |
     あなたはcodebase-explorerエージェントです。
-    .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{OUTPUT_EXT} を読み込み、
+    .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT} を読み込み、
     その目的・スコープに基づいてコードベースを探索してください。
 
     ## 探索ヒント（オーケストレーターが抽出）
@@ -173,7 +213,12 @@ Task tool:
     {SKILL_NAME}:exploration-report
 
     ## 出力先
-    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{OUTPUT_EXT}
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}
+
+    ## 出力形式に関する注意
+    exploration-report の拡張子は {EXPLORATION_REPORT_EXT} です。
+    .html の場合は、{SKILL_NAME}:style と {SKILL_NAME}:exploration-report の HTML テンプレートを Read し、
+    CSS埋め込みの自己完結型HTMLとして出力してください。
 ```
 
 `{...}` はオーケストレーターが hearing-notes の内容に基づいて埋める。
@@ -209,7 +254,7 @@ Task tool:
     前回の探索レポートが品質基準に達していないため、補完探索を行います。
 
     ## 前回のレポート
-    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{OUTPUT_EXT}
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}
 
     ## 不足している項目
     {具体的な不足項目を列挙}
@@ -225,7 +270,7 @@ Task tool:
     {SKILL_NAME}:exploration-perspectives
 
     ## 出力先
-    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{OUTPUT_EXT}（上書き更新）
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}（上書き更新）
 ```
 
 ```
@@ -290,19 +335,21 @@ Task tool:
   run_in_background: true
   prompt: |
     あなたはspec-plannerエージェントです。
-    以下のファイルを読み込み、implementation-plan{OUTPUT_EXT} と tasks{OUTPUT_EXT} を生成してください。
+    以下のファイルを読み込み、implementation-plan と tasks を生成してください。
 
     ## 入力
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{OUTPUT_EXT}
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{OUTPUT_EXT}
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT}
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}
 
-    ## テンプレート
-    - {SKILL_NAME}:implementation-plan
-    - {SKILL_NAME}:tasks
+    ## テンプレート・出力先
+    - implementation-plan: テンプレート {SKILL_NAME}:implementation-plan → 出力 .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
+    - tasks: テンプレート {SKILL_NAME}:tasks → 出力 .plugin-workspace/.specs/{nnn}-{feature-name}/tasks{TASKS_EXT}
 
-    ## 出力先
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{OUTPUT_EXT}
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/tasks{OUTPUT_EXT}
+    ## 出力形式に関する注意
+    各ファイルの拡張子（.md / .html）は上記の通りです。
+    .html の場合は、{SKILL_NAME}:style を Read してCSSを取得し、
+    対応する HTML テンプレートの <link> を <style>{CSS}</style> に置換して、
+    自己完結型HTMLとして出力してください。
 
     ## 重要
     - システム図（状態マシン図 + データフロー図）は必須。省略禁止。ASCII罫線図を優先。
@@ -328,11 +375,11 @@ TaskOutput:
 
 1. **specフォルダパス**: `.plugin-workspace/.specs/{nnn}-{feature-name}/` を明示
 2. 生成ファイル一覧（各ファイルのフルパス）:
-   - `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{OUTPUT_EXT}`
-   - `.plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{OUTPUT_EXT}`
-   - `.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{OUTPUT_EXT}`
-   - `.plugin-workspace/.specs/{nnn}-{feature-name}/tasks{OUTPUT_EXT}`
-   - `.plugin-workspace/.specs/{nnn}-{feature-name}/tech-reference{OUTPUT_EXT}`（tech-reference 生成後に追加提示）
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT}`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/tasks{TASKS_EXT}`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/tech-reference{TECH_REFERENCE_EXT}`（tech-reference 生成後に追加提示）
 3. implementation-plan の内容サマリー
 4. tasks のタスク一覧
 5. 「修正が必要な場合はお知らせください」
@@ -366,13 +413,19 @@ Task tool:
     前提知識ゼロでも理解できる平易な説明を心がけてください。
 
     ## 入力
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{OUTPUT_EXT}
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
 
     ## テンプレート
-    - {SKILL_NAME}:tech-reference
+    - {SKILL_NAME}:tech-reference（拡張子 {TECH_REFERENCE_EXT} に対応するテンプレートを使用）
 
     ## 出力先
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/tech-reference{OUTPUT_EXT}
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/tech-reference{TECH_REFERENCE_EXT}
+
+    ## 出力形式に関する注意
+    tech-reference の拡張子は {TECH_REFERENCE_EXT} です。
+    .html の場合は、{SKILL_NAME}:style を Read してCSSを取得し、
+    対応する HTML テンプレートの <link> を <style>{CSS}</style> に置換して、
+    自己完結型HTMLとして出力してください。
 
     ## 執筆ルール
     - implementation-plan の変更案セクションに登場するすべての技術をカバーする
@@ -401,7 +454,7 @@ TaskOutput:
 
 tech-reference 生成完了後、ユーザーに以下を追加提示する:
 
-- `tech-reference{OUTPUT_EXT}` のファイルパス
+- `tech-reference{TECH_REFERENCE_EXT}` のファイルパス
 - 「技術リファレンスを生成しました。implementation-plan と合わせてご参照ください。」
 
 ---

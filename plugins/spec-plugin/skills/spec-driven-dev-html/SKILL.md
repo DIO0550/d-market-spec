@@ -55,7 +55,9 @@ CSSを埋め込んだ自己完結型HTMLを生成するため、ブラウザで�
 | SKILL_NAME | `spec-driven-dev-html` |
 | PLANNING_CONTENT | `${CLAUDE_SESSION_ID}` |
 | USE_GUARD | `true` |
-| OUTPUT_EXT | `.html` |
+
+**出力形式**: このスキルでは `.config.yml` の `output-formats` 設定に関わらず、**すべてのファイルを `.html` で出力する**。
+全ファイル HTML 出力が不要な場合は `spec-driven-dev` を使い、`.config.yml` の `output-formats` でファイルごとに設定すること。
 
 ## Step 1: specsフォルダ + PLANNINGファイル作成
 
