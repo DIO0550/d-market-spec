@@ -1,6 +1,6 @@
 ---
 name: spec-implement
-description: .plugin-workspace/.specsの実装計画に沿ってタスクを順番に実装する。番号を指定すると、該当specのtasks.mdを読み込み、未完了タスクを順次実装していく。全タスク完了後にオプションでCodex/Copilot/Claude Codeによるコードレビ��ーを実行可能。「実装」「implement」「タスク実装」「コードレビュー付き」「codexレビュー」「copilotレビュー」などでトリガー。
+description: .plugin-workspace/.specsの実装計画に沿ってタスクを順番に実装する。番号を指定すると該当specを、省略するとarchive外で最も番号が大きいspecを自動選択し、tasks.mdを読み込んで未完了タスクを順次実装していく。全タスク完了後にオプションでCodex/Copilot/Claude Codeによるコードレビューを実行可能。「実装」「implement」「タスク実装」「コードレビュー付き」「codexレビュー」「copilotレビュー」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[番号] [--review codex|copilot|claude-code]"
 allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(mkdir *), Bash(codex *), Bash(copilot *), Bash(claude *)
@@ -9,6 +9,7 @@ allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-wor
 # Spec Implement
 
 番号指定で `.plugin-workspace/.specs/{nnn}-{feature-name}/` の実装計画に沿って実装を進めるスキル。
+番号を省略した場合はarchive外で最も番号が大きいspecを自動選択する。
 全タスク完了後にオプションで AIレビュー（Codex / Copilot / Claude Code CLI）を実行可能。
 
 ## ワークフロー
@@ -16,9 +17,10 @@ allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-wor
 ```
 0. レビューツール解決（引数 → .config.yml → 初回のみ AskUserQuestion）
    ↓
-1. ユーザーが `/spec-implement {nnn}` を実行
+1. ユーザーが `/spec-implement {nnn}` または `/spec-implement` を実行
    ↓
-2. .plugin-workspace/.specs/ から {nnn}-* にマッチするフォルダを特定
+2. 番号指定時: {nnn}-* にマッチするフォルダを特定
+   番号省略時: archive外で最大番号のspecを自動選択
    ↓
 3. implementation-plan.md を読み込み、変更内容を把握
    ↓
@@ -57,6 +59,8 @@ AskUserQuestion の選択肢:
 
 ## Step 1: specフォルダの特定
 
+### 番号が指定された場合
+
 指定された番号 `$0` を使い、`.plugin-workspace/.specs/` 配下からマッチするフォルダを検索する。
 
 ```bash
@@ -65,6 +69,18 @@ spec_dir=$(ls -1d .plugin-workspace/.specs/$0-* 2>/dev/null | head -1)
 
 - マッチするフォルダが見つからない場合はエラーメッセージを表示して終了
 - 複数マッチした場合は最初のものを使用
+
+### 番号が省略された場合
+
+archive外のspecから最も番号が大きいものを自動選択する。
+
+```bash
+spec_dir=$(ls -1d .plugin-workspace/.specs/[0-9][0-9][0-9]-* 2>/dev/null | sort -rn | head -1)
+```
+
+- `.plugin-workspace/.specs/` 直下のみ検索（`archive/` 配下は対象外）
+- 該当するspecが存在しない場合はエラーメッセージを表示して終了
+- 自動選択したspecのフォルダ名をユーザーに表示する（例: 「`003-feature-name` を自動選択しました」）
 
 ## Step 2: implementation-plan.md の読み込み
 

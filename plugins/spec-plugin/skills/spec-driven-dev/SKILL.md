@@ -174,6 +174,8 @@ Step 0 で決定した `{REVIEW_TOOL}` を使用する。`none` の場合は Ste
 
 ## Step 6.5: 技術リファレンス生成
 
+`.plugin-workspace/.specs/.config.yml` の `skip-files` に `tech-reference` が含まれている場合はこのステップをスキップする。
+
 ユーザー確認完了後、サブエージェントを起動して tech-reference{TECH_REFERENCE_EXT} を生成する。
 
 implementation-plan に登場するすべての技術（言語・フレームワーク・ライブラリ・ツール・概念）を

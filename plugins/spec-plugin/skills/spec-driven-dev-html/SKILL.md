@@ -144,6 +144,8 @@ spec-planner サブエージェントを起動し、implementation-plan.html と
 
 ## Step 5.5: 技術リファレンス生成
 
+`.plugin-workspace/.specs/.config.yml` の `skip-files` に `tech-reference` が含まれている場合はこのステップをスキップする。
+
 ユーザー確認完了後、サブエージェントを起動して tech-reference.html を生成する。
 
 implementation-plan.html に登場するすべての技術（言語・フレームワーク・ライブラリ・ツール・概念）を
