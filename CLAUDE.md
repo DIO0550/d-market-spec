@@ -25,7 +25,8 @@ plugins/spec-plugin/
 - スキルごとに `assets/templates/` と `references/` のサブディレクトリを持つ
 - テンプレートや参照資料はスキル単位で独立管理（コピーであっても各スキルに配置）
 - フックスクリプトは `plugins/spec-plugin/hooks/` に配置し、`hooks.json` で登録する
-- プラグインの内容（スキル・エージェント・フック等）を追加・変更した場合は `plugins/spec-plugin/plugin.json` の `version` を更新する
+- プラグインの内容（スキル・エージェント・フック等）を追加・変更した場合は該当プラグインの `plugin.json` の `version` を更新する
+- 変更をプッシュする際は `.claude-plugin/marketplace.json` の `version` も合わせて上げる
 
 ## 主要コンセプト
 
