@@ -1,0 +1,7 @@
+{
+  "name": "spec-review-plugin",
+  "version": "1.0.0",
+  "description": "仕様整合性レビュープラグイン — 計画ドキュメントに基づくコードレビュー",
+  "repository": "https://github.com/DIO0550/d-market",
+  "license": "MIT"
+}

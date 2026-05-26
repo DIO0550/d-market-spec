@@ -8,6 +8,11 @@
       "name": "spec-plugin",
       "source": "./plugins/spec-plugin",
       "description": "仕様策定・実装計画・Issue作成支援プラグイン"
+    },
+    {
+      "name": "spec-review-plugin",
+      "source": "./plugins/spec-review-plugin",
+      "description": "計画ドキュメントに基づく仕様整合性コードレビュー"
     }
   ]
 }
