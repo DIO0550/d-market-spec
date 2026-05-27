@@ -392,9 +392,11 @@ TaskOutput:
 
 ---
 
-## tech-reference 生成（サブエージェントに委譲）
+## tech-reference 生成（サブエージェントに委譲）【必須】
 
-`.plugin-workspace/.specs/.config.yml` の `skip-files` に `tech-reference` が含まれている場合はこのステップ全体をスキップする。
+> **このステップは `skip-files` に `tech-reference` が含まれていない限り必ず実行すること。ユーザー確認完了でワークフローを終了してはならない。**
+
+`.plugin-workspace/.specs/.config.yml` の `skip-files` に `tech-reference` が含まれている場合のみスキップ可。
 
 ユーザー確認完了後、サブエージェントを起動して tech-reference を生成する。
 implementation-plan に登場するすべての技術を、初学者向けに解説するコンパニオンドキュメントを作成する。
