@@ -81,10 +81,15 @@
   </dl>
 
   <h3>自動テスト</h3>
-  <ul class="task-list">
-    <li><span class="checkbox"></span>{テストケース1}</li>
-    <li><span class="checkbox"></span>{テストケース2}</li>
-  </ul>
+  <table>
+    <thead>
+      <tr><th>カテゴリ</th><th>テストケース</th><th>ユースケース / 想定シナリオ</th><th>期待結果</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>正常系</td><td>{テストケース1}</td><td>{想定シナリオ}</td><td>{期待結果}</td></tr>
+      <tr><td>異常系</td><td>{テストケース2}</td><td>{想定シナリオ}</td><td>{期待結果}</td></tr>
+    </tbody>
+  </table>
   <p><strong>テスト実行コマンド</strong>: <code>{コマンド}</code></p>
 
   <h3>手動検証</h3>

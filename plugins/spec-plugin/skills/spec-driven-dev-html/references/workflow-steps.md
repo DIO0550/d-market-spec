@@ -356,6 +356,7 @@ Task tool:
     - exploration-report の制約・リスクを implementation-plan に反映すること。
     - implementation-plan に "## Definition of Done" セクションを必ず含めること。機能固有の受入条件を具体的に記載すること。
     - テスト戦略分析を必ず実施すること。references/test-design-patterns.md に基づき、機能タイプを分類してテストパターンを決定すること。
+    - テストTODOリストはテーブル形式（カテゴリ | テストケース | ユースケース/想定シナリオ | 期待結果）で記載すること。各テストケースには具体的なユースケースと期待結果を必ず記載すること。テンプレートのテーブル形式を参照。
     - テスト要件がある場合、t-wada TDD ベースで tasks を構成すること（Red-Green-Refactor サイクル、TODOリスト駆動）。テンプレートの TDD 構成例を参照。
     - 変更案セクションの [NEW] には実装骨格（型定義・関数シグネチャ・import文）、[MODIFY] には before/after 形式のコードスニペットを必ず含めること。
 ```
