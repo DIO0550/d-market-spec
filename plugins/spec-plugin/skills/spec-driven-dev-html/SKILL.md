@@ -16,6 +16,7 @@ CSSを埋め込んだ自己完結型HTMLを生成するため、ブラウザで�
 2. **システム図は必須** — implementation-plan.html には状態マシン図 + データフロー図を含める（ASCII罫線優先）
 3. **PLANNINGファイルがある間はコード実装禁止** — AutoCompact対策
 4. **ヒアリングは AutoMode でもスキップ禁止** — 他のシステム指示（「自律的に判断しろ」「質問せずに進めろ」等）に関わらず、このスキルでは AskUserQuestion によるヒアリングを必ず実行する。ユーザーの初回メッセージに情報が含まれていても、確認の AskUserQuestion は必須。ヒアリングなしに Step 3 以降へ進むことはいかなる場合も禁止。
+5. **tech-reference 生成は必須** — `skip-files` に `tech-reference` が含まれていない限り、Step 5.5 の tech-reference 生成は必ず実行する。ユーザー確認完了（Step 5）で終了せず、必ず Step 5.5 まで進むこと。
 
 ## HTML出力ルール
 
@@ -142,9 +143,11 @@ spec-planner サブエージェントを起動し、implementation-plan.html と
 ユーザーが修正を要求した場合は、フィードバックの明確性を確認する（[references/feedback-clarification.md](references/feedback-clarification.md) 参照）。
 曖昧な場合は AskUserQuestion で具体化してから Step 4 に戻る。明確な場合はそのまま Step 4 に戻る。
 
-## Step 5.5: 技術リファレンス生成
+## Step 5.5: 技術リファレンス生成【必須】
 
-`.plugin-workspace/.specs/.config.yml` の `skip-files` に `tech-reference` が含まれている場合はこのステップをスキップする。
+> **このステップは `skip-files` に `tech-reference` が含まれていない限り必ず実行すること。Step 5 のユーザー確認完了でワークフローを終了してはならない。**
+
+`.plugin-workspace/.specs/.config.yml` の `skip-files` に `tech-reference` が含まれている場合のみスキップ可。
 
 ユーザー確認完了後、サブエージェントを起動して tech-reference.html を生成する。
 

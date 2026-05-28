@@ -153,13 +153,19 @@ UI Update</code></pre>
   <h3>自動テスト</h3>
 
   <h4>テストTODOリスト</h4>
-  <ul class="task-list">
-    <li><span class="checkbox"></span>{正常系: 最もシンプルなケース}</li>
-    <li><span class="checkbox"></span>{正常系: バリエーション}</li>
-    <li><span class="checkbox"></span>{境界値}</li>
-    <li><span class="checkbox"></span>{異常系}</li>
-    <li><span class="checkbox"></span>{エッジケース}</li>
-  </ul>
+  <!-- カテゴリ順: 正常系 → 境界値 → 異常系 → エッジケース -->
+  <table>
+    <thead>
+      <tr><th>カテゴリ</th><th>テストケース</th><th>ユースケース / 想定シナリオ</th><th>期待結果</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>正常系</td><td>{最もシンプルなケース}</td><td>{どういう状況で誰が何をしたとき}</td><td>{どうなるべきか}</td></tr>
+      <tr><td>正常系</td><td>{バリエーション}</td><td>{別の状況・入力パターン}</td><td>{期待される出力}</td></tr>
+      <tr><td>境界値</td><td>{境界条件のテスト}</td><td>{最小値/最大値/ゼロなどの状況}</td><td>{期待される振る舞い}</td></tr>
+      <tr><td>異常系</td><td>{エラーケース}</td><td>{不正入力・障害発生の状況}</td><td>{エラー応答/例外}</td></tr>
+      <tr><td>エッジケース</td><td>{特殊なケース}</td><td>{想定外だが起こりうる状況}</td><td>{期待される振る舞い}</td></tr>
+    </tbody>
+  </table>
 
   <h4>テストファイル配置</h4>
   <pre><code>{テストファイルのパスを記載}</code></pre>
