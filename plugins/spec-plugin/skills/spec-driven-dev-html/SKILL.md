@@ -42,6 +42,8 @@ CSSを埋め込んだ自己完結型HTMLを生成するため、ブラウザで�
    ↓
 4. spec-planner サブエージェント → implementation-plan.html + tasks.html
    ↓
+4.5. セルフチェック（計画品質ゲート）→ コード例・設計妥当性・テストパターン検証
+   ↓
 5. ユーザーに提示
    ↓
 5.5. tech-reference 生成（サブエージェント）→ tech-reference.html
@@ -130,6 +132,20 @@ spec-planner サブエージェントを起動し、implementation-plan.html と
 ```
 
 **基本プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の Step 4 を参照。**
+
+## Step 4.5: セルフチェック（3エージェント並列）
+
+3つの専門サブエージェントを並列起動し、implementation-plan の品質を検証する。ユーザー確認（Step 5）に進む前のゲート。
+
+**プロンプトテンプレートと結果処理は [references/workflow-steps.md](references/workflow-steps.md) の Step 4.5 を参照。**
+
+| エージェント | 検証観点 |
+|------------|---------|
+| code-example-checker | [NEW] に実装骨格、[MODIFY] に before/after スニペットがあるか |
+| design-validity-checker | システム図と変更案の整合性、制約の反映、DoDの具体性 |
+| test-pattern-checker | テストテーブルが test-design-patterns.md のタイプ別シナリオと照合して過不足がないか |
+
+不合格項目があれば各エージェントが直接修正する（最大2回）。未解決項目が残った場合はユーザーに提示。
 
 ## Step 5: ユーザー確認
 

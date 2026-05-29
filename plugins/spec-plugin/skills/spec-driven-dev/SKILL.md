@@ -36,6 +36,8 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
    ↓
 4. spec-planner サブエージェント → implementation-plan.md + tasks.md
    ↓
+4.5. セルフチェック（計画品質ゲート）→ コード例・設計妥当性・テストパターン検証
+   ↓
 5. AIレビュー（オプション）→ 修正ループ
    ↓
 6. ユーザーに提示
@@ -146,6 +148,20 @@ exploration-report.md から論点を抽出する。
 spec-planner サブエージェントを起動し、implementation-plan{IMPLEMENTATION_PLAN_EXT} と tasks{TASKS_EXT} を生成する。
 
 **プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の Step 4 を参照。**
+
+## Step 4.5: セルフチェック（3エージェント並列）
+
+3つの専門サブエージェントを並列起動し、implementation-plan の品質を検証する。AIレビュー（Step 5）に進む前のゲート。
+
+**プロンプトテンプレートと結果処理は [references/workflow-steps.md](references/workflow-steps.md) の Step 4.5 を参照。**
+
+| エージェント | 検証観点 |
+|------------|---------|
+| code-example-checker | [NEW] に実装骨格、[MODIFY] に before/after スニペットがあるか |
+| design-validity-checker | システム図と変更案の整合性、制約の反映、DoDの具体性 |
+| test-pattern-checker | テストテーブルが test-design-patterns.md のタイプ別シナリオと照合して過不足がないか |
+
+不合格項目があれば各エージェントが直接修正する（最大2回）。未解決項目が残った場合はユーザーに提示。
 
 ## Step 5: AIレビュー（オプション）
 

@@ -12,6 +12,7 @@ SKILL.md本文で宣言されたパラメータを参照して実行する。
 - [Step 3: コードベース探索](#step-3-コードベース探索codebase-explorer-サブエージェントに委譲)
 - [Step 3.5: 探索後ヒアリング](#step-35-探索後ヒアリング-条件付き)
 - [Step 4: 実装計画生成](#step-4-実装計画生成spec-planner-サブエージェントに委譲)
+- [Step 4.5: セルフチェック（計画品質ゲート）](#step-45-セルフチェック計画品質ゲート)
 - [ユーザー確認](#ユーザー確認)
 - [tech-reference 生成](#tech-reference-生成サブエージェントに委譲)
 - [ガード解除 / PLANNINGファイル削除](#ガード解除use_guard--true-の場合)
@@ -367,6 +368,80 @@ TaskOutput:
   block: true
   timeout: 300000
 ```
+
+---
+
+## Step 4.5: セルフチェック（3エージェント並列実行）
+
+spec-planner が生成した implementation-plan の品質を、3つの専門サブエージェントで並列検証する。
+AIレビュー（Step 5）やユーザー確認に進む前のゲート。
+
+| エージェント | 検証観点 | 詳細 |
+|------------|---------|------|
+| code-example-checker | コード例の存在 | [NEW] の実装骨格、[MODIFY] の before/after、コードブロックの実質性 |
+| design-validity-checker | 設計の妥当性 | システム図、図と変更案の整合性、制約反映、DoD |
+| test-pattern-checker | テストパターンの網羅性 | テーブル形式、カテゴリ網羅、シナリオ充足、具体性、テスト方針の根拠 |
+
+各エージェントの検証基準・修正フローの詳細は `agents/` 配下の各エージェントファイルを参照。
+
+### サブエージェント起動（3つ並列）
+
+```
+Agent tool (並列 1/3):
+  description: "code-example-checker: {feature-name}"
+  prompt: |
+    あなたはcode-example-checkerエージェントです。
+    以下の実装計画のコード例を検証し、不足があれば直接修正してください。
+
+    ## 入力
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT}
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}
+
+    不合格項目があれば implementation-plan を直接修正してください（最大2回）。
+    検証結果を標準出力で報告してください。
+```
+
+```
+Agent tool (並列 2/3):
+  description: "design-validity-checker: {feature-name}"
+  prompt: |
+    あなたはdesign-validity-checkerエージェントです。
+    以下の実装計画の設計妥当性を検証し、不足があれば直接修正してください。
+
+    ## 入力
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}
+
+    不合格項目があれば implementation-plan を直接修正してください（最大2回）。
+    検証結果を標準出力で報告してください。
+```
+
+```
+Agent tool (並列 3/3):
+  description: "test-pattern-checker: {feature-name}"
+  prompt: |
+    あなたはtest-pattern-checkerエージェントです。
+    以下の実装計画のテストパターン網羅性を検証し、不足があれば直接修正してください。
+
+    ## 入力
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT}
+
+    ## リファレンス
+    - references/test-design-patterns.md
+
+    不合格項目があれば implementation-plan を直接修正してください（最大2回）。
+    検証結果を標準出力で報告してください。
+```
+
+### 結果の処理
+
+3エージェントの結果を集約する。
+
+1. **全エージェントが PASS** → Step 5（AIレビュー）またはユーザー確認へ進む
+2. **PASS（修正あり）が含まれる** → 修正内容を確認し、Step 5 またはユーザー確認へ進む。複数エージェントが同一箇所を修正した場合は、修正の整合性を確認する
+3. **FAIL が含まれる** → 未解決項目をユーザーに提示し、対応方針を確認してから次のステップに進む
 
 ---
 
