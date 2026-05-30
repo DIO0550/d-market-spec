@@ -157,7 +157,7 @@ spec-planner サブエージェントを起動し、implementation-plan{IMPLEMEN
 
 | エージェント | 評価観点 |
 |------------|---------|
-| plan-completeness-checker | コード例・システム図・DoD・検証計画・制約反映の抜け漏れ調査 |
+| plan-format-checker | テンプレート構造との適合性（セクション構成・コードブロック形式・テスト構成・プレースホルダ残留） |
 | design-validity-checker | コンポーネント分割・データフロー・依存方向・アーキテクチャ整合性の設計レビュー |
 | test-pattern-checker | テストパターンの網羅性（ファイル構成・シナリオ充足・具体性）の評価 |
 

@@ -378,7 +378,7 @@ spec-planner が生成した implementation-plan の品質を、3つの専門サ
 
 | エージェント | 評価観点 | 詳細 |
 |------------|---------|------|
-| plan-completeness-checker | 抜け漏れ調査 | コード例、システム図、DoD、検証計画、制約反映の欠落を洗い出す |
+| plan-format-checker | フォーマット検証 | セクション構成、コードブロック形式、テストセクション構成、プレースホルダ残留をテンプレートと照合 |
 | design-validity-checker | 設計レビュー | コンポーネント分割・責務、データフロー、依存方向、既存アーキテクチャ整合性、エッジケース考慮 |
 | test-pattern-checker | テストパターン評価 | ファイル構成、カテゴリ網羅、シナリオ充足、具体性、テスト方針の根拠 |
 
@@ -388,16 +388,17 @@ spec-planner が生成した implementation-plan の品質を、3つの専門サ
 
 ```
 Agent tool (並列 1/3):
-  description: "plan-completeness-checker: {feature-name}"
+  description: "plan-format-checker: {feature-name}"
   prompt: |
-    あなたはplan-completeness-checkerエージェントです。
-    以下の実装計画の抜け漏れを調査してください。
+    あなたはplan-format-checkerエージェントです。
+    以下の実装計画がテンプレートの構造に沿っているか検証してください。
     **ファイルの修正は行わず、評価結果のみを報告してください。**
 
     ## 入力
     - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT}
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}
+
+    ## テンプレート
+    - {SKILL_NAME}:implementation-plan
 ```
 
 ```
