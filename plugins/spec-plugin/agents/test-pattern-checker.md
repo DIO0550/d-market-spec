@@ -12,7 +12,7 @@ implementation-plan.md のテスト戦略セクションと test-design-patterns
 </commentary>
 </example>
 tools: Glob, Grep, LS, Read, Edit, Bash
-model: sonnet
+model: opus
 color: yellow
 ---
 

@@ -12,7 +12,7 @@ implementation-plan.md の [NEW]/[MODIFY] エントリを走査し、コード�
 </commentary>
 </example>
 tools: Glob, Grep, LS, Read, Edit, Bash
-model: sonnet
+model: opus
 color: green
 ---
 

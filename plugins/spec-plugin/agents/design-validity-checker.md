@@ -12,7 +12,7 @@ implementation-plan.md と exploration-report.md を照合し、設計の妥当�
 </commentary>
 </example>
 tools: Glob, Grep, LS, Read, Edit, Bash
-model: sonnet
+model: opus
 color: cyan
 ---
 
