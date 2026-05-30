@@ -149,19 +149,19 @@ spec-planner サブエージェントを起動し、implementation-plan{IMPLEMEN
 
 **プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の Step 4 を参照。**
 
-## Step 4.5: セルフチェック（3エージェント並列）
+## Step 4.5: セルフチェック（3エージェント並列 → オーケストレーター修正）
 
-3つの専門サブエージェントを並列起動し、implementation-plan の品質を検証する。AIレビュー（Step 5）に進む前のゲート。
+3つの専門サブエージェントを並列起動し、implementation-plan を評価する。エージェントは評価のみ、修正はオーケストレーターが実施。AIレビュー（Step 5）に進む前のゲート。
 
 **プロンプトテンプレートと結果処理は [references/workflow-steps.md](references/workflow-steps.md) の Step 4.5 を参照。**
 
-| エージェント | 検証観点 |
+| エージェント | 評価観点 |
 |------------|---------|
-| code-example-checker | [NEW] に実装骨格、[MODIFY] に before/after スニペットがあるか |
-| design-validity-checker | システム図と変更案の整合性、制約の反映、DoDの具体性 |
-| test-pattern-checker | テストテーブルが test-design-patterns.md のタイプ別シナリオと照合して過不足がないか |
+| plan-completeness-checker | コード例・システム図・DoD・検証計画・制約反映の抜け漏れ調査 |
+| design-validity-checker | コンポーネント分割・データフロー・依存方向・アーキテクチャ整合性の設計レビュー |
+| test-pattern-checker | テストパターンの網羅性（ファイル構成・シナリオ充足・具体性）の評価 |
 
-不合格項目があれば各エージェントが直接修正する（最大2回）。未解決項目が残った場合はユーザーに提示。
+FAIL があればオーケストレーターが修正（最大2回）。WARN はユーザーに提示。
 
 ## Step 5: AIレビュー（オプション）
 
