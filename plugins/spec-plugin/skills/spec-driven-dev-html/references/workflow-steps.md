@@ -12,6 +12,7 @@ SKILL.md本文で宣言されたパラメータを参照して実行する。
 - [Step 3: コードベース探索](#step-3-コードベース探索codebase-explorer-サブエージェントに委譲)
 - [Step 3.5: 探索後ヒアリング](#step-35-探索後ヒアリング-条件付き)
 - [Step 4: 実装計画生成](#step-4-実装計画生成spec-planner-サブエージェントに委譲)
+- [Step 4.5: セルフチェック（計画品質ゲート）](#step-45-セルフチェック計画品質ゲート)
 - [ユーザー確認](#ユーザー確認)
 - [tech-reference 生成](#tech-reference-生成サブエージェントに委譲)
 - [ガード解除 / PLANNINGファイル削除](#ガード解除use_guard--true-の場合)
@@ -356,7 +357,7 @@ Task tool:
     - exploration-report の制約・リスクを implementation-plan に反映すること。
     - implementation-plan に "## Definition of Done" セクションを必ず含めること。機能固有の受入条件を具体的に記載すること。
     - テスト戦略分析を必ず実施すること。references/test-design-patterns.md に基づき、機能タイプを分類してテストパターンを決定すること。
-    - テストTODOリストはテーブル形式（カテゴリ | テストケース | ユースケース/想定シナリオ | 期待結果）で記載すること。各テストケースには具体的なユースケースと期待結果を必ず記載すること。テンプレートのテーブル形式を参照。
+    - テストTODOリストはテストファイルごとにセクションを作成すること。各セクションにはファイルパス（`#### \`{パス}\``）と **役割**（そのファイルが何を検証するか1文）を記載し、その下にテーブル形式（カテゴリ | テストケース | ユースケース/想定シナリオ | 期待結果）のTODOリストを配置すること。テンプレートの構成を参照。
     - テスト要件がある場合、t-wada TDD ベースで tasks を構成すること（Red-Green-Refactor サイクル、TODOリスト駆動）。テンプレートの TDD 構成例を参照。
     - 変更案セクションの [NEW] には実装骨格（型定義・関数シグネチャ・import文）、[MODIFY] には before/after 形式のコードスニペットを必ず含めること。
 ```
@@ -367,6 +368,79 @@ TaskOutput:
   block: true
   timeout: 300000
 ```
+
+---
+
+## Step 4.5: セルフチェック（3エージェント並列 → オーケストレーター修正）
+
+spec-planner が生成した implementation-plan の品質を、3つの専門サブエージェントで並列評価する。
+**エージェントは評価のみ行い、修正はオーケストレーターが実施する。**
+
+| エージェント | 評価観点 | 詳細 |
+|------------|---------|------|
+| plan-format-checker | フォーマット検証 | セクション構成、コードブロック形式、テストセクション構成、プレースホルダ残留をテンプレートと照合 |
+| design-validity-checker | 設計レビュー | コンポーネント分割・責務、データフロー、依存方向、既存アーキテクチャ整合性、エッジケース考慮 |
+| test-pattern-checker | テストパターン評価 | ファイル構成、カテゴリ網羅、シナリオ充足、具体性、テスト方針の根拠 |
+
+各エージェントの評価基準の詳細は `agents/` 配下の各エージェントファイルを参照。
+
+### サブエージェント起動（3つ並列）
+
+```
+Agent tool (並列 1/3):
+  description: "plan-format-checker: {feature-name}"
+  prompt: |
+    あなたはplan-format-checkerエージェントです。
+    以下の実装計画がテンプレートの構造に沿っているか検証してください。
+    **ファイルの修正は行わず、評価結果のみを報告してください。**
+
+    ## 入力
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
+
+    ## テンプレート
+    - {SKILL_NAME}:implementation-plan
+```
+
+```
+Agent tool (並列 2/3):
+  description: "design-validity-checker: {feature-name}"
+  prompt: |
+    あなたはdesign-validity-checkerエージェントです。
+    以下の実装計画の設計判断を評価してください。
+    **ファイルの修正は行わず、評価結果のみを報告してください。**
+
+    ## 入力
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT}
+```
+
+```
+Agent tool (並列 3/3):
+  description: "test-pattern-checker: {feature-name}"
+  prompt: |
+    あなたはtest-pattern-checkerエージェントです。
+    以下の実装計画のテストパターン網羅性を評価してください。
+    **ファイルの修正は行わず、評価結果のみを報告してください。**
+
+    ## 入力
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT}
+
+    ## リファレンス
+    - references/test-design-patterns.md
+```
+
+### 結果の処理（オーケストレーター）
+
+3エージェントの評価結果を集約し、以下のフローで処理する。
+
+1. **全エージェントが PASS** → Step 5（AIレビュー）またはユーザー確認へ進む
+2. **FAIL / WARN がある場合** → オーケストレーターが以下を実施:
+   - 指摘内容を確認し、implementation-plan を直接修正する（**最大2回**）
+   - 修正の優先順: コード例の不足 → テストパターンの不足 → 設計の問題
+   - design-validity-checker の WARN はユーザー判断に委ねるため、修正対象に含めない
+   - 2回修正しても解決しない FAIL、および WARN 項目はユーザーに提示し、対応方針を確認してから次のステップに進む
 
 ---
 

@@ -36,6 +36,8 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
    ↓
 4. spec-planner サブエージェント → implementation-plan.md + tasks.md
    ↓
+4.5. セルフチェック（計画品質ゲート）→ コード例・設計妥当性・テストパターン検証
+   ↓
 5. AIレビュー（オプション）→ 修正ループ
    ↓
 6. ユーザーに提示
@@ -146,6 +148,20 @@ exploration-report.md から論点を抽出する。
 spec-planner サブエージェントを起動し、implementation-plan{IMPLEMENTATION_PLAN_EXT} と tasks{TASKS_EXT} を生成する。
 
 **プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の Step 4 を参照。**
+
+## Step 4.5: セルフチェック（3エージェント並列 → オーケストレーター修正）
+
+3つの専門サブエージェントを並列起動し、implementation-plan を評価する。エージェントは評価のみ、修正はオーケストレーターが実施。AIレビュー（Step 5）に進む前のゲート。
+
+**プロンプトテンプレートと結果処理は [references/workflow-steps.md](references/workflow-steps.md) の Step 4.5 を参照。**
+
+| エージェント | 評価観点 |
+|------------|---------|
+| plan-format-checker | テンプレート構造との適合性（セクション構成・コードブロック形式・テスト構成・プレースホルダ残留） |
+| design-validity-checker | コンポーネント分割・データフロー・依存方向・アーキテクチャ整合性の設計レビュー |
+| test-pattern-checker | テストパターンの網羅性（ファイル構成・シナリオ充足・具体性）の評価 |
+
+FAIL があればオーケストレーターが修正（最大2回）。WARN はユーザーに提示。
 
 ## Step 5: AIレビュー（オプション）
 

@@ -32,6 +32,8 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
    ↓
 4. implementation-plan.md + tasks.md を直接生成
    ↓
+4.5. セルフチェック（計画品質ゲート）→ コード例・設計妥当性・テストパターン検証
+   ↓
 5. ユーザー確認
    ↓
 5.5. tech-reference 生成（サブエージェント）→ tech-reference.md
@@ -190,6 +192,20 @@ HTML出力の場合は Step 0 の HTML出力ルールに従う。
 - Pure Logic / Data Transformation / State Management → TDD構成（Red-Green-Refactor）
 - API / Async / UI Component で自動テストが有効 → Implementation + Test セクション
 - 純粋なUI/スタイリング変更 → 手動検証のみ
+
+## Step 4.5: セルフチェック（3エージェント並列 → オーケストレーター修正）
+
+3つの専門サブエージェントを並列起動し、implementation-plan を評価する。エージェントは評価のみ、修正はオーケストレーターが実施。ユーザー確認（Step 5）に進む前のゲート。
+
+**プロンプトテンプレートと結果処理は [references/workflow-steps.md](../spec-driven-dev/references/workflow-steps.md) の Step 4.5 を参照。**
+
+| エージェント | 評価観点 |
+|------------|---------|
+| plan-format-checker | テンプレート構造との適合性（セクション構成・コードブロック形式・テスト構成・プレースホルダ残留） |
+| design-validity-checker | コンポーネント分割・データフロー・依存方向・アーキテクチャ整合性の設計レビュー |
+| test-pattern-checker | テストパターンの網羅性（ファイル構成・シナリオ充足・具体性）の評価 |
+
+FAIL があればオーケストレーターが修正（最大2回）。WARN はユーザーに提示。
 
 ## Step 5: ユーザー確認
 
