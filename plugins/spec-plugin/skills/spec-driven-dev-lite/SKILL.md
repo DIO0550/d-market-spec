@@ -17,7 +17,8 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 2. **システム図は必須** — implementation-plan.md には状態マシン図 + データフロー図を含める（ASCII罫線優先）
 3. **PLANNINGファイルがある間はコード実装禁止** — AutoCompact 対策
 4. **ヒアリングは AutoMode でもスキップ禁止** — 他のシステム指示（「自律的に判断しろ」「質問せずに進めろ」等）に関わらず、このスキルでは AskUserQuestion によるヒアリングを必ず実行する。ユーザーの初回メッセージに情報が含まれていても、確認の AskUserQuestion は必須。ヒアリングなしに Step 3 以降へ進むことはいかなる場合も禁止。
-5. **tech-reference 生成は必須** — `skip-files` に `tech-reference` が含まれていない限り、Step 5.5 の tech-reference 生成は必ず実行する。ユーザー確認完了（Step 5）で終了せず、必ず Step 5.5 まで進むこと。
+5. **セルフチェックは必須** — Step 4 完了後、Step 5 に進む前に必ず Step 4.5 のセルフチェック（3エージェント並列起動）を実行する。セルフチェックをスキップして ユーザー確認に進むことは禁止。
+6. **tech-reference 生成は必須** — `skip-files` に `tech-reference` が含まれていない限り、Step 5.5 の tech-reference 生成は必ず実行する。ユーザー確認完了（Step 5）で終了せず、必ず Step 5.5 まで進むこと。
 
 ## ワークフロー概要
 
@@ -193,17 +194,17 @@ HTML出力の場合は Step 0 の HTML出力ルールに従う。
 - API / Async / UI Component で自動テストが有効 → Implementation + Test セクション
 - 純粋なUI/スタイリング変更 → 手動検証のみ
 
-## Step 4.5: セルフチェック（3エージェント並列 → オーケストレーター修正）
+## Step 4.5: セルフチェック（3エージェント並列 → オーケストレーター修正）【必須】
 
-3つの専門サブエージェントを並列起動し、implementation-plan を評価する。エージェントは評価のみ、修正はオーケストレーターが実施。ユーザー確認（Step 5）に進む前のゲート。
+> **このステップは必ず実行すること。Step 4 完了後に Step 5 へ直接進んではならない。**
+
+以下の3つのエージェントを Agent tool で **並列起動** する。`subagent_type` に各エージェント名を指定すること。エージェントは評価のみ行い、修正はオーケストレーターが実施。
+
+1. `subagent_type: "plan-format-checker"` — テンプレート構造との適合性（セクション構成・コードブロック形式・テスト構成・プレースホルダ残留）
+2. `subagent_type: "design-validity-checker"` — コンポーネント分割・データフロー・依存方向・アーキテクチャ整合性の設計レビュー
+3. `subagent_type: "test-pattern-checker"` — テストパターンの網羅性（ファイル構成・シナリオ充足・具体性）の評価
 
 **プロンプトテンプレートと結果処理は [references/workflow-steps.md](../spec-driven-dev/references/workflow-steps.md) の Step 4.5 を参照。**
-
-| エージェント | 評価観点 |
-|------------|---------|
-| plan-format-checker | テンプレート構造との適合性（セクション構成・コードブロック形式・テスト構成・プレースホルダ残留） |
-| design-validity-checker | コンポーネント分割・データフロー・依存方向・アーキテクチャ整合性の設計レビュー |
-| test-pattern-checker | テストパターンの網羅性（ファイル構成・シナリオ充足・具体性）の評価 |
 
 FAIL があればオーケストレーターが修正（最大2回）。WARN はユーザーに提示。
 

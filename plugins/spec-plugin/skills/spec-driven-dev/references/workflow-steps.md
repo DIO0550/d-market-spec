@@ -192,12 +192,11 @@ hearing-notes ファイルを Read し、以下の3項目を検証する:
 ### 3-2. サブエージェント起動
 
 ```
-Task tool:
+Agent tool:
+  subagent_type: "codebase-explorer"
   description: "codebase-explorer: {feature-name}"
-  subagent_type: general-purpose
   run_in_background: true
   prompt: |
-    あなたはcodebase-explorerエージェントです。
     .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT} を読み込み、
     その目的・スコープに基づいてコードベースを探索してください。
 
@@ -246,12 +245,11 @@ TaskOutput 受信後、exploration-report を読み込み、セクション 8「
 3. **補完探索の実行**（品質基準未達の場合のみ、**最大 1 回**）:
 
 ```
-Task tool:
+Agent tool:
+  subagent_type: "codebase-explorer"
   description: "codebase-explorer (補完): {feature-name}"
-  subagent_type: general-purpose
   run_in_background: true
   prompt: |
-    あなたはcodebase-explorerエージェントです。
     前回の探索レポートが品質基準に達していないため、補完探索を行います。
 
     ## 前回のレポート
@@ -330,12 +328,11 @@ AskUserQuestion の回答結果を hearing-notes 末尾の `## 探索後ユー�
 exploration-report が完成したら、spec-planner サブエージェントを起動する。
 
 ```
-Task tool:
+Agent tool:
+  subagent_type: "spec-planner"
   description: "spec-planner: {feature-name}"
-  subagent_type: general-purpose
   run_in_background: true
   prompt: |
-    あなたはspec-plannerエージェントです。
     以下のファイルを読み込み、implementation-plan と tasks を生成してください。
 
     ## 入力
@@ -386,13 +383,16 @@ spec-planner が生成した implementation-plan の品質を、3つの専門サ
 
 ### サブエージェント起動（3つ並列）
 
+> **必ず以下の3つの Agent tool を1つのメッセージ内で同時に呼び出すこと。**
+> 2つだけ起動して3つ目を省略してはならない。
+> 起動後、「起動検証」セクションで3つ全てのレスポンスが得られたことを確認する。
+
 ```
 Agent tool (並列 1/3):
+  subagent_type: "plan-format-checker"
   description: "plan-format-checker: {feature-name}"
   prompt: |
-    あなたはplan-format-checkerエージェントです。
     以下の実装計画がテンプレートの構造に沿っているか検証してください。
-    **ファイルの修正は行わず、評価結果のみを報告してください。**
 
     ## 入力
     - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
@@ -403,11 +403,10 @@ Agent tool (並列 1/3):
 
 ```
 Agent tool (並列 2/3):
+  subagent_type: "design-validity-checker"
   description: "design-validity-checker: {feature-name}"
   prompt: |
-    あなたはdesign-validity-checkerエージェントです。
     以下の実装計画の設計判断を評価してください。
-    **ファイルの修正は行わず、評価結果のみを報告してください。**
 
     ## 入力
     - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
@@ -417,11 +416,10 @@ Agent tool (並列 2/3):
 
 ```
 Agent tool (並列 3/3):
+  subagent_type: "test-pattern-checker"
   description: "test-pattern-checker: {feature-name}"
   prompt: |
-    あなたはtest-pattern-checkerエージェントです。
     以下の実装計画のテストパターン網羅性を評価してください。
-    **ファイルの修正は行わず、評価結果のみを報告してください。**
 
     ## 入力
     - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
@@ -430,6 +428,16 @@ Agent tool (並列 3/3):
     ## リファレンス
     - references/test-design-patterns.md
 ```
+
+### 起動検証
+
+3つの Agent tool の結果を受け取った後、以下を確認する:
+
+- plan-format-checker の結果があるか
+- design-validity-checker の結果があるか
+- test-pattern-checker の結果があるか
+
+**いずれかのエージェントの結果が欠落している場合、欠落したエージェントのみを再起動する。**
 
 ### 結果の処理（オーケストレーター）
 
@@ -479,9 +487,9 @@ implementation-plan に登場するすべての技術を、初学者向けに解
 ### サブエージェント起動
 
 ```
-Task tool:
-  description: "tech-reference-writer: {feature-name}"
+Agent tool:
   subagent_type: general-purpose
+  description: "tech-reference-writer: {feature-name}"
   run_in_background: true
   prompt: |
     あなたは技術リファレンスライターです。
