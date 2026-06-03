@@ -1,6 +1,6 @@
 {
   "name": "d-market-spec",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "owner": {
     "name": "DIO0550"
   },
@@ -11,9 +11,9 @@
       "description": "仕様策定・実装計画・Issue作成支援プラグイン"
     },
     {
-      "name": "spec-review-plugin",
-      "source": "./plugins/spec-review-plugin",
-      "description": "計画ドキュメントに基づく仕様整合性コードレビュー"
+      "name": "spec-based-code-review-plugin",
+      "source": "./plugins/spec-based-code-review-plugin",
+      "description": "計画ドキュメントに基づく仕様ベースコードレビュー"
     }
   ]
 }

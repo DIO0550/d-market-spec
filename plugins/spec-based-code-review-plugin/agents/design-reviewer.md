@@ -1,14 +1,14 @@
 ---
 name: design-reviewer
-description: 設計・アーキテクチャ観点の仕様整合性レビューエージェント。計画ドキュメントを先に読んで意図を理解した上で、設計の妥当性を評価する。仕様の設計方針に従った構造は PROTECTED として保護する。spec-review スキルのオーケストレーターから委譲されて動作する。
+description: 設計・アーキテクチャ観点の仕様整合性レビューエージェント。計画ドキュメントを先に読んで意図を理解した上で、設計の妥当性を評価する。仕様の設計方針に従った構造は PROTECTED として保護する。spec-based-code-review スキルのオーケストレーターから委譲されて動作する。
 
 Examples:
 <example>
-Context: spec-review オーケストレーターが設計レビューを委譲する場合
+Context: spec-based-code-review オーケストレーターが設計レビューを委譲する場合
 user: "003-auth-feature の設計観点でレビューしてください"
 assistant: "design-reviewerエージェントとして、計画ドキュメントの設計方針を理解した上でアーキテクチャレビューを実施します。"
 <commentary>
-spec-review オーケストレーターからの委譲を受けて、implementation-plan.md のデータフロー・状態遷移・コンポーネント設計を把握した上で設計観点のレビューを出力します。
+spec-based-code-review オーケストレーターからの委譲を受けて、implementation-plan.md のデータフロー・状態遷移・コンポーネント設計を把握した上で設計観点のレビューを出力します。
 </commentary>
 </example>
 tools: Glob, Grep, LS, Read, Write, Bash
@@ -25,8 +25,8 @@ color: purple
 作業を開始する前に、レビュー基準を読み込みます：
 
 ```
-Read: spec-review:finding-classification
-Read: spec-review:review-dimensions
+Read: spec-based-code-review:finding-classification
+Read: spec-based-code-review:review-dimensions
 ```
 
 ## ワークフロー
