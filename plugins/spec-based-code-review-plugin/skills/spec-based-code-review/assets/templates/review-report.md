@@ -99,6 +99,6 @@
 
 | エージェント | 個別レポート | 指摘数 |
 |-------------|-------------|--------|
-| performance-reviewer | `spec-review/performance-{NNN}.md` | {n} |
-| design-reviewer | `spec-review/design-{NNN}.md` | {n} |
-| spec-alignment-reviewer | `spec-review/alignment-{NNN}.md` | {n} |
+| performance-reviewer | `spec-based-code-review/performance-{NNN}.md` | {n} |
+| design-reviewer | `spec-based-code-review/design-{NNN}.md` | {n} |
+| spec-alignment-reviewer | `spec-based-code-review/alignment-{NNN}.md` | {n} |

@@ -1,13 +1,13 @@
 ---
-name: spec-review
-description: 仕様整合性レビュースキル（オーケストレーター）。spec番号を指定すると計画ドキュメント（hearing-notes, exploration-report, implementation-plan, tasks.md）を読み込み、3つの専門サブエージェント（パフォーマンス・設計・仕様整合性）が並列でコードレビューを実行する。計画の意図を理解した上でレビューするため、仕様上の理由で書かれたコードを「冗長」と切り捨てない。番号省略時はarchive外で最大番号のspecを自動選択。「specレビュー」「仕様レビュー」「spec review」「仕様整合性チェック」「計画に基づくレビュー」「実装が計画通りか確認」「意図ベースレビュー」「コードレビュー」などでトリガー。
+name: spec-based-code-review
+description: 仕様ベースコードレビュースキル（オーケストレーター）。spec番号を指定すると計画ドキュメント（hearing-notes, exploration-report, implementation-plan, tasks.md）を読み込み、3つの専門サブエージェント（パフォーマンス・設計・仕様整合性）が並列でコードレビューを実行する。計画の意図を理解した上でレビューするため、仕様上の理由で書かれたコードを「冗長」と切り捨てない。番号省略時はarchive外で最大番号のspecを自動選択。「specレビュー」「仕様レビュー」「spec review」「仕様整合性チェック」「計画に基づくレビュー」「実装が計画通りか確認」「意図ベースレビュー」「コードレビュー」「spec-based-code-review」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[番号]"
 ---
 
-# Spec Review（オーケストレーター）
+# Spec-Based Code Review（オーケストレーター）
 
-spec番号を指定して、計画ドキュメントに基づく仕様整合性レビューを実行するスキル。
+spec番号を指定して、計画ドキュメントに基づくコードレビューを実行するスキル。
 自分ではレビューせず、3つの専門サブエージェント（performance-reviewer, design-reviewer, spec-alignment-reviewer）を並列起動してレビューを委譲し、結果を統合する。
 
 ## ワークフロー
@@ -144,7 +144,7 @@ options:
 出力先ディレクトリを作成:
 
 ```bash
-mkdir -p {spec_dir}/spec-review
+mkdir -p {spec_dir}/spec-based-code-review
 ```
 
 ### 連番の決定
@@ -152,7 +152,7 @@ mkdir -p {spec_dir}/spec-review
 既存のレビューファイルから次の連番を決定する:
 
 ```bash
-next_num=$(printf "%03d" $(( $(ls -1 {spec_dir}/spec-review/review-*.md 2>/dev/null | wc -l | tr -d ' ') + 1 )))
+next_num=$(printf "%03d" $(( $(ls -1 {spec_dir}/spec-based-code-review/review-*.md 2>/dev/null | wc -l | tr -d ' ') + 1 )))
 ```
 
 ### 3エージェントを同時に Task で起動
@@ -168,8 +168,8 @@ Task tool: (並列起動 — 3つ同時)
      計画ドキュメントを先に読んで実装の意図を理解してから、パフォーマンス観点でレビューしてください。
 
      ## レビュー基準
-     Read: {spec-review-plugin-path}/skills/spec-review/references/review-dimensions.md
-     Read: {spec-review-plugin-path}/skills/spec-review/references/finding-classification.md
+     Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/review-dimensions.md
+     Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
 
      ## 計画ドキュメント（先に読むこと）
      - {spec_dir}/implementation-plan.md
@@ -183,7 +183,7 @@ Task tool: (並列起動 — 3つ同時)
      {git diff の内容（長すぎる場合はファイル単位で分割）}
 
      ## 出力先
-     {spec_dir}/spec-review/performance-{NNN}.md
+     {spec_dir}/spec-based-code-review/performance-{NNN}.md
 
      ## 重要
      - 計画ドキュメントを読んでからコードを読むこと
@@ -199,8 +199,8 @@ Task tool: (並列起動 — 3つ同時)
      計画ドキュメントを先に読んで設計方針を理解してから、設計・アーキテクチャ観点でレビューしてください。
 
      ## レビュー基準
-     Read: {spec-review-plugin-path}/skills/spec-review/references/review-dimensions.md
-     Read: {spec-review-plugin-path}/skills/spec-review/references/finding-classification.md
+     Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/review-dimensions.md
+     Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
 
      ## 計画ドキュメント（先に読むこと）
      - {spec_dir}/implementation-plan.md
@@ -214,7 +214,7 @@ Task tool: (並列起動 — 3つ同時)
      {git diff の内容}
 
      ## 出力先
-     {spec_dir}/spec-review/design-{NNN}.md
+     {spec_dir}/spec-based-code-review/design-{NNN}.md
 
      ## 重要
      - 計画ドキュメントを読んでからコードを読むこと
@@ -230,8 +230,8 @@ Task tool: (並列起動 — 3つ同時)
      全計画ドキュメントを読み込んで実装の意図を完全に理解してから、仕様整合性の6次元でレビューしてください。
 
      ## レビュー基準
-     Read: {spec-review-plugin-path}/skills/spec-review/references/review-dimensions.md
-     Read: {spec-review-plugin-path}/skills/spec-review/references/finding-classification.md
+     Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/review-dimensions.md
+     Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
 
      ## 計画ドキュメント（全て読むこと）
      - {spec_dir}/hearing-notes.md
@@ -247,7 +247,7 @@ Task tool: (並列起動 — 3つ同時)
      {git diff の内容}
 
      ## 出力先
-     {spec_dir}/spec-review/alignment-{NNN}.md
+     {spec_dir}/spec-based-code-review/alignment-{NNN}.md
 
      ## 重要
      - 4つ全ての計画ドキュメントを読んでからコードを読むこと
@@ -270,9 +270,9 @@ TaskOutput: (3つそれぞれ)
 
 3つの個別レポートを Read で読み込む:
 
-1. `{spec_dir}/spec-review/performance-{NNN}.md`
-2. `{spec_dir}/spec-review/design-{NNN}.md`
-3. `{spec_dir}/spec-review/alignment-{NNN}.md`
+1. `{spec_dir}/spec-based-code-review/performance-{NNN}.md`
+2. `{spec_dir}/spec-based-code-review/design-{NNN}.md`
+3. `{spec_dir}/spec-based-code-review/alignment-{NNN}.md`
 
 ### 統合ルール
 
@@ -284,10 +284,10 @@ TaskOutput: (3つそれぞれ)
 
 ### 統合レポート生成
 
-テンプレート `spec-review:review-report` に沿って統合レポートを生成し、以下に保存:
+テンプレート `spec-based-code-review:review-report` に沿って統合レポートを生成し、以下に保存:
 
 ```
-Write: {spec_dir}/spec-review/review-{NNN}.md
+Write: {spec_dir}/spec-based-code-review/review-{NNN}.md
 ```
 
 ## Step 5: ユーザーへの提示とアクション提案
@@ -332,7 +332,7 @@ CRITICAL も WARNING もない場合は「仕様整合性レビュー完了 — 
 
 ```
 .plugin-workspace/.specs/{nnn}-{feature-name}/
-└── spec-review/
+└── spec-based-code-review/
     ├── performance-{NNN}.md       # performance-reviewer 出力
     ├── design-{NNN}.md            # design-reviewer 出力
     ├── alignment-{NNN}.md         # spec-alignment-reviewer 出力

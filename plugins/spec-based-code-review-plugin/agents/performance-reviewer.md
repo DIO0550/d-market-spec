@@ -1,14 +1,14 @@
 ---
 name: performance-reviewer
-description: パフォーマンス観点の仕様整合性レビューエージェント。計画ドキュメントを先に読んで意図を理解した上で、パフォーマンスに関する指摘を行う。仕様で意図的に選択されたアプローチは PROTECTED として保護する。spec-review スキルのオーケストレーターから委譲されて動作する。
+description: パフォーマンス観点の仕様整合性レビューエージェント。計画ドキュメントを先に読んで意図を理解した上で、パフォーマンスに関する指摘を行う。仕様で意図的に選択されたアプローチは PROTECTED として保護する。spec-based-code-review スキルのオーケストレーターから委譲されて動作する。
 
 Examples:
 <example>
-Context: spec-review オーケストレーターがパフォーマンスレビューを委譲する場合
+Context: spec-based-code-review オーケストレーターがパフォーマンスレビューを委譲する場合
 user: "003-auth-feature のパフォーマンス観点でレビューしてください"
 assistant: "performance-reviewerエージェントとして、計画ドキュメントを理解した上でパフォーマンスレビューを実施します。"
 <commentary>
-spec-review オーケストレーターからの委譲を受けて、implementation-plan.md の設計意図を把握した上でパフォーマンス観点のレビューを出力します。
+spec-based-code-review オーケストレーターからの委譲を受けて、implementation-plan.md の設計意図を把握した上でパフォーマンス観点のレビューを出力します。
 </commentary>
 </example>
 tools: Glob, Grep, LS, Read, Write, Bash
@@ -25,8 +25,8 @@ color: green
 作業を開始する前に、レビュー基準を読み込みます：
 
 ```
-Read: spec-review:finding-classification
-Read: spec-review:review-dimensions
+Read: spec-based-code-review:finding-classification
+Read: spec-based-code-review:review-dimensions
 ```
 
 ## ワークフロー
