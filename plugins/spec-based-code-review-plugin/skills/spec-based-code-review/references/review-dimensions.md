@@ -17,6 +17,8 @@
 | 7 | DoD検証 | spec-alignment-reviewer | Definition of Doneの全項目が実際に満たされているか？ |
 | 8 | パフォーマンス | performance-reviewer | パフォーマンス上の問題はないか？ |
 | 9 | アーキテクチャ整合性 | design-reviewer | 既存アーキテクチャとの整合性はあるか？ |
+| 10 | モック制限 | test-quality-reviewer | モックが外部依存関係のみに限定されているか？ |
+| 11 | 振る舞いテスト | test-quality-reviewer | 実装詳細ではなく観察可能な振る舞いを検証しているか？ |
 
 ---
 
@@ -265,3 +267,54 @@ Step 3: 仕様確認テスト
 | パターン | 分類 | 説明 |
 |---------|------|------|
 | 拡張子付きディレクトリ名 | WARNING | 「関数名によるファイル命名」のすり抜けバリアント。`{関数名.ts}/index.ts` のようにディレクトリ名に拡張子が含まれている。ファイル名チェックを回避する形で同じ問題を持ち込む |
+
+---
+
+## 次元 10: モック制限（MOCK-SCOPE）
+
+**参照文書**: implementation-plan.md（テスト戦略セクション）, exploration-report.md（テストインフラセクション）
+
+**詳細ルール**: `references/test-review-rules.md` を参照
+
+### 原則
+
+モックはテストと実装の間に結合を生む。内部モジュールをモックすると、振る舞いが保持されていてもリファクタリングでテストが壊れる。モックはテスト対象と外部世界の境界でのみ使用する。
+
+### チェック項目
+
+- [ ] `vi.mock(...)` / `jest.mock(...)` の対象が外部依存のみか
+- [ ] `vi.spyOn(...)` / `jest.spyOn(...)` で内部モジュールをモック化していないか
+- [ ] `vi.fn()` / `jest.fn()` が内部モジュールの代替として使われていないか
+- [ ] implementation-plan のモック方針と実際のモック使用が一致しているか
+
+### 典型的な指摘
+
+- CRITICAL: 「内部モジュール `./services/UserService` をモックしている — 実モジュールを使ってテストすべき」
+- WARNING: 「`./repositories/UserRepository` をモックしているが、これがアーキテクチャ上の外部境界なら許容」
+- PROTECTED: 「内部モジュールをモックしているが、implementation-plan のテスト戦略で『Repository 層はモックして単体テストする』と明記されている」
+
+---
+
+## 次元 11: 振る舞いテスト（BEHAVIOR-TEST）
+
+**参照文書**: implementation-plan.md（テスト戦略セクション）, hearing-notes.md
+
+**詳細ルール**: `references/test-review-rules.md` を参照
+
+### 原則
+
+テストはシステムが「何をするか」（観察可能な振る舞い）を検証すべきであり、「どうやるか」（実装詳細）を検証すべきではない。これによりテストがリファクタリング耐性を持つ。
+
+### チェック項目
+
+- [ ] 内部コラボレーターへの spy アサーション（`toHaveBeenCalled*`）がないか
+- [ ] プライベートメソッド・フィールドへの直接アクセスがないか
+- [ ] テストが戻り値・状態変化・例外など観察可能な振る舞いを検証しているか
+- [ ] 外部境界への spy アサーションは CRITICAL にしない（観察可能な振る舞い）
+
+### 典型的な指摘
+
+- CRITICAL: 「内部メソッド `calculator.internalCalculate` への spy アサーション — 戻り値で振る舞いを検証すべき」
+- CRITICAL: 「プライベートフィールド `obj['_privateField']` を直接テストしている — 公開APIを通じて検証すべき」
+- WARNING: 「`result._metadata.processingSteps` は出力契約の一部かどうか要判断」
+- PROTECTED: 「内部メソッドの呼び出しを検証しているが、implementation-plan で『この内部メソッドの呼び出しは振る舞いの一部として保証する』と明記されている」

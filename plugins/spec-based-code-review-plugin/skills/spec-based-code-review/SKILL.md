@@ -1,6 +1,6 @@
 ---
 name: spec-based-code-review
-description: 仕様ベースコードレビュースキル（オーケストレーター）。spec番号を指定すると計画ドキュメント（hearing-notes, exploration-report, implementation-plan, tasks.md）を読み込み、3つの専門サブエージェント（パフォーマンス・設計・仕様整合性）が並列でコードレビューを実行する。計画の意図を理解した上でレビューするため、仕様上の理由で書かれたコードを「冗長」と切り捨てない。番号省略時はarchive外で最大番号のspecを自動選択。「specレビュー」「仕様レビュー」「spec review」「仕様整合性チェック」「計画に基づくレビュー」「実装が計画通りか確認」「意図ベースレビュー」「コードレビュー」「spec-based-code-review」などでトリガー。
+description: 仕様ベースコードレビュースキル（オーケストレーター）。spec番号を指定すると計画ドキュメント（hearing-notes, exploration-report, implementation-plan, tasks.md）を読み込み、4つの専門サブエージェント（パフォーマンス・設計・仕様整合性・テスト品質）が並列でコードレビューを実行する。計画の意図を理解した上でレビューするため、仕様上の理由で書かれたコードを「冗長」と切り捨てない。番号省略時はarchive外で最大番号のspecを自動選択。「specレビュー」「仕様レビュー」「spec review」「仕様整合性チェック」「計画に基づくレビュー」「実装が計画通りか確認」「意図ベースレビュー」「コードレビュー」「spec-based-code-review」「テストレビュー」「test review」「テスト品質チェック」「モック使いすぎ」「古典学派」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[番号]"
 ---
@@ -8,7 +8,7 @@ argument-hint: "[番号]"
 # Spec-Based Code Review（オーケストレーター）
 
 spec番号を指定して、計画ドキュメントに基づくコードレビューを実行するスキル。
-自分ではレビューせず、3つの専門サブエージェント（performance-reviewer, design-reviewer, spec-alignment-reviewer）を並列起動してレビューを委譲し、結果を統合する。
+自分ではレビューせず、4つの専門サブエージェント（performance-reviewer, design-reviewer, spec-alignment-reviewer, test-quality-reviewer）を並列起動してレビューを委譲し、結果を統合する。
 
 ## ワークフロー
 
@@ -139,7 +139,7 @@ options:
 - git diff の内容
 - `[NEW]` ファイルのフルパス
 
-## Step 3: 3サブエージェントを並列起動
+## Step 3: 4サブエージェントを並列起動
 
 出力先ディレクトリを作成:
 
@@ -155,10 +155,10 @@ mkdir -p {spec_dir}/spec-based-code-review
 next_num=$(printf "%03d" $(( $(ls -1 {spec_dir}/spec-based-code-review/review-*.md 2>/dev/null | wc -l | tr -d ' ') + 1 )))
 ```
 
-### 3エージェントを同時に Task で起動
+### 4エージェントを同時に Task で起動
 
 ```
-Task tool: (並列起動 — 3つ同時)
+Task tool: (並列起動 — 4つ同時)
 
 1. performance-reviewer:
    description: "performance-reviewer: {feature-name}"
@@ -255,12 +255,48 @@ Task tool: (並列起動 — 3つ同時)
      - 仕様根拠のない指摘は出さないこと
      - 意図的複雑性の保護（次元5）を最優先で判定すること
      - 迷ったら PROTECTED 寄りに判定すること
+
+4. test-quality-reviewer:
+   description: "test-quality-reviewer: {feature-name}"
+   run_in_background: true
+   prompt: |
+     あなたは test-quality-reviewer エージェントです。
+     計画ドキュメントを先に読んでテスト戦略を理解してから、古典学派のテスト原則に基づいてテストコードをレビューしてください。
+
+     ## レビュー基準
+     Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/review-dimensions.md
+     Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
+     Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/test-review-rules.md
+
+     ## 計画ドキュメント（全て読むこと）
+     - {spec_dir}/implementation-plan.md
+     - {spec_dir}/exploration-report.md
+     - {spec_dir}/hearing-notes.md
+     - {spec_dir}/tasks.md
+
+     ## テストコード情報
+     テストファイル一覧:
+     {テストファイルリスト}
+
+     git diff（テスト部分）:
+     {git diff の内容（テストファイル部分）}
+
+     ## 出力先
+     {spec_dir}/spec-based-code-review/test-quality-{NNN}.md
+
+     ## 重要
+     - 計画ドキュメントを読んでからテストコードを読むこと
+     - すべての指摘に「仕様根拠」を含めること
+     - 仕様根拠のない指摘は出さないこと
+     - 仕様のテスト戦略に従ったパターンは PROTECTED とすること
+     - 外部依存への spy アサーションは CRITICAL にしないこと
+     - 迷ったら PROTECTED 寄りに判定すること
 ```
 
 ### 完了待ち
 
 ```
-TaskOutput: (3つそれぞれ)
+TaskOutput: (4つそれぞれ)
   task_id: "{各エージェントのtask_id}"
   block: true
   timeout: 300000
@@ -268,11 +304,12 @@ TaskOutput: (3つそれぞれ)
 
 ## Step 4: 結果統合・重複排除・保存
 
-3つの個別レポートを Read で読み込む:
+4つの個別レポートを Read で読み込む:
 
 1. `{spec_dir}/spec-based-code-review/performance-{NNN}.md`
 2. `{spec_dir}/spec-based-code-review/design-{NNN}.md`
 3. `{spec_dir}/spec-based-code-review/alignment-{NNN}.md`
+4. `{spec_dir}/spec-based-code-review/test-quality-{NNN}.md`
 
 ### 統合ルール
 
@@ -336,6 +373,7 @@ CRITICAL も WARNING もない場合は「仕様整合性レビュー完了 — 
     ├── performance-{NNN}.md       # performance-reviewer 出力
     ├── design-{NNN}.md            # design-reviewer 出力
     ├── alignment-{NNN}.md         # spec-alignment-reviewer 出力
+    ├── test-quality-{NNN}.md      # test-quality-reviewer 出力
     └── review-{NNN}.md            # 統合レポート
 ```
 
