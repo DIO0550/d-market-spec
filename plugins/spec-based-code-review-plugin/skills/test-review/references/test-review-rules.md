@@ -1,19 +1,22 @@
 # テストレビュールール定義
 
 古典学派（Classical School）のテスト原則に基づくレビュールール。
+計画ドキュメントを読んでテスト戦略を理解した上で適用する。
 
 ---
 
-## ルール一覧
+## ルール一覧と次元割り当て
 
-| ID | ルール名 | 原則 |
-|----|---------|------|
-| MOCK-SCOPE | モック制限 | モックは外部依存関係のみに限定する |
-| BEHAVIOR-TEST | 振る舞いテスト | 実装詳細ではなく観察可能な振る舞いを検証する |
+| # | 次元 | ルールID | 核心の問い |
+|---|------|---------|-----------|
+| 1 | モック制限 | MOCK-SCOPE | モックが外部依存関係のみに限定されているか？ |
+| 2 | 振る舞いテスト | BEHAVIOR-TEST | 実装詳細ではなく観察可能な振る舞いを検証しているか？ |
 
 ---
 
-## MOCK-SCOPE: モック制限
+## 次元 1: MOCK-SCOPE（モック制限）
+
+**参照文書**: implementation-plan.md（テスト戦略セクション）, exploration-report.md（テストインフラセクション）
 
 ### 原則
 
@@ -43,7 +46,7 @@
 
 ### 検出パターン
 
-**VIOLATION**:
+**CRITICAL**:
 
 ```typescript
 // 相対パスの内部モジュールをモック
@@ -84,13 +87,23 @@ vi.stubEnv('API_KEY', 'test-key');
 vi.mock('./repositories/UserRepository');
 ```
 
-この場合、`UserRepository` が明示的なアーキテクチャ境界（DIP に基づく抽象）として設計されているかどうかで判断が分かれる。WARNING として報告し、レビュイーの判断に委ねる。
+**判断ガイダンス**: そのインターフェースがアーキテクチャ上の境界として意図的に設計されている場合はモック許容。単なる内部クラスの場合は CRITICAL 寄り。
 
-**判断ガイダンス**: そのインターフェースがアーキテクチャ上の境界として意図的に設計されている場合はモック許容。単なる内部クラスの場合は VIOLATION 寄り。
+### PROTECTED パターン
+
+計画ドキュメントに基づいてモック使用が正当化される場合:
+
+| 表面的な印象 | 仕様根拠の例 |
+|-------------|-------------|
+| 内部モジュールをモックしている | implementation-plan のテスト戦略で「Repository 層はモックして単体テストする」と明記 |
+| モックが多い | exploration-report のテストインフラ規約でモック戦略が定義されている |
+| 不要なモックに見える | implementation-plan のテスト方針に従ったモック使用 |
 
 ---
 
-## BEHAVIOR-TEST: 振る舞いテスト
+## 次元 2: BEHAVIOR-TEST（振る舞いテスト）
+
+**参照文書**: implementation-plan.md（テスト戦略セクション）, hearing-notes.md
 
 ### 原則
 
@@ -117,15 +130,15 @@ vi.mock('./repositories/UserRepository');
 
 ### 検出パターン
 
-**VIOLATION**:
+**CRITICAL**:
 
 ```typescript
 // 内部コラボレーターへの spy アサーション
 const spy = vi.spyOn(calculator, 'internalCalculate');
 service.process(input);
-expect(spy).toHaveBeenCalled();           // 実装詳細
-expect(spy).toHaveBeenCalledTimes(2);     // 実装詳細
-expect(spy).toHaveBeenCalledWith(42);     // 実装詳細
+expect(spy).toHaveBeenCalled();
+expect(spy).toHaveBeenCalledTimes(2);
+expect(spy).toHaveBeenCalledWith(42);
 
 // プライベートメソッドの直接テスト
 expect(obj['_privateMethod'](input)).toBe(expected);
@@ -160,23 +173,22 @@ expect(sendEmailSpy).toHaveBeenCalledWith(
 **中間データ形状のアサーション**: テスト対象の出力契約の一部ではない中間データの形状を検証している場合。
 
 ```typescript
-// processData の戻り値の内部構造を詳細に検証
-// この構造が公開 API の契約の一部かどうかで判断が分かれる
 const result = service.processData(input);
 expect(result._metadata.processingSteps).toHaveLength(3);
 ```
 
-**判断ガイダンス**: そのフィールドが公開 API の契約（型定義・ドキュメント）に含まれていれば OK。内部的な処理情報であれば VIOLATION 寄り。
+**判断ガイダンス**: そのフィールドが公開 API の契約（型定義・ドキュメント）に含まれていれば OK。内部的な処理情報であれば CRITICAL 寄り。
 
 ### 重要な区別: 外部境界の spy は許容
 
-外部依存（MOCK-SCOPE でモック許可とされるもの）に対する spy アサーションは VIOLATION ではない。これはシステムの外部への出力を検証しており、観察可能な振る舞いに該当する。
+外部依存（MOCK-SCOPE でモック許可とされるもの）に対する spy アサーションは CRITICAL ではない。これはシステムの外部への出力を検証しており、観察可能な振る舞いに該当する。
 
-```typescript
-// これは OK — 外部境界への出力の検証
-const apiSpy = vi.spyOn(httpClient, 'post');
-service.createOrder(orderData);
-expect(apiSpy).toHaveBeenCalledWith('/api/orders', expect.objectContaining({
-  items: orderData.items,
-}));
-```
+### PROTECTED パターン
+
+計画ドキュメントに基づいてアサーションパターンが正当化される場合:
+
+| 表面的な印象 | 仕様根拠の例 |
+|-------------|-------------|
+| 内部メソッドの呼び出しを検証している | implementation-plan で「この内部メソッドの呼び出しは振る舞いの一部として保証する」と明記 |
+| 実装詳細に依存したテスト | exploration-report のテストインフラ規約で既存パターンとして確立されている |
+| テストが特定の実装に結合している | implementation-plan のテスト戦略で意図的に選択されている |
