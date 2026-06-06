@@ -19,6 +19,7 @@
 | 9 | アーキテクチャ整合性 | design-reviewer | 既存アーキテクチャとの整合性はあるか？ |
 | 10 | モック制限 | test-quality-reviewer | モックが外部依存関係のみに限定されているか？ |
 | 11 | 振る舞いテスト | test-quality-reviewer | 実装詳細ではなく観察可能な振る舞いを検証しているか？ |
+| 12 | テスト価値 | test-quality-reviewer | テストが意味のあるリグレッション保護を提供しているか？ |
 
 ---
 
@@ -318,3 +319,28 @@ Step 3: 仕様確認テスト
 - CRITICAL: 「プライベートフィールド `obj['_privateField']` を直接テストしている — 公開APIを通じて検証すべき」
 - WARNING: 「`result._metadata.processingSteps` は出力契約の一部かどうか要判断」
 - PROTECTED: 「内部メソッドの呼び出しを検証しているが、implementation-plan で『この内部メソッドの呼び出しは振る舞いの一部として保証する』と明記されている」
+
+---
+
+## 次元 12: テスト価値（TEST-VALUE）
+
+**参照文書**: implementation-plan.md（テスト戦略セクション）
+
+**詳細ルール**: `references/test-review-rules.md` を参照
+
+### 原則
+
+テストはリグレッション保護を提供するために書く。ロジックのないコード（分岐・ループ・計算・条件判定がないコード）をテストしても、壊れる可能性がないためリグレッション保護の価値がない。そのようなテストは保守コストだけが発生する。
+
+### チェック項目
+
+- [ ] テスト対象のコードにロジック（分岐・ループ・計算・条件判定・例外送出）があるか
+- [ ] ロジックのないコードに対してテストが書かれていないか
+- [ ] テストが既存の別テストと実質的に同じことを検証していないか
+
+### 典型的な指摘
+
+- WARNING: 「ロジックのない単純コンストラクタ `new User(name, email)` のテスト — プロパティ代入のみでリグレッション保護の価値がない」
+- WARNING: 「単純な getter `getFullName()` のテスト — `return this.firstName + ' ' + this.lastName` に分岐がなく壊れる可能性が極めて低い」
+- WARNING: 「パススルーメソッド `delegate.execute(args)` のテスト — 内部で別メソッドを呼ぶだけでロジックがない」
+- PROTECTED: 「単純に見えるが、implementation-plan のテストTODOリストに明示的に含まれている」

@@ -11,6 +11,7 @@ test-quality-reviewer エージェントが参照する。計画ドキュメン�
 |----|---------|---------|------|
 | MOCK-SCOPE | モック制限 | 次元 10 | モックは外部依存関係のみに限定する |
 | BEHAVIOR-TEST | 振る舞いテスト | 次元 11 | 実装詳細ではなく観察可能な振る舞いを検証する |
+| TEST-VALUE | テスト価値 | 次元 12 | テストが意味のあるリグレッション保護を提供しているか |
 
 ---
 
@@ -168,3 +169,95 @@ expect(result._metadata.processingSteps).toHaveLength(3);
 |-------------|-------------|
 | 内部メソッドの呼び出しを検証している | implementation-plan で振る舞いの一部として保証すると明記 |
 | 実装詳細に依存したテスト | exploration-report のテストインフラ規約で既存パターンとして確立 |
+
+---
+
+## TEST-VALUE: テスト価値
+
+### 原則
+
+テストはリグレッション保護のために書く。ロジック（分岐・ループ・計算・条件判定・例外送出）のないコードは壊れる可能性がほぼなく、テストしてもリグレッション保護の価値がない。そのようなテストは保守コストだけを増やす。
+
+### ロジックのないコード（テスト不要）
+
+| パターン | 例 |
+|---------|-----|
+| 単純コンストラクタ | プロパティ代入のみの `constructor(name, email) { this.name = name; this.email = email; }` |
+| 単純 getter/setter | `get name() { return this._name; }` |
+| パススルーメソッド | 引数をそのまま別メソッドに渡すだけの委譲 |
+| 定数返却 | `getType() { return 'user'; }` |
+| 単純ファクトリ | `static create(props) { return new Entity(props); }`（バリデーションなし） |
+
+### ロジックのあるコード（テスト価値あり）
+
+| パターン | 例 |
+|---------|-----|
+| 条件分岐 | `if (age < 0) throw ...` |
+| 計算 | `getTotalPrice() { return items.reduce(...) }` |
+| ループ | `items.forEach(item => ...)` |
+| 変換 | `toDTO() { return { fullName: this.first + ' ' + this.last, ... } }` |
+| バリデーション付きコンストラクタ | `constructor(email) { if (!email.includes('@')) throw ... }` |
+| 状態遷移 | `approve() { if (this.status !== 'pending') throw ...; this.status = 'approved'; }` |
+
+### 検出パターン
+
+**WARNING**:
+
+```typescript
+// ロジックのない単純コンストラクタのテスト
+test('should create user', () => {
+  const user = new User('John', 'john@example.com');
+  expect(user.name).toBe('John');
+  expect(user.email).toBe('john@example.com');
+});
+
+// 単純 getter のテスト
+test('should return name', () => {
+  const user = new User('John');
+  expect(user.getName()).toBe('John');
+});
+
+// パススルーメソッドのテスト
+test('should delegate to repository', () => {
+  service.save(entity);
+  // save() が repository.save(entity) を呼ぶだけ
+});
+```
+
+**OK**:
+
+```typescript
+// バリデーション付きコンストラクタのテスト（ロジックあり）
+test('should reject invalid email', () => {
+  expect(() => new User('John', 'invalid')).toThrow(ValidationError);
+});
+
+// 計算ロジックのテスト
+test('should calculate total with tax', () => {
+  cart.addItem({ price: 1000 });
+  expect(cart.getTotalWithTax()).toBe(1100);
+});
+
+// 状態遷移のテスト
+test('should not approve already approved order', () => {
+  order.approve();
+  expect(() => order.approve()).toThrow(InvalidStateError);
+});
+```
+
+### 判断基準
+
+テスト対象のコードを読んで以下を確認する:
+
+1. **分岐（if / switch / 三項演算子）があるか？** → あればテスト価値あり
+2. **ループ（for / while / map / reduce / filter）があるか？** → あればテスト価値あり
+3. **計算・変換があるか？** → あればテスト価値あり
+4. **例外を投げる条件があるか？** → あればテスト価値あり
+5. **上記すべて NO** → テスト価値なし（WARNING）
+
+### PROTECTED パターン
+
+| 表面的な印象 | 仕様根拠の例 |
+|-------------|-------------|
+| ロジックのないコードをテストしている | implementation-plan のテストTODOリストに明示的に含まれている |
+| 単純コンストラクタのテスト | hearing-notes で「オブジェクト生成の正常系を保証すること」と要求されている |
