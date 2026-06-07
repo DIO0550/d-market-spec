@@ -12,6 +12,7 @@ test-quality-reviewer エージェントが参照する。計画ドキュメン�
 | MOCK-SCOPE | モック制限 | 次元 10 | モックは外部依存関係のみに限定する |
 | BEHAVIOR-TEST | 振る舞いテスト | 次元 11 | 実装詳細ではなく観察可能な振る舞いを検証する |
 | TEST-VALUE | テスト価値 | 次元 12 | テストが意味のあるリグレッション保護を提供しているか |
+| TEST-COVERAGE | テストケース網羅性 | 次元 13 | ロジックのあるコードに対してテストケースが不足していないか |
 
 ---
 
@@ -261,3 +262,91 @@ test('should not approve already approved order', () => {
 |-------------|-------------|
 | ロジックのないコードをテストしている | implementation-plan のテストTODOリストに明示的に含まれている |
 | 単純コンストラクタのテスト | hearing-notes で「オブジェクト生成の正常系を保証すること」と要求されている |
+
+---
+
+## TEST-COVERAGE: テストケース網羅性
+
+### 原則
+
+ロジックのあるコード（分岐・ループ・計算・例外送出）にはテストが必要。テストケースの不足は、リグレッションバグの見逃しに直結する。実装コードのロジックを読み、テストが各パスを網羅しているかを検証する。
+
+### 不足を検出する観点
+
+| 観点 | 確認内容 |
+|------|---------|
+| 分岐網羅 | if/else, switch の各パスにテストがあるか |
+| 境界値 | 0, 1, 上限, 空, null/undefined などの境界でテストがあるか |
+| 異常系 | 不正入力・例外条件のテストがあるか |
+| 状態遷移 | 各遷移パスのテストがあるか（特に不正遷移の拒否） |
+| テストTODOリスト | implementation-plan に列挙されたシナリオがテストされているか |
+
+### 検出パターン
+
+**CRITICAL（テストTODOリストの項目が未テスト）**:
+
+```typescript
+// implementation-plan に「タイムアウト時のリトライ」シナリオが記載されているが
+// テストファイルに該当するテストケースが存在しない
+```
+
+**CRITICAL（分岐の主要パスが未テスト）**:
+
+```typescript
+// 実装コード
+function calculateDiscount(amount: number, tier: 'normal' | 'member' | 'vip'): number {
+  if (tier === 'vip') return amount * 0.8;
+  if (tier === 'member') return amount * 0.9;
+  return amount;
+}
+
+// テストコード — 'normal' のみ、'member' と 'vip' のテストがない
+test('should return amount for normal tier', () => {
+  expect(calculateDiscount(1000, 'normal')).toBe(1000);
+});
+```
+
+**WARNING（境界値の未テスト）**:
+
+```typescript
+// 実装コード
+function validateAge(age: number): void {
+  if (age < 0 || age > 150) throw new ValidationError('Invalid age');
+}
+
+// テストコード — 正常値のみ、境界値（0, -1, 150, 151）のテストがない
+test('should accept valid age', () => {
+  expect(() => validateAge(25)).not.toThrow();
+});
+```
+
+**WARNING（状態遷移パスの不足）**:
+
+```typescript
+// 実装コード — pending → approved, pending → cancelled, approved → shipped の3遷移
+// テストコード — pending → approved のみ、他の遷移パスがテストされていない
+```
+
+### 判断基準
+
+実装コードを読んで以下を確認する:
+
+1. **分岐の数を数える** → 各パスに対応するテストがあるか
+2. **入力の境界を特定する** → 境界値のテストがあるか
+3. **例外条件を特定する** → 異常系のテストがあるか
+4. **状態遷移図があれば** → 各遷移パスのテストがあるか
+5. **テストTODOリストと照合** → 漏れがないか
+
+### テストTODOリストとの照合
+
+implementation-plan にテストTODOリストがある場合、リストの各項目に対応するテストケースが存在するかを1つずつ確認する。漏れがある場合は CRITICAL とする（次元6のテスト戦略整合性と重複する場合は、test-quality-reviewer 側では CRITICAL を出さず spec-alignment-reviewer に委ねる）。
+
+**重複回避ルール**: テストTODOリストの項目漏れは次元6（spec-alignment-reviewer 担当）でもチェックされる。test-quality-reviewer は**実装コードのロジックから導かれるテスト不足**に集中し、テストTODOリストの単純な照合は次元6に任せる。
+
+### PROTECTED パターン
+
+| 表面的な印象 | 仕様根拠の例 |
+|-------------|-------------|
+| テストケースが少ない | implementation-plan のテスト戦略で「正常系のみテスト」と明記されている |
+| 境界値テストがない | exploration-report で「境界値テストは統合テストで実施」と定められている |
+| 異常系テストがない | implementation-plan で「異常系は手動確認」と指定されている |

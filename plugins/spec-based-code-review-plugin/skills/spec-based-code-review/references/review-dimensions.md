@@ -20,6 +20,7 @@
 | 10 | モック制限 | test-quality-reviewer | モックが外部依存関係のみに限定されているか？ |
 | 11 | 振る舞いテスト | test-quality-reviewer | 実装詳細ではなく観察可能な振る舞いを検証しているか？ |
 | 12 | テスト価値 | test-quality-reviewer | テストが意味のあるリグレッション保護を提供しているか？ |
+| 13 | テストケース網羅性 | test-quality-reviewer | ロジックのあるコードに対してテストケースが不足していないか？ |
 
 ---
 
@@ -344,3 +345,31 @@ Step 3: 仕様確認テスト
 - WARNING: 「単純な getter `getFullName()` のテスト — `return this.firstName + ' ' + this.lastName` に分岐がなく壊れる可能性が極めて低い」
 - WARNING: 「パススルーメソッド `delegate.execute(args)` のテスト — 内部で別メソッドを呼ぶだけでロジックがない」
 - PROTECTED: 「単純に見えるが、implementation-plan のテストTODOリストに明示的に含まれている」
+
+---
+
+## 次元 13: テストケース網羅性（TEST-COVERAGE）
+
+**参照文書**: implementation-plan.md（テスト戦略セクション・テストTODOリスト）, hearing-notes.md
+
+**詳細ルール**: `references/test-review-rules.md` を参照
+
+### 原則
+
+ロジックのあるコード（分岐・ループ・計算・例外送出）にはテストが必要。特に条件分岐の各パスと境界値はリグレッションが発生しやすいポイントであり、テストケースが不足しているとバグの検出が遅れる。
+
+### チェック項目
+
+- [ ] 条件分岐の各パス（正常系・異常系・エッジケース）にテストがあるか
+- [ ] 境界値（0, 1, 上限, 空配列, null/undefined 等）がテストされているか
+- [ ] 例外送出の条件がテストされているか
+- [ ] 状態遷移のある処理で、各遷移パスがテストされているか
+- [ ] implementation-plan のテストTODOリストの項目が漏れなくテストされているか
+
+### 典型的な指摘
+
+- CRITICAL: 「`calculateDiscount(amount)` に3つの分岐（通常/会員/VIP）があるが、通常の1パスしかテストされていない」
+- CRITICAL: 「implementation-plan のテストTODOリスト項目『タイムアウト時のリトライ』に対応するテストが存在しない」
+- WARNING: 「`validateAge(age)` の境界値（0, 負数, 上限値）がテストされていない」
+- WARNING: 「`OrderStatus` の状態遷移で `pending → cancelled` パスのテストがない」
+- PROTECTED: 「テストケースが少ないが、implementation-plan のテスト戦略で『正常系のみテスト、異常系は手動確認』と明記されている」

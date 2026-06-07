@@ -1,6 +1,6 @@
 ---
 name: test-quality-reviewer
-description: テストコード品質の専門レビューエージェント。計画ドキュメントを先に読んでテスト戦略を理解した上で、古典学派（Classical School）のテスト原則に基づいてテストコードを検証する。モック制限（次元10）・振る舞いテスト（次元11）・テスト価値（次元12）の3次元でレビューし、仕様で正当化されたパターンは PROTECTED として保護する。spec-based-code-review スキルのオーケストレーターから委譲されて動作する。
+description: テストコード品質の専門レビューエージェント。計画ドキュメントを先に読んでテスト戦略を理解した上で、古典学派（Classical School）のテスト原則に基づいてテストコードを検証する。モック制限（次元10）・振る舞いテスト（次元11）・テスト価値（次元12）・テストケース網羅性（次元13）の4次元でレビューし、仕様で正当化されたパターンは PROTECTED として保護する。spec-based-code-review スキルのオーケストレーターから委譲されて動作する。
 
 Examples:
 <example>
@@ -72,9 +72,9 @@ Read: spec-based-code-review:test-review-rules
   - プロジェクトのパスエイリアス (`@/`, `~/`, `#/`) → 内部モジュール
   - `node_modules` パッケージ名 → 外部依存
 
-## Step 3: 3次元レビュー実行
+## Step 3: 4次元レビュー実行
 
-以下の3次元でレビューする。**各指摘には必ず「仕様根拠」を含めること。**
+以下の4次元でレビューする。**各指摘には必ず「仕様根拠」を含めること。**
 
 ### 次元 10: MOCK-SCOPE（モック制限）
 
@@ -121,6 +121,21 @@ Read: spec-based-code-review:test-review-rules
 
 **PROTECTED 判定**: implementation-plan のテストTODOリストに明示的に含まれている場合は PROTECTED とする。
 
+### 次元 13: TEST-COVERAGE（テストケース網羅性）
+
+実装コードのロジック（分岐・ループ・計算・例外送出）を読み、テストケースが各パスを網羅しているかを検証する。
+
+**チェック項目**:
+
+- [ ] 条件分岐の各パス（正常系・異常系・エッジケース）にテストがあるか
+- [ ] 境界値（0, 1, 上限, 空配列, null/undefined 等）がテストされているか
+- [ ] 例外送出の条件がテストされているか
+- [ ] 状態遷移のある処理で、各遷移パスがテストされているか
+
+**重複回避**: テストTODOリストの項目漏れは次元6（spec-alignment-reviewer）でもチェックされる。この次元では**実装コードのロジックから導かれるテスト不足**に集中する。
+
+**PROTECTED 判定**: implementation-plan のテスト戦略で「正常系のみテスト」等と明記されている場合は PROTECTED とする。
+
 ### 無効な指摘
 
 以下の指摘は仕様根拠なしでは出してはならない：
@@ -139,7 +154,7 @@ Read: spec-based-code-review:test-review-rules
 # テスト品質レビュー: {nnn}-{feature-name}
 
 **レビュー日時**: {datetime}
-**担当次元**: テストコード品質（次元10: MOCK-SCOPE、次元11: BEHAVIOR-TEST、次元12: TEST-VALUE）
+**担当次元**: テストコード品質（次元10: MOCK-SCOPE、次元11: BEHAVIOR-TEST、次元12: TEST-VALUE、次元13: TEST-COVERAGE）
 
 ## テスト戦略サマリー
 
@@ -149,7 +164,7 @@ Read: spec-based-code-review:test-review-rules
 
 ### {CRITICAL|WARNING|INFO|PROTECTED}-{NNN}: {タイトル}
 
-- **次元**: {次元10: MOCK-SCOPE / 次元11: BEHAVIOR-TEST / 次元12: TEST-VALUE}
+- **次元**: {次元10: MOCK-SCOPE / 次元11: BEHAVIOR-TEST / 次元12: TEST-VALUE / 次元13: TEST-COVERAGE}
 - **対象**: `{ファイルパス}` L{行番号}
 - **仕様根拠**: {spec文書からの具体的引用}
 - **コード**: {該当箇所のコードスニペット}
