@@ -17,6 +17,10 @@
 | 7 | DoD検証 | spec-alignment-reviewer | Definition of Doneの全項目が実際に満たされているか？ |
 | 8 | パフォーマンス | performance-reviewer | パフォーマンス上の問題はないか？ |
 | 9 | アーキテクチャ整合性 | design-reviewer | 既存アーキテクチャとの整合性はあるか？ |
+| 10 | モック制限 | test-quality-reviewer | モックが外部依存関係のみに限定されているか？ |
+| 11 | 振る舞いテスト | test-quality-reviewer | 実装詳細ではなく観察可能な振る舞いを検証しているか？ |
+| 12 | テスト価値 | test-quality-reviewer | テストが意味のあるリグレッション保護を提供しているか？ |
+| 13 | テストケース網羅性 | test-quality-reviewer | ロジックのあるコードに対してテストケースが不足していないか？ |
 
 ---
 
@@ -265,3 +269,107 @@ Step 3: 仕様確認テスト
 | パターン | 分類 | 説明 |
 |---------|------|------|
 | 拡張子付きディレクトリ名 | WARNING | 「関数名によるファイル命名」のすり抜けバリアント。`{関数名.ts}/index.ts` のようにディレクトリ名に拡張子が含まれている。ファイル名チェックを回避する形で同じ問題を持ち込む |
+
+---
+
+## 次元 10: モック制限（MOCK-SCOPE）
+
+**参照文書**: implementation-plan.md（テスト戦略セクション）, exploration-report.md（テストインフラセクション）
+
+**詳細ルール**: `references/test-review-rules.md` を参照
+
+### 原則
+
+モックはテストと実装の間に結合を生む。内部モジュールをモックすると、振る舞いが保持されていてもリファクタリングでテストが壊れる。モックはテスト対象と外部世界の境界でのみ使用する。
+
+### チェック項目
+
+- [ ] `vi.mock(...)` / `jest.mock(...)` の対象が外部依存のみか
+- [ ] `vi.spyOn(...)` / `jest.spyOn(...)` で内部モジュールをモック化していないか
+- [ ] `vi.fn()` / `jest.fn()` が内部モジュールの代替として使われていないか
+- [ ] implementation-plan のモック方針と実際のモック使用が一致しているか
+
+### 典型的な指摘
+
+- CRITICAL: 「内部モジュール `./services/UserService` をモックしている — 実モジュールを使ってテストすべき」
+- WARNING: 「`./repositories/UserRepository` をモックしているが、これがアーキテクチャ上の外部境界なら許容」
+- PROTECTED: 「内部モジュールをモックしているが、implementation-plan のテスト戦略で『Repository 層はモックして単体テストする』と明記されている」
+
+---
+
+## 次元 11: 振る舞いテスト（BEHAVIOR-TEST）
+
+**参照文書**: implementation-plan.md（テスト戦略セクション）, hearing-notes.md
+
+**詳細ルール**: `references/test-review-rules.md` を参照
+
+### 原則
+
+テストはシステムが「何をするか」（観察可能な振る舞い）を検証すべきであり、「どうやるか」（実装詳細）を検証すべきではない。これによりテストがリファクタリング耐性を持つ。
+
+### チェック項目
+
+- [ ] 内部コラボレーターへの spy アサーション（`toHaveBeenCalled*`）がないか
+- [ ] プライベートメソッド・フィールドへの直接アクセスがないか
+- [ ] テストが戻り値・状態変化・例外など観察可能な振る舞いを検証しているか
+- [ ] 外部境界への spy アサーションは CRITICAL にしない（観察可能な振る舞い）
+
+### 典型的な指摘
+
+- CRITICAL: 「内部メソッド `calculator.internalCalculate` への spy アサーション — 戻り値で振る舞いを検証すべき」
+- CRITICAL: 「プライベートフィールド `obj['_privateField']` を直接テストしている — 公開APIを通じて検証すべき」
+- WARNING: 「`result._metadata.processingSteps` は出力契約の一部かどうか要判断」
+- PROTECTED: 「内部メソッドの呼び出しを検証しているが、implementation-plan で『この内部メソッドの呼び出しは振る舞いの一部として保証する』と明記されている」
+
+---
+
+## 次元 12: テスト価値（TEST-VALUE）
+
+**参照文書**: implementation-plan.md（テスト戦略セクション）
+
+**詳細ルール**: `references/test-review-rules.md` を参照
+
+### 原則
+
+テストはリグレッション保護を提供するために書く。ロジックのないコード（分岐・ループ・計算・条件判定がないコード）をテストしても、壊れる可能性がないためリグレッション保護の価値がない。そのようなテストは保守コストだけが発生する。
+
+### チェック項目
+
+- [ ] テスト対象のコードにロジック（分岐・ループ・計算・条件判定・例外送出）があるか
+- [ ] ロジックのないコードに対してテストが書かれていないか
+- [ ] テストが既存の別テストと実質的に同じことを検証していないか
+
+### 典型的な指摘
+
+- WARNING: 「ロジックのない単純コンストラクタ `new User(name, email)` のテスト — プロパティ代入のみでリグレッション保護の価値がない」
+- WARNING: 「単純な getter `getFullName()` のテスト — `return this.firstName + ' ' + this.lastName` に分岐がなく壊れる可能性が極めて低い」
+- WARNING: 「パススルーメソッド `delegate.execute(args)` のテスト — 内部で別メソッドを呼ぶだけでロジックがない」
+- PROTECTED: 「単純に見えるが、implementation-plan のテストTODOリストに明示的に含まれている」
+
+---
+
+## 次元 13: テストケース網羅性（TEST-COVERAGE）
+
+**参照文書**: implementation-plan.md（テスト戦略セクション・テストTODOリスト）, hearing-notes.md
+
+**詳細ルール**: `references/test-review-rules.md` を参照
+
+### 原則
+
+ロジックのあるコード（分岐・ループ・計算・例外送出）にはテストが必要。特に条件分岐の各パスと境界値はリグレッションが発生しやすいポイントであり、テストケースが不足しているとバグの検出が遅れる。
+
+### チェック項目
+
+- [ ] 条件分岐の各パス（正常系・異常系・エッジケース）にテストがあるか
+- [ ] 境界値（0, 1, 上限, 空配列, null/undefined 等）がテストされているか
+- [ ] 例外送出の条件がテストされているか
+- [ ] 状態遷移のある処理で、各遷移パスがテストされているか
+- [ ] implementation-plan のテストTODOリストの項目が漏れなくテストされているか
+
+### 典型的な指摘
+
+- CRITICAL: 「`calculateDiscount(amount)` に3つの分岐（通常/会員/VIP）があるが、通常の1パスしかテストされていない」
+- CRITICAL: 「implementation-plan のテストTODOリスト項目『タイムアウト時のリトライ』に対応するテストが存在しない」
+- WARNING: 「`validateAge(age)` の境界値（0, 負数, 上限値）がテストされていない」
+- WARNING: 「`OrderStatus` の状態遷移で `pending → cancelled` パスのテストがない」
+- PROTECTED: 「テストケースが少ないが、implementation-plan のテスト戦略で『正常系のみテスト、異常系は手動確認』と明記されている」

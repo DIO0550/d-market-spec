@@ -102,3 +102,4 @@
 | performance-reviewer | `spec-based-code-review/performance-{NNN}.md` | {n} |
 | design-reviewer | `spec-based-code-review/design-{NNN}.md` | {n} |
 | spec-alignment-reviewer | `spec-based-code-review/alignment-{NNN}.md` | {n} |
+| test-quality-reviewer | `spec-based-code-review/test-quality-{NNN}.md` | {n} |
