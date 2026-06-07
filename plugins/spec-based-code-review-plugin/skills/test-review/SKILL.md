@@ -1,16 +1,16 @@
 ---
 name: test-review
-description: テストコード品質レビュースキル（spec非依存）。specフォルダがなくてもテストコードを古典学派（Classical School）のテスト原則に基づいてレビューできる。test-quality-reviewerエージェントを起動し、モック制限・振る舞いテスト・テスト価値・テストケース網羅性の4次元でレビューする。specフォルダが存在する場合は計画ドキュメントも参照してPROTECTED判定を行う。「テストレビュー」「test review」「テスト品質チェック」「モック使いすぎ」「テストの書き方チェック」「古典学派」「classical school」「テストコードレビュー」「test-review」「テストケース不足」などでトリガー。
+description: テストコード品質レビュースキル。古典学派（Classical School）のテスト原則に基づいてテストコードをレビューする。specフォルダの有無に関わらず動作する。test-quality-reviewerエージェントを起動し、モック制限・振る舞いテスト・テスト価値・テストケース網羅性の4次元でレビューする。specフォルダが存在する場合は計画ドキュメントも参照してPROTECTED判定を行う。「テストレビュー」「test review」「テスト品質チェック」「モック使いすぎ」「テストの書き方チェック」「古典学派」「classical school」「テストコードレビュー」「test-review」「テストケース不足」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[ファイルパス or spec番号]"
 ---
 
-# テストコード品質レビュー（spec非依存）
+# テストコード品質レビュー
 
 テストコードを古典学派のテスト原則に基づいてレビューするスキル。
-specフォルダの有無に関わらず動作する。specがあれば PROTECTED 判定も行い、なければ普遍的ルールのみで判定する。
+specフォルダの有無に関わらず動作する。specがあれば PROTECTED 判定の補助に使い、なければ普遍的ルールのみで判定する。
 
-test-quality-reviewer エージェントを起動してレビューを委譲し、結果を提示する。
+test-quality-reviewer エージェントを起動してレビューを委譲する。
 
 ## ワークフロー
 
@@ -32,7 +32,7 @@ Step 3: 結果の提示とアクション提案
 spec_dir=$(ls -1d .plugin-workspace/.specs/$0-* 2>/dev/null | head -1)
 ```
 
-マッチすればspecモード。計画ドキュメントを読み込みに含める。
+マッチすればspecモード。
 
 ### 引数がファイルパス/ディレクトリの場合
 
@@ -40,41 +40,30 @@ spec_dir=$(ls -1d .plugin-workspace/.specs/$0-* 2>/dev/null | head -1)
 
 ### 引数なしの場合
 
-以下の順で判定する:
-
-1. `.plugin-workspace/.specs/` が存在し、archive外にspecフォルダがある → 最大番号を自動選択してspecモード
-2. 上記に該当しない → specなしモード（git diff のテストファイルを対象）
-
-### specモード時の追加読み込み
-
-以下が存在すれば読み込む（なくてもエラーにしない）:
-
-- `{spec_dir}/implementation-plan.md` — テスト戦略・モック方針
-- `{spec_dir}/exploration-report.md` — テストインフラ規約
-- `{spec_dir}/hearing-notes.md` — 要件・エッジケース
-- `{spec_dir}/tasks.md` — タスク完了状態
+1. `.plugin-workspace/.specs/` にarchive外のspecフォルダがある → 最大番号を自動選択してspecモード
+2. 該当なし → specなしモード（git diff のテストファイルを対象）
 
 ## Step 1: テストファイルの収集
 
 ### specモードの場合
 
-AskUserQuestion でレビュー範囲を確認する:
+AskUserQuestion:
 
 ```yaml
 question: "レビュー対象を選択してください"
 header: "レビュー範囲"
 options:
   - label: "全テストコード（推奨）"
-    description: "implementation-planに記載されたテストファイルとgit diffのテストファイル"
+    description: "implementation-planのテストファイルとgit diffのテストファイル"
   - label: "git diffのテストファイルのみ"
     description: "直近の変更に含まれるテストファイルのみ"
   - label: "指定パス"
     description: "ファイルパスまたはディレクトリを指定"
 ```
 
-### specなしモードの場合（引数なし）
+### specなしモード（引数なし）
 
-AskUserQuestion でレビュー範囲を確認する:
+AskUserQuestion:
 
 ```yaml
 question: "レビュー対象を選択してください"
@@ -88,9 +77,9 @@ options:
     description: "プロジェクト全体のテストファイルをスキャン"
 ```
 
-### specなしモードの場合（引数あり）
+### specなしモード（引数あり）
 
-引数で指定されたパスを直接使用。ディレクトリならテストファイルパターンで再帰検出。
+引数のパスを直接使用。
 
 ### テストファイルの検出パターン
 
@@ -98,18 +87,10 @@ options:
 
 ## Step 2: サブエージェントを起動
 
-### specモード時の出力先
+### 出力先
 
-```bash
-mkdir -p {spec_dir}/spec-based-code-review
-next_num=$(printf "%03d" $(( $(ls -1 {spec_dir}/spec-based-code-review/test-quality-*.md 2>/dev/null | wc -l | tr -d ' ') + 1 )))
-```
-
-出力先: `{spec_dir}/spec-based-code-review/test-quality-{NNN}.md`
-
-### specなしモード時の出力
-
-ファイル出力はせず、エージェントの出力を直接会話に提示する。
+- specモード: `{spec_dir}/spec-based-code-review/test-quality-{NNN}.md`
+- specなしモード: ファイル出力なし（エージェントの出力を直接提示）
 
 ### エージェント起動
 
@@ -121,16 +102,17 @@ Task tool:
    run_in_background: true
    prompt: |
      あなたは test-quality-reviewer エージェントです。
-     古典学派のテスト原則に基づいてテストコードをレビューしてください。
+     古典学派のテスト原則（普遍的ルール）に基づいてテストコードをレビューしてください。
+     指摘の根拠はルール自体です。
 
      ## レビュー基準
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/review-dimensions.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/test-review-rules.md
 
-     ## 計画ドキュメント（specモードの場合のみ — 存在するものだけ読む）
-     {specモード時: 計画ドキュメントのパス一覧}
-     {specなしモード時: 「計画ドキュメントはありません。普遍的ルールのみでレビューしてください。PROTECTED 判定は行わず、CRITICAL / WARNING / INFO のみで分類してください。」}
+     ## 計画ドキュメント（specモード時のみ — PROTECTED 判定の参考）
+     {specモード時: implementation-plan.md, exploration-report.md のパス}
+     {specなしモード時: 「計画ドキュメントなし。PROTECTED は使わず CRITICAL/WARNING/INFO のみで分類。」}
 
      ## テストコード情報
      テストファイル一覧:
@@ -141,14 +123,12 @@ Task tool:
 
      ## 出力先
      {specモード時: ファイルパス}
-     {specなしモード時: 「ファイル出力不要。結果をそのままテキストで返してください。」}
+     {specなしモード時: 「ファイル出力不要。結果をテキストで返してください。」}
 
      ## 重要
-     - テストコードだけでなく、テスト対象の実装コードも読んでロジックの有無を確認すること
-     - すべての指摘にコードスニペットと修正案を含めること
+     - テスト対象の実装コードも必ず読むこと（次元12・13に必須）
+     - 指摘の根拠はルール（普遍的原則）— spec 不要で指摘を出す
      - 外部依存への spy アサーションは CRITICAL にしないこと
-     - 迷ったら WARNING に分類すること（specなしモード時）
-     - 迷ったら PROTECTED 寄りに判定すること（specモード時）
 ```
 
 ### 完了待ち
@@ -161,16 +141,6 @@ TaskOutput:
 ```
 
 ## Step 3: 結果の提示とアクション提案
-
-### specモードの場合
-
-統合レポートを生成（spec-based-code-review と同じ形式）し、サマリーを提示する。
-
-### specなしモードの場合
-
-エージェントの出力をそのままユーザーに提示する。
-
-### 対応アクションの提案
 
 CRITICAL または WARNING がある場合:
 
@@ -186,9 +156,10 @@ options:
     description: "修正後にもう一度レビューを実行します"
 ```
 
+再レビューは最大5回まで。
+
 ## 重要な制約
 
 - **コードの変更はオーケストレーター自身では行わない**
-- specなしモードでは PROTECTED 判定を行わない（仕様根拠がないため）
-- specなしモードでも実装コードを読んでロジックの有無を確認する（次元12・13に必要）
-- 再レビューは最大5回まで
+- ルール（普遍的原則）が指摘の根拠。spec は PROTECTED 判定の補助のみ
+- specなしモードでも実装コードを読んでロジックの有無を確認する

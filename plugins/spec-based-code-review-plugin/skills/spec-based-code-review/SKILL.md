@@ -261,18 +261,17 @@ Task tool: (並列起動 — 4つ同時)
    run_in_background: true
    prompt: |
      あなたは test-quality-reviewer エージェントです。
-     計画ドキュメントを先に読んでテスト戦略を理解してから、古典学派のテスト原則に基づいてテストコードをレビューしてください。
+     古典学派のテスト原則（普遍的ルール）に基づいてテストコードをレビューしてください。
+     指摘の根拠はルール自体です。計画ドキュメントは PROTECTED 判定の補助情報として使用してください。
 
      ## レビュー基準
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/review-dimensions.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/test-review-rules.md
 
-     ## 計画ドキュメント（全て読むこと）
+     ## 計画ドキュメント（PROTECTED 判定の参考 — テスト戦略の記載があれば考慮する）
      - {spec_dir}/implementation-plan.md
      - {spec_dir}/exploration-report.md
-     - {spec_dir}/hearing-notes.md
-     - {spec_dir}/tasks.md
 
      ## テストコード情報
      テストファイル一覧:
@@ -285,10 +284,9 @@ Task tool: (並列起動 — 4つ同時)
      {spec_dir}/spec-based-code-review/test-quality-{NNN}.md
 
      ## 重要
-     - 計画ドキュメントを読んでからテストコードを読むこと
-     - すべての指摘に「仕様根拠」を含めること
-     - 仕様根拠のない指摘は出さないこと
-     - 仕様のテスト戦略に従ったパターンは PROTECTED とすること
+     - テストコードだけでなく、テスト対象の実装コードも必ず読むこと（次元12・13に必須）
+     - 指摘の根拠はルール（普遍的原則）— spec文書の有無に関わらず指摘を出す
+     - 計画ドキュメントのテスト戦略で正当化されたパターンのみ PROTECTED とする
      - 外部依存への spy アサーションは CRITICAL にしないこと
      - 迷ったら PROTECTED 寄りに判定すること
 ```
