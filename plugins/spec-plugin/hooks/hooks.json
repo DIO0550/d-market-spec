@@ -72,6 +72,16 @@
         ]
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-phase-name.sh\""
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
