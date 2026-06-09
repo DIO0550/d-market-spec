@@ -1,32 +1,37 @@
 ---
 name: spec-based-code-review
-description: 仕様ベースコードレビュースキル（オーケストレーター）。spec番号を指定すると計画ドキュメント（hearing-notes, exploration-report, implementation-plan, tasks.md）を読み込み、4つの専門サブエージェント（パフォーマンス・設計・仕様整合性・テスト品質）が並列でコードレビューを実行する。計画の意図を理解した上でレビューするため、仕様上の理由で書かれたコードを「冗長」と切り捨てない。番号省略時はarchive外で最大番号のspecを自動選択。「specレビュー」「仕様レビュー」「spec review」「仕様整合性チェック」「計画に基づくレビュー」「実装が計画通りか確認」「意図ベースレビュー」「コードレビュー」「spec-based-code-review」「テストレビュー」「test review」「テスト品質チェック」「モック使いすぎ」「古典学派」などでトリガー。
+description: コードレビュースキル（オーケストレーター）。ユニバーサルな設計・パフォーマンス・テスト原則に基づいて、専門サブエージェント（パフォーマンス・設計・テスト品質 + 仕様整合性）が並列でコードレビューを実行する。spec番号を指定すると計画ドキュメントも参考にする。「specレビュー」「仕様レビュー」「spec review」「仕様整合性チェック」「計画に基づくレビュー」「実装が計画通りか確認」「意図ベースレビュー」「コードレビュー」「spec-based-code-review」「テストレビュー」「test review」「テスト品質チェック」「モック使いすぎ」「古典学派」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[番号]"
 ---
 
 # Spec-Based Code Review（オーケストレーター）
 
-spec番号を指定して、計画ドキュメントに基づくコードレビューを実行するスキル。
-自分ではレビューせず、4つの専門サブエージェント（performance-reviewer, design-reviewer, spec-alignment-reviewer, test-quality-reviewer）を並列起動してレビューを委譲し、結果を統合する。
+ユニバーサルな原則に基づくコードレビューを実行するスキル。
+自分ではレビューせず、専門サブエージェントを並列起動してレビューを委譲し、結果を統合する。
+
+- **常に起動**: performance-reviewer, design-reviewer, test-quality-reviewer（ユニバーサル原則ベース）
+- **specがある場合のみ追加**: spec-alignment-reviewer（仕様整合性チェック）
+
+spec番号を指定すると計画ドキュメントも参照し、仕様整合性チェックが追加される。
 
 ## ワークフロー
 
 ```
-Step 0: Specフォルダの特定と検証
+Step 0: Specフォルダの特定（任意）
   ↓
-Step 1: 計画ドキュメントの読み込み
+Step 1: 計画ドキュメントの読み込み（specがある場合のみ）
   ↓
 Step 2: 実装コードの収集（git diff + 変更ファイル）
   ↓
-Step 3: 3サブエージェントを並列起動
+Step 3: サブエージェントを並列起動（3 or 4エージェント）
   ↓
 Step 4: 結果統合・重複排除・保存
   ↓
 Step 5: ユーザーへの提示とアクション提案
 ```
 
-## Step 0: Specフォルダの特定と検証
+## Step 0: Specフォルダの特定（任意）
 
 ### 番号が指定された場合
 
@@ -40,7 +45,7 @@ spec_dir=$(ls -1d .plugin-workspace/.specs/$0-* 2>/dev/null | head -1)
 spec_dir=$(ls -1d .plugin-workspace/.specs/archive/$0-* 2>/dev/null | head -1)
 ```
 
-いずれもマッチしない場合はエラーメッセージを表示して終了。
+いずれもマッチしない場合はエラーメッセージを表示して終了（番号を明示指定したのに見つからない場合はユーザーの意図と異なるため）。
 
 ### 番号が省略された場合
 
@@ -50,18 +55,20 @@ archive外で最大番号のspecを自動選択:
 spec_dir=$(ls -1d .plugin-workspace/.specs/[0-9][0-9][0-9]-* 2>/dev/null | sort -rn | head -1)
 ```
 
-自動選択したspecのフォルダ名をユーザーに表示する。
+**specフォルダが見つかった場合**: 自動選択したspecのフォルダ名をユーザーに表示する。
 
-### 検証
+**specフォルダが見つからない場合**: 「specフォルダが見つかりません。ユニバーサル原則に基づくレビューを実行します。」と表示して Step 2 に進む。
+
+### 検証（specフォルダがある場合のみ）
 
 以下の存在を確認する（.md または .html）:
 
-1. `implementation-plan.md`（必須）— 存在しない場合はエラー終了
+1. `implementation-plan.md`（推奨）— 存在しない場合は WARNING を表示して続行
 2. `tasks.md`（推奨）— 存在しない場合は WARNING を表示して続行
 3. `hearing-notes.md`（推奨）— 存在しない場合は WARNING を表示して続行
 4. `exploration-report.md`（推奨）— 存在しない場合は WARNING を表示して続行
 
-### PLANNINGファイルの検出
+### PLANNINGファイルの検出（specフォルダがある場合のみ）
 
 `PLANNING` ファイルが存在する場合、計画フェーズがまだ進行中。AskUserQuestion で確認する:
 
@@ -77,7 +84,7 @@ options:
 
 ## Step 1: 計画ドキュメントの読み込み
 
-以下のファイルを Read で読み込む（存在するもののみ）:
+specフォルダが見つかった場合、以下のファイルを Read で読み込む（存在するもののみ）:
 
 1. `{spec_dir}/hearing-notes.md`（または `.html`）
 2. `{spec_dir}/exploration-report.md`（または `.html`）
@@ -139,9 +146,12 @@ options:
 - git diff の内容
 - `[NEW]` ファイルのフルパス
 
-## Step 3: 4サブエージェントを並列起動
+## Step 3: サブエージェントを並列起動
 
-出力先ディレクトリを作成:
+**specフォルダがある場合**: 4エージェント（performance, design, spec-alignment, test-quality）を起動
+**specフォルダがない場合**: 3エージェント（performance, design, test-quality）を起動。spec-alignment-reviewer は仕様整合性チェックが本質のため、spec不在時は起動しない。
+
+出力先ディレクトリを作成（specフォルダがある場合のみ）:
 
 ```bash
 mkdir -p {spec_dir}/spec-based-code-review
@@ -155,25 +165,28 @@ mkdir -p {spec_dir}/spec-based-code-review
 next_num=$(printf "%03d" $(( $(ls -1 {spec_dir}/spec-based-code-review/review-*.md 2>/dev/null | wc -l | tr -d ' ') + 1 )))
 ```
 
-### 4エージェントを同時に Task で起動
+### サブエージェントを Task で起動
 
 ```
-Task tool: (並列起動 — 4つ同時)
+Task tool: (並列起動)
 
 1. performance-reviewer:
    description: "performance-reviewer: {feature-name}"
    run_in_background: true
    prompt: |
      あなたは performance-reviewer エージェントです。
-     計画ドキュメントを先に読んで実装の意図を理解してから、パフォーマンス観点でレビューしてください。
+     ユニバーサルなパフォーマンス原則に基づいてレビューしてください。
 
      ## レビュー基準
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/review-dimensions.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
 
-     ## 計画ドキュメント（先に読むこと）
+     ## 計画ドキュメント（参考情報）
+     {specフォルダがある場合:
      - {spec_dir}/implementation-plan.md
      - {spec_dir}/exploration-report.md
+     }
+     {specフォルダがない場合: 計画ドキュメントのセクションごと省略}
 
      ## 実装コード情報
      変更ファイル一覧:
@@ -183,28 +196,30 @@ Task tool: (並列起動 — 4つ同時)
      {git diff の内容（長すぎる場合はファイル単位で分割）}
 
      ## 出力先
-     {spec_dir}/spec-based-code-review/performance-{NNN}.md
+     {specフォルダがある場合: {spec_dir}/spec-based-code-review/performance-{NNN}.md}
+     {specフォルダがない場合: 「ファイル出力不要。結果をテキストで返してください。」}
 
      ## 重要
-     - 計画ドキュメントを読んでからコードを読むこと
-     - すべての指摘に「仕様根拠」を含めること
-     - 仕様根拠のない指摘は出さないこと
-     - 仕様で意図的に選択されたアプローチは PROTECTED とすること
+     - すべての指摘に「根拠」を含めること（ルール根拠 or 仕様根拠）
+     - ユニバーサル原則（N+1, メモリリーク等）はルール根拠のみで指摘可能
 
 2. design-reviewer:
    description: "design-reviewer: {feature-name}"
    run_in_background: true
    prompt: |
      あなたは design-reviewer エージェントです。
-     計画ドキュメントを先に読んで設計方針を理解してから、設計・アーキテクチャ観点でレビューしてください。
+     ユニバーサルな設計原則に基づいてレビューしてください。
 
      ## レビュー基準
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/review-dimensions.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
 
-     ## 計画ドキュメント（先に読むこと）
+     ## 計画ドキュメント（参考情報）
+     {specフォルダがある場合:
      - {spec_dir}/implementation-plan.md
      - {spec_dir}/exploration-report.md
+     }
+     {specフォルダがない場合: 計画ドキュメントのセクションごと省略}
 
      ## 実装コード情報
      変更ファイル一覧:
@@ -214,15 +229,14 @@ Task tool: (並列起動 — 4つ同時)
      {git diff の内容}
 
      ## 出力先
-     {spec_dir}/spec-based-code-review/design-{NNN}.md
+     {specフォルダがある場合: {spec_dir}/spec-based-code-review/design-{NNN}.md}
+     {specフォルダがない場合: 「ファイル出力不要。結果をテキストで返してください。」}
 
      ## 重要
-     - 計画ドキュメントを読んでからコードを読むこと
-     - すべての指摘に「仕様根拠」を含めること
-     - 仕様根拠のない指摘は出さないこと
-     - 仕様の設計方針に従った構造は PROTECTED とすること
+     - すべての指摘に「根拠」を含めること（ルール根拠 or 仕様根拠）
+     - ユニバーサル原則（SRP, DIP, KISS, 凝集度）はルール根拠のみで指摘可能
 
-3. spec-alignment-reviewer:
+3. spec-alignment-reviewer:（specフォルダがある場合のみ起動）
    description: "spec-alignment-reviewer: {feature-name}"
    run_in_background: true
    prompt: |
@@ -254,7 +268,6 @@ Task tool: (並列起動 — 4つ同時)
      - すべての指摘に「仕様根拠」を含めること
      - 仕様根拠のない指摘は出さないこと
      - 意図的複雑性の保護（次元5）を最優先で判定すること
-     - 迷ったら PROTECTED 寄りに判定すること
 
 4. test-quality-reviewer:
    description: "test-quality-reviewer: {feature-name}"
@@ -262,16 +275,19 @@ Task tool: (並列起動 — 4つ同時)
    prompt: |
      あなたは test-quality-reviewer エージェントです。
      古典学派のテスト原則（普遍的ルール）に基づいてテストコードをレビューしてください。
-     指摘の根拠はルール自体です。計画ドキュメントは PROTECTED 判定の補助情報として使用してください。
+     指摘の根拠はルール自体です。計画ドキュメントがあれば参考にしてください。
 
      ## レビュー基準
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/review-dimensions.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/test-review-rules.md
 
-     ## 計画ドキュメント（PROTECTED 判定の参考 — テスト戦略の記載があれば考慮する）
+     ## 計画ドキュメント（参考情報）
+     {specフォルダがある場合:
      - {spec_dir}/implementation-plan.md
      - {spec_dir}/exploration-report.md
+     }
+     {specフォルダがない場合: 計画ドキュメントのセクションごと省略}
 
      ## テストコード情報
      テストファイル一覧:
@@ -281,20 +297,19 @@ Task tool: (並列起動 — 4つ同時)
      {git diff の内容（テストファイル部分）}
 
      ## 出力先
-     {spec_dir}/spec-based-code-review/test-quality-{NNN}.md
+     {specフォルダがある場合: {spec_dir}/spec-based-code-review/test-quality-{NNN}.md}
+     {specフォルダがない場合: 「ファイル出力不要。結果をテキストで返してください。」}
 
      ## 重要
      - テストコードだけでなく、テスト対象の実装コードも必ず読むこと（次元12・13に必須）
      - 指摘の根拠はルール（普遍的原則）— spec文書の有無に関わらず指摘を出す
-     - 計画ドキュメントのテスト戦略で正当化されたパターンのみ PROTECTED とする
      - 外部依存への spy アサーションは CRITICAL にしないこと
-     - 迷ったら PROTECTED 寄りに判定すること
 ```
 
 ### 完了待ち
 
 ```
-TaskOutput: (4つそれぞれ)
+TaskOutput: (起動したエージェントそれぞれ — 3つまたは4つ)
   task_id: "{各エージェントのtask_id}"
   block: true
   timeout: 300000
@@ -302,28 +317,36 @@ TaskOutput: (4つそれぞれ)
 
 ## Step 4: 結果統合・重複排除・保存
 
-4つの個別レポートを Read で読み込む:
+個別レポートを Read で読み込む:
 
+**specフォルダがある場合（4レポート）**:
 1. `{spec_dir}/spec-based-code-review/performance-{NNN}.md`
 2. `{spec_dir}/spec-based-code-review/design-{NNN}.md`
 3. `{spec_dir}/spec-based-code-review/alignment-{NNN}.md`
 4. `{spec_dir}/spec-based-code-review/test-quality-{NNN}.md`
 
+**specフォルダがない場合（3レポート — テキスト出力を使用）**:
+1. performance-reviewer の出力テキスト
+2. design-reviewer の出力テキスト
+3. test-quality-reviewer の出力テキスト
+
 ### 統合ルール
 
 1. **重複排除**: 同じファイル・同じ行範囲に対する指摘をマージ
-2. **PROTECTED優先**: あるエージェントが WARNING にしたが別が PROTECTED にした場合 → **PROTECTED が勝つ**
-3. **通し番号で再採番**: C-001, W-001, P-001, I-001 から順に
-4. **DoD充足状況**: spec-alignment-reviewer の DoD 検証結果をそのまま転記
-5. **サマリー集計**: 各分類の件数を集計
+2. **通し番号で再採番**: C-001, W-001, I-001 から順に
+3. **DoD充足状況**: spec-alignment-reviewer が起動している場合、DoD 検証結果をそのまま転記
+4. **サマリー集計**: 各分類の件数を集計
 
 ### 統合レポート生成
 
-テンプレート `spec-based-code-review:review-report` に沿って統合レポートを生成し、以下に保存:
+テンプレート `spec-based-code-review:review-report` に沿って統合レポートを生成する。
 
+**specフォルダがある場合**:
 ```
 Write: {spec_dir}/spec-based-code-review/review-{NNN}.md
 ```
+
+**specフォルダがない場合**: ファイル出力せず、統合結果をテキストで返す。
 
 ## Step 5: ユーザーへの提示とアクション提案
 
@@ -331,9 +354,8 @@ Write: {spec_dir}/spec-based-code-review/review-{NNN}.md
 
 統合レポートのサマリーをユーザーに提示する:
 
-- CRITICAL / WARNING / INFO / PROTECTED の件数
+- CRITICAL / WARNING / INFO の件数
 - CRITICAL がある場合は具体的な指摘内容を表示
-- PROTECTED がある場合は「仕様により保護されたコード」として特筆
 
 ### 対応アクションの提案
 
@@ -361,10 +383,11 @@ CRITICAL → WARNING の優先順でユーザーに指摘内容を提示し、�
 
 ### 全て OK の場合
 
-CRITICAL も WARNING もない場合は「仕様整合性レビュー完了 — 問題なし」と報告。PROTECTED がある場合はその一覧を添えて「仕様で正当化されたコードが {n} 箇所あります」と報告。
+CRITICAL も WARNING もない場合は「コードレビュー完了 — 問題なし」と報告。
 
 ## 出力ディレクトリ
 
+**specフォルダがある場合**:
 ```
 .plugin-workspace/.specs/{nnn}-{feature-name}/
 └── spec-based-code-review/
@@ -375,10 +398,11 @@ CRITICAL も WARNING もない場合は「仕様整合性レビュー完了 — 
     └── review-{NNN}.md            # 統合レポート
 ```
 
+**specフォルダがない場合**: ファイル出力なし。結果はテキストで直接提示。
+
 ## 重要な制約
 
 - **コードの変更はオーケストレーター自身では行わない** — サブエージェントもレビュー結果の出力のみ
-- implementation-plan.md が存在しない場合はレビューを実行しない
-- 計画ドキュメントを読む前にレビューを開始しない（サブエージェントに対しても徹底）
-- PROTECTED 優先ルールを統合時に必ず適用する
+- specフォルダがなくてもレビューは実行できる（ユニバーサル原則のみで動作）
+- 計画ドキュメントがある場合は参考にする。ない場合はユニバーサル原則のみでレビューする
 - 再レビューは最大5回まで

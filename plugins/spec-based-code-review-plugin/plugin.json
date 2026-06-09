@@ -1,7 +1,7 @@
 {
   "name": "spec-based-code-review-plugin",
-  "version": "1.4.0",
-  "description": "仕様ベースコードレビュープラグイン — 計画ドキュメントに基づくコードレビュー",
+  "version": "1.5.0",
+  "description": "コードレビュープラグイン — ユニバーサルな原則に基づくコードレビュー。計画ドキュメントがあれば参考にする",
   "repository": "https://github.com/DIO0550/d-market",
   "license": "MIT"
 }
