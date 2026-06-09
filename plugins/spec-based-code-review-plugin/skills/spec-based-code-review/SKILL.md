@@ -82,11 +82,9 @@ options:
     description: "計画完了後に再度実行してください"
 ```
 
-## Step 1: 計画ドキュメントの読み込み（specフォルダがある場合のみ）
+## Step 1: 計画ドキュメントの読み込み
 
-**specフォルダが見つからなかった場合はこのステップをスキップして Step 2 に進む。**
-
-以下のファイルを Read で読み込む（存在するもののみ）:
+specフォルダが見つかった場合、以下のファイルを Read で読み込む（存在するもののみ）:
 
 1. `{spec_dir}/hearing-notes.md`（または `.html`）
 2. `{spec_dir}/exploration-report.md`（または `.html`）
@@ -151,7 +149,7 @@ options:
 ## Step 3: サブエージェントを並列起動
 
 **specフォルダがある場合**: 4エージェント（performance, design, spec-alignment, test-quality）を起動
-**specフォルダがない場合**: 3エージェント（performance, design, test-quality）を起動。spec-alignment-reviewer は仕様整合性チェックが本質のため、spec不在時はスキップする。
+**specフォルダがない場合**: 3エージェント（performance, design, test-quality）を起動。spec-alignment-reviewer は仕様整合性チェックが本質のため、spec不在時は起動しない。
 
 出力先ディレクトリを作成（specフォルダがある場合のみ）:
 
@@ -183,12 +181,12 @@ Task tool: (並列起動)
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/review-dimensions.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
 
-     ## 計画ドキュメント（参考情報。提供されていなければスキップ）
+     ## 計画ドキュメント（参考情報）
      {specフォルダがある場合:
      - {spec_dir}/implementation-plan.md
      - {spec_dir}/exploration-report.md
      }
-     {specフォルダがない場合: 「計画ドキュメントなし。ユニバーサル原則のみでレビューしてください。CRITICAL/WARNING/INFOで分類。」}
+     {specフォルダがない場合: 計画ドキュメントのセクションごと省略}
 
      ## 実装コード情報
      変更ファイル一覧:
@@ -216,12 +214,12 @@ Task tool: (並列起動)
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/review-dimensions.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
 
-     ## 計画ドキュメント（参考情報。提供されていなければスキップ）
+     ## 計画ドキュメント（参考情報）
      {specフォルダがある場合:
      - {spec_dir}/implementation-plan.md
      - {spec_dir}/exploration-report.md
      }
-     {specフォルダがない場合: 「計画ドキュメントなし。ユニバーサル原則のみでレビューしてください。CRITICAL/WARNING/INFOで分類。」}
+     {specフォルダがない場合: 計画ドキュメントのセクションごと省略}
 
      ## 実装コード情報
      変更ファイル一覧:
@@ -284,12 +282,12 @@ Task tool: (並列起動)
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/test-review-rules.md
 
-     ## 計画ドキュメント（参考情報 — 提供されていなければスキップ）
+     ## 計画ドキュメント（参考情報）
      {specフォルダがある場合:
      - {spec_dir}/implementation-plan.md
      - {spec_dir}/exploration-report.md
      }
-     {specフォルダがない場合: 「計画ドキュメントなし。CRITICAL/WARNING/INFOで分類。」}
+     {specフォルダがない場合: 計画ドキュメントのセクションごと省略}
 
      ## テストコード情報
      テストファイル一覧:
