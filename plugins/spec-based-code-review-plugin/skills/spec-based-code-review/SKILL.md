@@ -1,6 +1,6 @@
 ---
 name: spec-based-code-review
-description: コードレビュースキル（オーケストレーター）。ユニバーサルな設計・パフォーマンス・テスト原則に基づいて、専門サブエージェント（パフォーマンス・設計・テスト品質 + 仕様整合性）が並列でコードレビューを実行する。spec番号を指定すると計画ドキュメントも参照し、PROTECTED判定で仕様に基づく保護も提供する。spec文書がなくてもユニバーサル原則でレビュー可能。「specレビュー」「仕様レビュー」「spec review」「仕様整合性チェック」「計画に基づくレビュー」「実装が計画通りか確認」「意図ベースレビュー」「コードレビュー」「spec-based-code-review」「テストレビュー」「test review」「テスト品質チェック」「モック使いすぎ」「古典学派」などでトリガー。
+description: コードレビュースキル（オーケストレーター）。ユニバーサルな設計・パフォーマンス・テスト原則に基づいて、専門サブエージェント（パフォーマンス・設計・テスト品質 + 仕様整合性）が並列でコードレビューを実行する。spec番号を指定すると計画ドキュメントも参照し、specがあれば前提条件として参照する。spec文書がなくてもユニバーサル原則でレビュー可能。「specレビュー」「仕様レビュー」「spec review」「仕様整合性チェック」「計画に基づくレビュー」「実装が計画通りか確認」「意図ベースレビュー」「コードレビュー」「spec-based-code-review」「テストレビュー」「test review」「テスト品質チェック」「モック使いすぎ」「古典学派」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[番号]"
 ---
@@ -13,7 +13,7 @@ argument-hint: "[番号]"
 - **常に起動**: performance-reviewer, design-reviewer, test-quality-reviewer（ユニバーサル原則ベース）
 - **specがある場合のみ追加**: spec-alignment-reviewer（仕様整合性チェック）
 
-spec番号を指定すると計画ドキュメントも参照し、PROTECTED判定や仕様整合性チェックが追加される。
+spec番号を指定すると計画ドキュメントも参照し、仕様整合性チェックが追加される。
 
 ## ワークフロー
 
@@ -183,12 +183,12 @@ Task tool: (並列起動)
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/review-dimensions.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
 
-     ## 計画ドキュメント（参考情報 — PROTECTED判定の補助。提供されていなければスキップ）
+     ## 計画ドキュメント（参考情報。提供されていなければスキップ）
      {specフォルダがある場合:
      - {spec_dir}/implementation-plan.md
      - {spec_dir}/exploration-report.md
      }
-     {specフォルダがない場合: 「計画ドキュメントなし。ユニバーサル原則のみでレビューしてください。PROTECTEDは使わずCRITICAL/WARNING/INFOで分類。」}
+     {specフォルダがない場合: 「計画ドキュメントなし。ユニバーサル原則のみでレビューしてください。CRITICAL/WARNING/INFOで分類。」}
 
      ## 実装コード情報
      変更ファイル一覧:
@@ -204,7 +204,6 @@ Task tool: (並列起動)
      ## 重要
      - すべての指摘に「根拠」を含めること（ルール根拠 or 仕様根拠）
      - ユニバーサル原則（N+1, メモリリーク等）はルール根拠のみで指摘可能
-     - 計画ドキュメントがある場合、仕様で意図的に選択されたアプローチは PROTECTED とすること
 
 2. design-reviewer:
    description: "design-reviewer: {feature-name}"
@@ -217,12 +216,12 @@ Task tool: (並列起動)
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/review-dimensions.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
 
-     ## 計画ドキュメント（参考情報 — PROTECTED判定の補助。提供されていなければスキップ）
+     ## 計画ドキュメント（参考情報。提供されていなければスキップ）
      {specフォルダがある場合:
      - {spec_dir}/implementation-plan.md
      - {spec_dir}/exploration-report.md
      }
-     {specフォルダがない場合: 「計画ドキュメントなし。ユニバーサル原則のみでレビューしてください。PROTECTEDは使わずCRITICAL/WARNING/INFOで分類。」}
+     {specフォルダがない場合: 「計画ドキュメントなし。ユニバーサル原則のみでレビューしてください。CRITICAL/WARNING/INFOで分類。」}
 
      ## 実装コード情報
      変更ファイル一覧:
@@ -238,7 +237,6 @@ Task tool: (並列起動)
      ## 重要
      - すべての指摘に「根拠」を含めること（ルール根拠 or 仕様根拠）
      - ユニバーサル原則（SRP, DIP, KISS, 凝集度）はルール根拠のみで指摘可能
-     - 計画ドキュメントがある場合、仕様の設計方針に従った構造は PROTECTED とすること
 
 3. spec-alignment-reviewer:（specフォルダがある場合のみ起動）
    description: "spec-alignment-reviewer: {feature-name}"
@@ -272,7 +270,6 @@ Task tool: (並列起動)
      - すべての指摘に「仕様根拠」を含めること
      - 仕様根拠のない指摘は出さないこと
      - 意図的複雑性の保護（次元5）を最優先で判定すること
-     - PROTECTED判定はspecの前提が妥当であることを確認してから行うこと
 
 4. test-quality-reviewer:
    description: "test-quality-reviewer: {feature-name}"
@@ -280,19 +277,19 @@ Task tool: (並列起動)
    prompt: |
      あなたは test-quality-reviewer エージェントです。
      古典学派のテスト原則（普遍的ルール）に基づいてテストコードをレビューしてください。
-     指摘の根拠はルール自体です。計画ドキュメントは PROTECTED 判定の補助情報として使用してください。
+     指摘の根拠はルール自体です。計画ドキュメントがあれば前提条件として参照してください。
 
      ## レビュー基準
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/review-dimensions.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/test-review-rules.md
 
-     ## 計画ドキュメント（PROTECTED 判定の参考 — 提供されていなければスキップ）
+     ## 計画ドキュメント（参考情報 — 提供されていなければスキップ）
      {specフォルダがある場合:
      - {spec_dir}/implementation-plan.md
      - {spec_dir}/exploration-report.md
      }
-     {specフォルダがない場合: 「計画ドキュメントなし。PROTECTEDは使わずCRITICAL/WARNING/INFOで分類。」}
+     {specフォルダがない場合: 「計画ドキュメントなし。CRITICAL/WARNING/INFOで分類。」}
 
      ## テストコード情報
      テストファイル一覧:
@@ -308,9 +305,7 @@ Task tool: (並列起動)
      ## 重要
      - テストコードだけでなく、テスト対象の実装コードも必ず読むこと（次元12・13に必須）
      - 指摘の根拠はルール（普遍的原則）— spec文書の有無に関わらず指摘を出す
-     - 計画ドキュメントのテスト戦略で正当化されたパターンのみ PROTECTED とする
      - 外部依存への spy アサーションは CRITICAL にしないこと
-     - PROTECTED判定はspecの前提が妥当であることを確認してから行うこと
 ```
 
 ### 完了待ち
@@ -340,10 +335,9 @@ TaskOutput: (起動したエージェントそれぞれ — 3つまたは4つ)
 ### 統合ルール
 
 1. **重複排除**: 同じファイル・同じ行範囲に対する指摘をマージ
-2. **PROTECTED優先**: あるエージェントが WARNING にしたが別が PROTECTED にした場合 → **PROTECTED が勝つ**（specがある場合のみ発生）
-3. **通し番号で再採番**: C-001, W-001, P-001, I-001 から順に
-4. **DoD充足状況**: spec-alignment-reviewer が起動している場合、DoD 検証結果をそのまま転記
-5. **サマリー集計**: 各分類の件数を集計
+2. **通し番号で再採番**: C-001, W-001, I-001 から順に
+3. **DoD充足状況**: spec-alignment-reviewer が起動している場合、DoD 検証結果をそのまま転記
+4. **サマリー集計**: 各分類の件数を集計
 
 ### 統合レポート生成
 
@@ -362,9 +356,8 @@ Write: {spec_dir}/spec-based-code-review/review-{NNN}.md
 
 統合レポートのサマリーをユーザーに提示する:
 
-- CRITICAL / WARNING / INFO / PROTECTED の件数
+- CRITICAL / WARNING / INFO の件数
 - CRITICAL がある場合は具体的な指摘内容を表示
-- PROTECTED がある場合は「仕様により保護されたコード」として特筆
 
 ### 対応アクションの提案
 
@@ -392,7 +385,7 @@ CRITICAL → WARNING の優先順でユーザーに指摘内容を提示し、�
 
 ### 全て OK の場合
 
-CRITICAL も WARNING もない場合は「コードレビュー完了 — 問題なし」と報告。PROTECTED がある場合はその一覧を添えて「仕様で正当化されたコードが {n} 箇所あります」と報告。
+CRITICAL も WARNING もない場合は「コードレビュー完了 — 問題なし」と報告。
 
 ## 出力ディレクトリ
 
@@ -414,5 +407,4 @@ CRITICAL も WARNING もない場合は「コードレビュー完了 — 問題
 - **コードの変更はオーケストレーター自身では行わない** — サブエージェントもレビュー結果の出力のみ
 - specフォルダがなくてもレビューは実行できる（ユニバーサル原則のみで動作）
 - 計画ドキュメントがある場合は参考にする。ない場合はユニバーサル原則のみでレビューする
-- PROTECTED 優先ルールを統合時に必ず適用する（specがある場合）
 - 再レビューは最大5回まで

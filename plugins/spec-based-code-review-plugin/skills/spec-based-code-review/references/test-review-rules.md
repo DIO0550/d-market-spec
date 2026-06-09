@@ -79,7 +79,7 @@ vi.mock('./repositories/UserRepository');
 
 **判断ガイダンス**: アーキテクチャ上の境界として意図的に設計されたインターフェースならモック許容。単なる内部クラスなら CRITICAL 寄り。
 
-### PROTECTED パターン
+### spec記載パターン
 
 | 表面的な印象 | 仕様根拠の例 |
 |-------------|-------------|
@@ -164,7 +164,7 @@ expect(result._metadata.processingSteps).toHaveLength(3);
 
 外部依存への spy アサーションは CRITICAL ではない。システムの外部への出力の検証であり、観察可能な振る舞いに該当する。
 
-### PROTECTED パターン
+### spec記載パターン
 
 | 表面的な印象 | 仕様根拠の例 |
 |-------------|-------------|
@@ -256,7 +256,7 @@ test('should not approve already approved order', () => {
 4. **例外を投げる条件があるか？** → あればテスト価値あり
 5. **上記すべて NO** → テスト価値なし（WARNING）
 
-### PROTECTED パターン
+### spec記載パターン
 
 | 表面的な印象 | 仕様根拠の例 |
 |-------------|-------------|
@@ -343,7 +343,7 @@ implementation-plan にテストTODOリストがある場合、リストの各�
 
 **重複回避ルール**: テストTODOリストの項目漏れは次元6（spec-alignment-reviewer 担当）でもチェックされる。test-quality-reviewer は**実装コードのロジックから導かれるテスト不足**に集中し、テストTODOリストの単純な照合は次元6に任せる。
 
-### PROTECTED パターン
+### spec記載パターン
 
 | 表面的な印象 | 仕様根拠の例 |
 |-------------|-------------|

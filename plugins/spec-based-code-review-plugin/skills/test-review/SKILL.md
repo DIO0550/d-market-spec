@@ -1,6 +1,6 @@
 ---
 name: test-review
-description: テストコード品質レビュースキル。古典学派（Classical School）のテスト原則に基づいてテストコードをレビューする。specフォルダの有無に関わらず動作する。test-quality-reviewerエージェントを起動し、モック制限・振る舞いテスト・テスト価値・テストケース網羅性の4次元でレビューする。specフォルダが存在する場合は計画ドキュメントも参照してPROTECTED判定を行う。「テストレビュー」「test review」「テスト品質チェック」「モック使いすぎ」「テストの書き方チェック」「古典学派」「classical school」「テストコードレビュー」「test-review」「テストケース不足」などでトリガー。
+description: テストコード品質レビュースキル。古典学派（Classical School）のテスト原則に基づいてテストコードをレビューする。specフォルダの有無に関わらず動作する。test-quality-reviewerエージェントを起動し、モック制限・振る舞いテスト・テスト価値・テストケース網羅性の4次元でレビューする。specフォルダが存在する場合は計画ドキュメントも参照してspec記載フィールドの補足を行う。「テストレビュー」「test review」「テスト品質チェック」「モック使いすぎ」「テストの書き方チェック」「古典学派」「classical school」「テストコードレビュー」「test-review」「テストケース不足」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[ファイルパス or spec番号]"
 ---
@@ -8,7 +8,7 @@ argument-hint: "[ファイルパス or spec番号]"
 # テストコード品質レビュー
 
 テストコードを古典学派のテスト原則に基づいてレビューするスキル。
-specフォルダの有無に関わらず動作する。specがあれば PROTECTED 判定の補助に使い、なければ普遍的ルールのみで判定する。
+specフォルダの有無に関わらず動作する。specがあれば前提条件として参照し、なければ普遍的ルールのみで判定する。
 
 test-quality-reviewer エージェントを起動してレビューを委譲する。
 
@@ -110,9 +110,9 @@ Task tool:
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
      Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/test-review-rules.md
 
-     ## 計画ドキュメント（specモード時のみ — PROTECTED 判定の参考）
+     ## 計画ドキュメント（specモード時のみ — 参考情報）
      {specモード時: implementation-plan.md, exploration-report.md のパス}
-     {specなしモード時: 「計画ドキュメントなし。PROTECTED は使わず CRITICAL/WARNING/INFO のみで分類。」}
+     {specなしモード時: 「計画ドキュメントなし。CRITICAL/WARNING/INFO で分類。」}
 
      ## テストコード情報
      テストファイル一覧:
@@ -161,5 +161,5 @@ options:
 ## 重要な制約
 
 - **コードの変更はオーケストレーター自身では行わない**
-- ルール（普遍的原則）が指摘の根拠。spec は PROTECTED 判定の補助のみ
+- ルール（普遍的原則）が指摘の根拠。spec は前提条件の参照のみ
 - specなしモードでも実装コードを読んでロジックの有無を確認する

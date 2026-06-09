@@ -6,27 +6,21 @@
 
 ## 次元一覧とエージェント割り当て
 
-| # | 次元 | 担当エージェント | spec要否 | 核心の問い |
-|---|------|----------------|---------|-----------|
-| 1 | 仕様充足性 | spec-alignment-reviewer | 必須 | specに書かれた全項目が実装されているか？ |
-| 2 | 意図整合性 | spec-alignment-reviewer | 必須 | hearing-notesの「なぜ」とコードの「何」が一致しているか？ |
-| 3 | 設計方針遵守 | design-reviewer | 一部 | SRP/DIPはユニバーサル。データフロー・API照合はspec必要 |
-| 4 | 制約尊重 | spec-alignment-reviewer | 必須 | exploration-reportの技術的制約・既存パターンを破っていないか？ |
-| 5 | 意図的複雑性の保護 | **全エージェント共通** | 推奨 | 冗長に見えるコードに根拠があるか？（specがあればPROTECTED判定に活用） |
-| 6 | テスト戦略整合性 | spec-alignment-reviewer | 必須 | テスト方針と実際のテストが一致しているか？ |
-| 7 | DoD検証 | spec-alignment-reviewer | 必須 | Definition of Doneの全項目が実際に満たされているか？ |
-| 8 | パフォーマンス | performance-reviewer | 不要 | パフォーマンス上の問題はないか？ |
-| 9 | アーキテクチャ整合性 | design-reviewer | 一部 | KISS/凝集度/循環依存はユニバーサル。既存パターン照合はspec必要 |
-| 10 | モック制限 | test-quality-reviewer | 不要 | モックが外部依存関係のみに限定されているか？ |
-| 11 | 振る舞いテスト | test-quality-reviewer | 不要 | 実装詳細ではなく観察可能な振る舞いを検証しているか？ |
-| 12 | テスト価値 | test-quality-reviewer | 不要 | テストが意味のあるリグレッション保護を提供しているか？ |
-| 13 | テストケース網羅性 | test-quality-reviewer | 不要 | ロジックのあるコードに対してテストケースが不足していないか？ |
-
-**spec要否の凡例**:
-- **必須**: spec文書がないとこの次元はチェックできない（spec-alignment-reviewer担当の次元）
-- **一部**: ユニバーサルなチェック項目はspec不要で実行可能。spec文書があれば追加の照合も行う
-- **推奨**: specがあればPROTECTED判定に活用。なくても誤DRY検出のStep1+2は実行可能
-- **不要**: ユニバーサルな原則のみで完結。specは補助情報
+| # | 次元 | 担当エージェント | 核心の問い |
+|---|------|----------------|-----------|
+| 1 | 仕様充足性 | spec-alignment-reviewer | specに書かれた全項目が実装されているか？ |
+| 2 | 意図整合性 | spec-alignment-reviewer | hearing-notesの「なぜ」とコードの「何」が一致しているか？ |
+| 3 | 設計方針遵守 | design-reviewer | SRP/DIPはユニバーサル。データフロー・API照合はspec必要 |
+| 4 | 制約尊重 | spec-alignment-reviewer | exploration-reportの技術的制約・既存パターンを破っていないか？ |
+| 5 | 意図的複雑性の保護 | **全エージェント共通** | 冗長に見えるコードに根拠があるか？（specがあれば記載として補足） |
+| 6 | テスト戦略整合性 | spec-alignment-reviewer | テスト方針と実際のテストが一致しているか？ |
+| 7 | DoD検証 | spec-alignment-reviewer | Definition of Doneの全項目が実際に満たされているか？ |
+| 8 | パフォーマンス | performance-reviewer | パフォーマンス上の問題はないか？ |
+| 9 | アーキテクチャ整合性 | design-reviewer | KISS/凝集度/循環依存はユニバーサル。既存パターン照合はspec必要 |
+| 10 | モック制限 | test-quality-reviewer | モックが外部依存関係のみに限定されているか？ |
+| 11 | 振る舞いテスト | test-quality-reviewer | 実装詳細ではなく観察可能な振る舞いを検証しているか？ |
+| 12 | テスト価値 | test-quality-reviewer | テストが意味のあるリグレッション保護を提供しているか？ |
+| 13 | テストケース網羅性 | test-quality-reviewer | ロジックのあるコードに対してテストケースが不足していないか？ |
 
 ---
 
@@ -69,7 +63,7 @@
 
 ## 次元 3: 設計方針遵守
 
-**参照文書**: ユニバーサルな設計原則（primary）, implementation-plan.md / exploration-report.md（PROTECTED判定用, optional）
+**参照文書**: ユニバーサルな設計原則（primary）, implementation-plan.md / exploration-report.md（spec記載の補足用, optional）
 
 ### チェック項目
 
@@ -84,7 +78,7 @@
 - [ ] コンポーネント分割方針に従っているか
 - [ ] 命名規則が既存パターンと一致しているか
 
-**注意**: spec文書で意図的に SRP/DIP に反する設計が選択されている場合は PROTECTED として保護する。
+**注意**: spec文書で意図的に SRP/DIP に反する設計が選択されている場合は、指摘に `spec記載` として補足する。
 
 ### 典型的な指摘
 
@@ -92,7 +86,7 @@
 - WARNING: 「exploration-report の命名規則（camelCase）に対して snake_case を使用」
 - WARNING: 「モジュール X が3つの異なる責務を持ち、変更理由が複数存在する（SRP違反）」
 - WARNING: 「上位モジュールが下位モジュールの具体クラスを直接 import している（DIP違反）」
-- PROTECTED: 「SRP に反するが、implementation-plan で意図的にこの構成が選択されている」
+- INFO: 「SRP に反するが、implementation-plan で意図的にこの構成が選択されている」（spec記載として補足）
 
 ---
 
@@ -127,7 +121,7 @@ spec文書があるか？
   ↓
 [specあり] specの前提を確認
   specに前提がある → その前提は技術的に妥当か？
-    妥当 → PROTECTED（前提が妥当なため現状維持推奨）
+    妥当 → INFO（spec記載として補足: 前提が妥当なため現状維持推奨）
     疑わしい → WARNING（specの前提自体への懸念を併記）
   specに前提がない → WARNING（簡素化を提案）
   ↓
@@ -136,9 +130,9 @@ spec文書があるか？
   判断がつかない → INFO（改善の余地として提示、断定は避ける）
 ```
 
-### PROTECTED の典型パターン
+### specの前提として確認するパターン
 
-| 表面的な印象 | specの前提（妥当性を確認の上でPROTECTED） |
+| 表面的な印象 | specの前提（妥当性を確認の上でspec記載として補足） |
 |-------------|-------------|
 | エラーハンドリングが冗長 | hearing-notes でエッジケース網羅が要求 |
 | ループが分離されている | implementation-plan で可読性を優先 |
@@ -167,17 +161,17 @@ AIレビューアーは表面的なコード類似を見て「共通化すべき
   ↓
 Step 1: 変更理由テスト（ユニバーサル — spec不要）
   「この2つのコードは、同じビジネス上の理由で同時に変更されるか？」
-  NO/不明 → PROTECTED（specあり）/ INFO（specなし）— 個別実装を保護
+  NO/不明 → INFO（個別実装を維持。specありの場合はspec記載として補足）
   YES → Step 2 へ
   ↓
 Step 2: ドメイン概念テスト（ユニバーサル — spec不要）
   「この2つのコードは、同一のドメイン概念（同じビジネスルール）を表現しているか？」
-  NO → PROTECTED（specあり）/ INFO（specなし）— 個別実装を保護
+  NO → INFO（個別実装を維持。specありの場合はspec記載として補足）
   YES → Step 3 へ
   ↓
 Step 3: 仕様確認テスト（spec文書がある場合のみ）
   「implementation-plan で意図的な個別実装が指定されているか？」
-  YES → PROTECTED（仕様が個別実装を正当化）
+  YES → INFO（仕様が個別実装を正当化。spec記載として補足）
   NO → INFO（共通化の検討を提案 — WARNING/CRITICAL にはしない）
   spec文書がない場合 → INFO（共通化の検討を提案）
 ```
@@ -209,7 +203,7 @@ Step 3: 仕様確認テスト（spec文書がある場合のみ）
 
 - CRITICAL: 「テストTODOリストの X シナリオがテストされていない」
 - WARNING: 「テストファイルの配置が既存規約と異なる」
-- PROTECTED: 「テストケースが多いが、テストTODOリストの全項目に対応している」
+- INFO: 「テストケースが多いが、テストTODOリストの全項目に対応している」（spec記載として補足）
 
 ---
 
@@ -232,7 +226,7 @@ Step 3: 仕様確認テスト（spec文書がある場合のみ）
 
 ## 次元 8: パフォーマンス
 
-**参照文書**: ユニバーサルなパフォーマンス原則（primary）, implementation-plan.md / exploration-report.md（PROTECTED判定用, optional）
+**参照文書**: ユニバーサルなパフォーマンス原則（primary）, implementation-plan.md / exploration-report.md（spec記載の補足用, optional）
 
 ### チェック項目（全てユニバーサル — spec不要）
 
@@ -246,13 +240,13 @@ Step 3: 仕様確認テスト（spec文書がある場合のみ）
 
 - CRITICAL: 「N+1問題が発生している」
 - WARNING: 「並列化可能な非同期処理が直列実行されている」
-- PROTECTED: 「ループが分離されているが、implementation-plan で可読性を優先して決定」
+- INFO: 「ループが分離されているが、implementation-plan で可読性を優先して決定」（spec記載として補足）
 
 ---
 
 ## 次元 9: アーキテクチャ整合性
 
-**参照文書**: ユニバーサルな設計原則（primary）, implementation-plan.md / exploration-report.md（PROTECTED判定用, optional）
+**参照文書**: ユニバーサルな設計原則（primary）, implementation-plan.md / exploration-report.md（spec記載の補足用, optional）
 
 ### チェック項目
 
@@ -268,7 +262,7 @@ Step 3: 仕様確認テスト（spec文書がある場合のみ）
 - [ ] 状態管理の方針と一致しているか
 - [ ] API設計の規約に従っているか
 
-**KISS と意図的複雑性の保護の関係**: KISS に基づいて「シンプルにすべき」と判断する前に、spec文書がある場合は次元5の判定を行うこと。implementation-plan で将来の拡張に備えて設けられた構造は PROTECTED であり、KISS の名の下に削除してはならない。
+**KISS と意図的複雑性の保護の関係**: KISS に基づいて「シンプルにすべき」と判断する前に、spec文書がある場合は次元5の判定を行うこと。implementation-plan で将来の拡張に備えて設けられた構造はspec記載として補足し、KISS の名の下に安易に削除提案してはならない。
 
 ### 典型的な指摘
 
@@ -277,12 +271,12 @@ Step 3: 仕様確認テスト（spec文書がある場合のみ）
 - WARNING: 「要件を満たすのに不要な抽象化レイヤーが導入されている（implementation-plan に根拠なし）」
 - WARNING: 「1ファイル1関数で過剰分割されている — `formatUserName.ts`, `validateUserEmail.ts` は概念的に `user.ts` に凝集すべき」
 - WARNING: 「関数名でファイルを命名している（`calculateTax.ts`）— 概念名で命名すべき（`pricing.ts` 等）」。すり抜けバリアント: `calculateTax.ts/index.ts` のようにディレクトリ化して同じ問題を持ち込むケースも同様に WARNING
-- PROTECTED: 「コンポーネント粒度が既存より細かいが、implementation-plan の方針に合致」
-- PROTECTED: 「一見過剰な抽象化だが、implementation-plan で将来の拡張に備えて設けられた構造」
+- INFO: 「コンポーネント粒度が既存より細かいが、implementation-plan の方針に合致」（spec記載として補足）
+- INFO: 「一見過剰な抽象化だが、implementation-plan で将来の拡張に備えて設けられた構造」（spec記載として補足）
 
-### PROTECTED対象外の普遍的コード品質ルール
+### 普遍的コード品質ルール
 
-以下のアンチパターンはspec文書の有無に関わらず常に指摘でき、かつ PROTECTED 判定の対象外とする（仕様が正当化する理由が原理的に存在し得ないため）。詳細は `finding-classification.md` の「PROTECTED対象外のアンチパターン」を参照。
+以下のアンチパターンはspec文書の有無に関わらず常に指摘する（仕様が正当化する理由が原理的に存在し得ないため）。詳細は `finding-classification.md` を参照。
 
 | パターン | 分類 | 説明 |
 |---------|------|------|
@@ -312,7 +306,7 @@ Step 3: 仕様確認テスト（spec文書がある場合のみ）
 
 - CRITICAL: 「内部モジュール `./services/UserService` をモックしている — 実モジュールを使ってテストすべき」
 - WARNING: 「`./repositories/UserRepository` をモックしているが、これがアーキテクチャ上の外部境界なら許容」
-- PROTECTED: 「内部モジュールをモックしているが、implementation-plan のテスト戦略で『Repository 層はモックして単体テストする』と明記されている」
+- INFO: 「内部モジュールをモックしているが、implementation-plan のテスト戦略で『Repository 層はモックして単体テストする』と明記されている」（spec記載として補足）
 
 ---
 
@@ -338,7 +332,7 @@ Step 3: 仕様確認テスト（spec文書がある場合のみ）
 - CRITICAL: 「内部メソッド `calculator.internalCalculate` への spy アサーション — 戻り値で振る舞いを検証すべき」
 - CRITICAL: 「プライベートフィールド `obj['_privateField']` を直接テストしている — 公開APIを通じて検証すべき」
 - WARNING: 「`result._metadata.processingSteps` は出力契約の一部かどうか要判断」
-- PROTECTED: 「内部メソッドの呼び出しを検証しているが、implementation-plan で『この内部メソッドの呼び出しは振る舞いの一部として保証する』と明記されている」
+- INFO: 「内部メソッドの呼び出しを検証しているが、implementation-plan で『この内部メソッドの呼び出しは振る舞いの一部として保証する』と明記されている」（spec記載として補足）
 
 ---
 
@@ -363,7 +357,7 @@ Step 3: 仕様確認テスト（spec文書がある場合のみ）
 - WARNING: 「ロジックのない単純コンストラクタ `new User(name, email)` のテスト — プロパティ代入のみでリグレッション保護の価値がない」
 - WARNING: 「単純な getter `getFullName()` のテスト — `return this.firstName + ' ' + this.lastName` に分岐がなく壊れる可能性が極めて低い」
 - WARNING: 「パススルーメソッド `delegate.execute(args)` のテスト — 内部で別メソッドを呼ぶだけでロジックがない」
-- PROTECTED: 「単純に見えるが、implementation-plan のテストTODOリストに明示的に含まれている」
+- INFO: 「単純に見えるが、implementation-plan のテストTODOリストに明示的に含まれている」（spec記載として補足）
 
 ---
 
@@ -391,4 +385,4 @@ Step 3: 仕様確認テスト（spec文書がある場合のみ）
 - CRITICAL: 「implementation-plan のテストTODOリスト項目『タイムアウト時のリトライ』に対応するテストが存在しない」
 - WARNING: 「`validateAge(age)` の境界値（0, 負数, 上限値）がテストされていない」
 - WARNING: 「`OrderStatus` の状態遷移で `pending → cancelled` パスのテストがない」
-- PROTECTED: 「テストケースが少ないが、implementation-plan のテスト戦略で『正常系のみテスト、異常系は手動確認』と明記されている」
+- INFO: 「テストケースが少ないが、implementation-plan のテスト戦略で『正常系のみテスト、異常系は手動確認』と明記されている」（spec記載として補足）
