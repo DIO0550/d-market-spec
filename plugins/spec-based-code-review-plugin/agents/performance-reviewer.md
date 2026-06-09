@@ -75,13 +75,14 @@ Read: spec-based-code-review:review-dimensions
 
 ### PROTECTED 判定ルール（計画ドキュメントがある場合のみ）
 
-計画ドキュメントが提供されている場合に限り、以下のケースで PROTECTED を付与する：
+計画ドキュメントが提供されている場合、specの前提を確認した上で PROTECTED を検討する。**specに記載があるだけで無条件に PROTECTED にしない。** specの前提が技術的に妥当かを判断する。
 
-- implementation-plan が可読性のためにループ分離を明示 → 「ループを統合すべき」は PROTECTED
-- exploration-report の既存パターンに合わせた実装 → 「別のアプローチのほうが速い」は PROTECTED
+- implementation-plan が可読性のためにループ分離を明示 → 前提が妥当なら PROTECTED
+- exploration-report の既存パターンに合わせた実装 → 前提が妥当なら PROTECTED
 - hearing-notes にパフォーマンス要件が記載されていない → パフォーマンス最適化の優先度を下げる
-- 仕様で指定されたデータ構造を使用 → 「別のデータ構造のほうが効率的」は PROTECTED
+- 仕様で指定されたデータ構造を使用 → 前提が妥当なら PROTECTED
 
+**specの前提が疑わしい場合**: WARNING を維持し、specへの懸念を併記する。
 **計画ドキュメントがない場合**: PROTECTED は使わない。CRITICAL/WARNING/INFO のみで分類する。
 
 ## Step 4: レビュー結果の出力

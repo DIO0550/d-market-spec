@@ -82,16 +82,17 @@ Read: spec-based-code-review:review-dimensions
 
 ### PROTECTED 判定ルール（計画ドキュメントがある場合のみ）
 
-計画ドキュメントが提供されている場合に限り、以下のケースで PROTECTED を付与する：
+計画ドキュメントが提供されている場合、specの前提を確認した上で PROTECTED を検討する。**specに記載があるだけで無条件に PROTECTED にしない。** specの前提が技術的に妥当かを判断する。
 
-- implementation-plan がコンポーネントの分割方針を明示 → 「もっと統合すべき」「分割すべき」は PROTECTED
-- implementation-plan のデータフロー図に従ったデータの流れ → 「props drilling を避けるべき」は PROTECTED
-- exploration-report の既存命名規則に合わせた命名 → 「別の命名のほうがよい」は PROTECTED
-- 仕様で指定されたディレクトリ構造 → 「別のファイル配置のほうがよい」は PROTECTED
-- 表面的に類似しているが概念的に異なるコードが個別に実装されている → 「共通化すべき」は PROTECTED
-- implementation-plan で意図的に SRP/DIP に反する設計が選択されている → 「SOLID違反」は PROTECTED
-- implementation-plan で将来の拡張に備えて設けられた抽象化レイヤー → 「過剰な抽象化(KISS)」は PROTECTED
+- implementation-plan がコンポーネントの分割方針を明示 → 前提が妥当なら PROTECTED
+- implementation-plan のデータフロー図に従ったデータの流れ → 前提が妥当なら PROTECTED
+- exploration-report の既存命名規則に合わせた命名 → 前提が妥当なら PROTECTED
+- 仕様で指定されたディレクトリ構造 → 前提が妥当なら PROTECTED
+- 表面的に類似しているが概念的に異なるコードが個別に実装されている → PROTECTED
+- implementation-plan で意図的に SRP/DIP に反する設計が選択されている → 前提が妥当なら PROTECTED
+- implementation-plan で将来の拡張に備えて設けられた抽象化レイヤー → 前提が妥当なら PROTECTED
 
+**specの前提が疑わしい場合**: WARNING を維持し、specへの懸念を併記する。
 **計画ドキュメントがない場合**: PROTECTED は使わない。CRITICAL/WARNING/INFO のみで分類する。
 
 ### 観点3: ファイル構成・凝集度
@@ -107,7 +108,7 @@ Read: spec-based-code-review:review-dimensions
 - YES → 凝集度が高い（適切）
 - NO → 凝集度が低い（SRP の観点からも問題）
 
-**注意**: 計画ドキュメントでファイル分割方針が明示されている場合は、その方針が優先する（PROTECTED）。
+**注意**: 計画ドキュメントでファイル分割方針が明示されている場合は参考にする。その前提が妥当であれば PROTECTED とする。
 
 ### 観点4: KISS — 不必要な複雑性の排除
 

@@ -272,7 +272,7 @@ Task tool: (並列起動)
      - すべての指摘に「仕様根拠」を含めること
      - 仕様根拠のない指摘は出さないこと
      - 意図的複雑性の保護（次元5）を最優先で判定すること
-     - 迷ったら PROTECTED 寄りに判定すること
+     - PROTECTED判定はspecの前提が妥当であることを確認してから行うこと
 
 4. test-quality-reviewer:
    description: "test-quality-reviewer: {feature-name}"
@@ -310,7 +310,7 @@ Task tool: (並列起動)
      - 指摘の根拠はルール（普遍的原則）— spec文書の有無に関わらず指摘を出す
      - 計画ドキュメントのテスト戦略で正当化されたパターンのみ PROTECTED とする
      - 外部依存への spy アサーションは CRITICAL にしないこと
-     - 迷ったら PROTECTED 寄りに判定すること
+     - PROTECTED判定はspecの前提が妥当であることを確認してから行うこと
 ```
 
 ### 完了待ち
