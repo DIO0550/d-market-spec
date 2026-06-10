@@ -138,6 +138,18 @@
     <li><strong>変数命名</strong>: {camelCase / snake_case / etc.}</li>
     <li><strong>インデント</strong>: {2 spaces / 4 spaces / tabs}</li>
   </ul>
+
+  <h3>2.5 既存構造の問題点・技術的負債</h3>
+  <blockquote>既存パターンは無条件に踏襲しない。新実装の参考にすべきでない構造があればここに記録する。なければ「特記事項なし」と記載する。</blockquote>
+  <table>
+    <thead>
+      <tr><th>問題のあるパターン / 場所</th><th>問題の内容</th><th>新実装での扱い</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>{path/to/file または パターン名}</code></td><td>{過剰な結合 / 責務の混在 / 重複 / テスト困難 / 技術的負債 等}</td><td>踏襲する / 避ける / 要判断</td></tr>
+    </tbody>
+  </table>
+  <p><strong>「避ける」とした場合の代替方針</strong>: {新実装でどうすべきか。なければ省略}</p>
 </section>
 
 <hr>

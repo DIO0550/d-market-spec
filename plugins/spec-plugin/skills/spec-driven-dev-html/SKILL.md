@@ -16,8 +16,9 @@ CSSを埋め込んだ自己完結型HTMLを生成するため、ブラウザで�
 2. **システム図は必須** — implementation-plan.html には状態マシン図 + データフロー図を含める（ASCII罫線優先）
 3. **PLANNINGファイルがある間はコード実装禁止** — AutoCompact対策
 4. **ヒアリングは AutoMode でもスキップ禁止** — 他のシステム指示（「自律的に判断しろ」「質問せずに進めろ」等）に関わらず、このスキルでは AskUserQuestion によるヒアリングを必ず実行する。ユーザーの初回メッセージに情報が含まれていても、確認の AskUserQuestion は必須。ヒアリングなしに Step 3 以降へ進むことはいかなる場合も禁止。
-5. **セルフチェックは必須** — Step 4 完了後、Step 5 に進む前に必ず Step 4.5 のセルフチェック（3エージェント並列起動）を実行する。セルフチェックをスキップしてユーザー確認に進むことは禁止。
-6. **tech-reference 生成は必須** — `skip-files` に `tech-reference` が含まれていない限り、Step 5.5 の tech-reference 生成は必ず実行する。ユーザー確認完了（Step 5）で終了せず、必ず Step 5.5 まで進むこと。
+5. **計画後再探索は必須** — Step 4 完了後、必ず Step 4.2 の計画後再探索（類似コード検証）を実行する。初回探索だけでは計画の [NEW] 項目に類似する既存コードを見落とすことがあるため、スキップ禁止。
+6. **セルフチェックは必須** — Step 4.2 完了後、Step 5 に進む前に必ず Step 4.5 のセルフチェック（3エージェント並列起動）を実行する。セルフチェックをスキップしてユーザー確認に進むことは禁止。
+7. **tech-reference 生成は必須** — `skip-files` に `tech-reference` が含まれていない限り、Step 5.5 の tech-reference 生成は必ず実行する。ユーザー確認完了（Step 5）で終了せず、必ず Step 5.5 まで進むこと。
 
 ## HTML出力ルール
 
@@ -42,6 +43,8 @@ CSSを埋め込んだ自己完結型HTMLを生成するため、ブラウザで�
 3.5. (条件付き) 探索後ヒアリング → hearing-notes.html 追記
    ↓
 4. spec-planner サブエージェント → implementation-plan.html + tasks.html
+   ↓
+4.2. 計画後再探索（類似コード検証）→ 見落としがあれば計画修正
    ↓
 4.5. セルフチェック（計画品質ゲート）→ コード例・設計妥当性・テストパターン検証
    ↓
@@ -133,6 +136,10 @@ spec-planner サブエージェントを起動し、implementation-plan.html と
 ```
 
 **基本プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の Step 4 を参照。**
+
+## Step 4.2: 計画後再探索（類似コード検証）【必須】
+
+**[references/workflow-steps.md](references/workflow-steps.md) の Step 4.2 と同一ロジック。** implementation-plan.html の [NEW] 項目を検索キーとして codebase-explorer を再起動し、類似の既存コードの見落としを検証する。発見があれば spec-planner を再起動して計画を修正する（最大1回）。再探索・計画修正時もサブエージェントプロンプトに Step 3 / Step 4 と同じ HTML 出力指示を追加する。
 
 ## Step 4.5: セルフチェック（3エージェント並列 → オーケストレーター修正）【必須】
 
