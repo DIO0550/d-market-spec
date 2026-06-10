@@ -1,6 +1,6 @@
 ---
 name: spec-based-code-review
-description: コードレビュースキル（オーケストレーター）。ユニバーサルな設計・パフォーマンス・テスト原則に基づいて、専門サブエージェント（パフォーマンス・設計・テスト品質 + 仕様整合性）が並列でコードレビューを実行する。spec番号を指定すると計画ドキュメントも参考にする。「specレビュー」「仕様レビュー」「spec review」「仕様整合性チェック」「計画に基づくレビュー」「実装が計画通りか確認」「意図ベースレビュー」「コードレビュー」「spec-based-code-review」「テストレビュー」「test review」「テスト品質チェック」「モック使いすぎ」「古典学派」などでトリガー。
+description: コードレビュースキル（オーケストレーター）。ユニバーサルな設計・パフォーマンス・テスト・コメント原則に基づいて、専門サブエージェント（パフォーマンス・設計・テスト品質・コメント品質 + 仕様整合性）が並列でコードレビューを実行する。spec番号を指定すると計画ドキュメントも参考にする。「specレビュー」「仕様レビュー」「spec review」「仕様整合性チェック」「計画に基づくレビュー」「実装が計画通りか確認」「意図ベースレビュー」「コードレビュー」「spec-based-code-review」「テストレビュー」「test review」「テスト品質チェック」「モック使いすぎ」「古典学派」「コメントレビュー」「docコメント」「コメント品質」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[番号]"
 ---
@@ -10,7 +10,7 @@ argument-hint: "[番号]"
 ユニバーサルな原則に基づくコードレビューを実行するスキル。
 自分ではレビューせず、専門サブエージェントを並列起動してレビューを委譲し、結果を統合する。
 
-- **常に起動**: performance-reviewer, design-reviewer, test-quality-reviewer（ユニバーサル原則ベース）
+- **常に起動**: performance-reviewer, design-reviewer, test-quality-reviewer, comment-quality-reviewer（ユニバーサル原則ベース）
 - **specがある場合のみ追加**: spec-alignment-reviewer（仕様整合性チェック）
 
 spec番号を指定すると計画ドキュメントも参照し、仕様整合性チェックが追加される。
@@ -24,7 +24,7 @@ Step 1: 計画ドキュメントの読み込み（specがある場合のみ）
   ↓
 Step 2: 実装コードの収集（git diff + 変更ファイル）
   ↓
-Step 3: サブエージェントを並列起動（3 or 4エージェント）
+Step 3: サブエージェントを並列起動（4 or 5エージェント）
   ↓
 Step 4: 結果統合・重複排除・保存
   ↓
@@ -148,8 +148,8 @@ options:
 
 ## Step 3: サブエージェントを並列起動
 
-**specフォルダがある場合**: 4エージェント（performance, design, spec-alignment, test-quality）を起動
-**specフォルダがない場合**: 3エージェント（performance, design, test-quality）を起動。spec-alignment-reviewer は仕様整合性チェックが本質のため、spec不在時は起動しない。
+**specフォルダがある場合**: 5エージェント（performance, design, spec-alignment, test-quality, comment-quality）を起動
+**specフォルダがない場合**: 4エージェント（performance, design, test-quality, comment-quality）を起動。spec-alignment-reviewer は仕様整合性チェックが本質のため、spec不在時は起動しない。
 
 出力先ディレクトリを作成（specフォルダがある場合のみ）:
 
@@ -304,12 +304,47 @@ Task tool: (並列起動)
      - テストコードだけでなく、テスト対象の実装コードも必ず読むこと（次元12・13に必須）
      - 指摘の根拠はルール（普遍的原則）— spec文書の有無に関わらず指摘を出す
      - 外部依存への spy アサーションは CRITICAL にしないこと
+
+5. comment-quality-reviewer:
+   description: "comment-quality-reviewer: {feature-name}"
+   run_in_background: true
+   prompt: |
+     あなたは comment-quality-reviewer エージェントです。
+     ユニバーサルなコメント原則に基づいてレビューしてください。
+     コメントのwhy原則（次元14）とdocコメント整合性（次元15）が担当です。
+
+     ## レビュー基準
+     Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/review-dimensions.md
+     Read: {spec-based-code-review-plugin-path}/skills/spec-based-code-review/references/finding-classification.md
+
+     ## 計画ドキュメント（参考情報）
+     {specフォルダがある場合:
+     - {spec_dir}/implementation-plan.md
+     - {spec_dir}/exploration-report.md
+     }
+     {specフォルダがない場合: 計画ドキュメントのセクションごと省略}
+
+     ## 実装コード情報
+     変更ファイル一覧:
+     {変更ファイルリスト}
+
+     git diff:
+     {git diff の内容}
+
+     ## 出力先
+     {specフォルダがある場合: {spec_dir}/spec-based-code-review/comment-quality-{NNN}.md}
+     {specフォルダがない場合: 「ファイル出力不要。結果をテキストで返してください。」}
+
+     ## 重要
+     - すべての指摘に「根拠」を含めること（ルール根拠 or 仕様根拠）
+     - whyコメント（制約・理由・注意喚起）は保護すること — 指摘対象は what / how / 履歴コメントのみ
+     - docコメント整合性の検証は diff だけでなく関数全体を読んでから行うこと
 ```
 
 ### 完了待ち
 
 ```
-TaskOutput: (起動したエージェントそれぞれ — 3つまたは4つ)
+TaskOutput: (起動したエージェントそれぞれ — 4つまたは5つ)
   task_id: "{各エージェントのtask_id}"
   block: true
   timeout: 300000
@@ -319,16 +354,18 @@ TaskOutput: (起動したエージェントそれぞれ — 3つまたは4つ)
 
 個別レポートを Read で読み込む:
 
-**specフォルダがある場合（4レポート）**:
+**specフォルダがある場合（5レポート）**:
 1. `{spec_dir}/spec-based-code-review/performance-{NNN}.md`
 2. `{spec_dir}/spec-based-code-review/design-{NNN}.md`
 3. `{spec_dir}/spec-based-code-review/alignment-{NNN}.md`
 4. `{spec_dir}/spec-based-code-review/test-quality-{NNN}.md`
+5. `{spec_dir}/spec-based-code-review/comment-quality-{NNN}.md`
 
-**specフォルダがない場合（3レポート — テキスト出力を使用）**:
+**specフォルダがない場合（4レポート — テキスト出力を使用）**:
 1. performance-reviewer の出力テキスト
 2. design-reviewer の出力テキスト
 3. test-quality-reviewer の出力テキスト
+4. comment-quality-reviewer の出力テキスト
 
 ### 統合ルール
 
@@ -395,6 +432,7 @@ CRITICAL も WARNING もない場合は「コードレビュー完了 — 問題
     ├── design-{NNN}.md            # design-reviewer 出力
     ├── alignment-{NNN}.md         # spec-alignment-reviewer 出力
     ├── test-quality-{NNN}.md      # test-quality-reviewer 出力
+    ├── comment-quality-{NNN}.md   # comment-quality-reviewer 出力
     └── review-{NNN}.md            # 統合レポート
 ```
 
