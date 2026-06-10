@@ -41,6 +41,8 @@ CSSを埋め込んだ自己完結型HTMLを生成するため、ブラウザで�
    ↓
 3.5. (条件付き) 探索後ヒアリング → hearing-notes.html 追記
    ↓
+3.6. (条件付き) 再探索 → exploration-report.html 更新
+   ↓
 4. spec-planner サブエージェント → implementation-plan.html + tasks.html
    ↓
 4.5. セルフチェック（計画品質ゲート）→ コード例・設計妥当性・テストパターン検証
@@ -110,6 +112,10 @@ hearing-notes.html から探索ヒント（キーワード5-10個、推定対象
 ## Step 3.5: 探索後ヒアリング (条件付き)
 
 **[references/workflow-steps.md](references/workflow-steps.md) の Step 3.5 と同一ロジック。** 論点があれば AskUserQuestion で聴取し、hearing-notes.html に追記する。
+
+## Step 3.6: 再探索 (条件付き)
+
+**[references/workflow-steps.md](references/workflow-steps.md) の Step 3.6 と同一ロジック。** Step 3.5 で探索後ヒアリングを実施した場合のみ、ユーザー回答を新たな探索ヒントとして codebase-explorer を再起動し、exploration-report.html を上書き更新する。論点 0 件の場合はスキップして Step 4 へ進む。再探索時もサブエージェントプロンプトに Step 3 と同じ HTML 出力指示を追加する。
 
 ## Step 4: 実装計画生成
 

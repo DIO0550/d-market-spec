@@ -12,7 +12,6 @@ hearing-notes.md と exploration-report.md を読み込み、システム図を�
 </commentary>
 </example>
 tools: Glob, Grep, LS, Read, Write, Edit, Bash
-model: sonnet
 color: orange
 ---
 
@@ -49,8 +48,11 @@ Read: .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md
 exploration-report.md から特に以下を活用：
 - Section 1（アーキテクチャ概要）→ ファイル配置・構造の参考
 - Section 2（関連コード分析）→ 再利用パターンの活用
+- Section 2.5（既存構造の問題点・技術的負債）→ 「避ける」と報告されたパターンは踏襲しない
 - Section 3（技術的制約）→ 実装時の制約として記載
 - Section 4（変更影響範囲）→ 検証計画に含める
+
+**既存パターンの批判的判断**: 既存パターンは無条件に踏襲しない。新機能にとって適切かを判断し、不適切な場合（過剰な結合、責務の混在、テスト困難な構造等）は代替設計を採用すること。その際は implementation-plan に「既存パターン {X} を踏襲しない理由」を明記する。
 
 ## Step 1.5: テスト戦略分析
 

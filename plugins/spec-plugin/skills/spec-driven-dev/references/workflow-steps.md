@@ -11,6 +11,7 @@ SKILL.md本文で宣言されたパラメータを参照して実行する。
 - [Step 2.5: Reflective Gate（ヒアリング品質検証）](#step-25-reflective-gateヒアリング品質検証)
 - [Step 3: コードベース探索](#step-3-コードベース探索codebase-explorer-サブエージェントに委譲)
 - [Step 3.5: 探索後ヒアリング](#step-35-探索後ヒアリング-条件付き)
+- [Step 3.6: 再探索](#step-36-再探索-条件付き)
 - [Step 4: 実装計画生成](#step-4-実装計画生成spec-planner-サブエージェントに委譲)
 - [Step 4.5: セルフチェック（計画品質ゲート）](#step-45-セルフチェック計画品質ゲート)
 - [ユーザー確認](#ユーザー確認)
@@ -297,6 +298,7 @@ exploration-report を読み込み、ユーザー判断が必要な論点を抽�
 - **Section 4 変更影響範囲**: 破壊的変更の方針判断が必要な場合
 - **Section 6 追加調査が必要な項目**: 設計判断に直結する未確定事項
 - **Section 2.2 再利用可能なパターン**: 候補が複数ある場合の選択
+- **Section 2.5 既存構造の問題点・技術的負債**: 踏襲可否が「要判断」の場合（既存構造から離れるかどうかはユーザーに確認する）
 
 抽出した論点を exploration-report の Section 7「ユーザー判断が必要な論点」に書き戻す（監査証跡）。
 
@@ -320,6 +322,58 @@ AskUserQuestion の回答結果を hearing-notes 末尾の `## 探索後ユー�
 
 - 各論点 (question) と選択された option label
 - ユーザーが Other で自由記述した場合はその内容も含める
+
+---
+
+## Step 3.6: 再探索 (条件付き)
+
+Step 3.5 で AskUserQuestion を実施した場合のみ実行する。ユーザー回答により方針が確定したため、その方針に絞った 2 回目の深掘り探索を行う。
+
+- **Step 3.5 をスキップした場合（論点 0 件）**: このステップもスキップして Step 4 へ進む
+- **再探索は 1 回のみ**。再探索の結果新たな論点が見つかっても再ヒアリングは行わず、exploration-report の Section 7 末尾「未確認論点」に記載する（spec-planner が assumption として扱う）
+
+### 3.6-1. サブエージェント起動
+
+```
+Agent tool:
+  subagent_type: "codebase-explorer"
+  description: "codebase-explorer (再探索): {feature-name}"
+  run_in_background: true
+  prompt: |
+    探索後ヒアリングでユーザーの方針が確定したため、その方針に絞った深掘り再探索を行います。
+
+    ## 前回のレポート
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}
+
+    ## 確定した方針（探索後ユーザー判断）
+    {hearing-notes の「## 探索後ユーザー判断」の内容を論点ごとに列挙}
+
+    ## 指示
+    確定した方針に関連するコードを深掘りし、前回のレポートを更新してください。
+    特に以下に重点を置いてください：
+    - 採用が決まったパターン・コンポーネントの全使用箇所・依存関係・テストの調査
+    - 確定した方針によって変わる変更影響範囲（Section 4）の更新
+    - 方針確定で不要になった選択肢・調査項目の整理（Section 6 の更新）
+    - 新たに判明した事実のコードスニペット付き追記
+    - 探索メトリクス（Section 8）の更新
+
+    ## 参照スキル
+    {SKILL_NAME}:exploration-perspectives
+
+    ## 出力先
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}（上書き更新）
+```
+
+```
+TaskOutput:
+  task_id: "{再探索codebase-explorerのtask_id}"
+  block: true
+  timeout: 300000
+```
+
+### 3.6-2. 結果確認
+
+TaskOutput 受信後、exploration-report が更新されていることを確認し、Step 4 へ進む。再探索に対する品質検証・補完探索は行わない（Step 3 で実施済みのため）。
 
 ---
 

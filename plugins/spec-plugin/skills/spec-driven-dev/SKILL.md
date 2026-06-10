@@ -35,6 +35,8 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
    ↓
 3.5. (条件付き) 探索後ヒアリング → hearing-notes.md 追記
    ↓
+3.6. (条件付き) 再探索 → exploration-report.md 更新
+   ↓
 4. spec-planner サブエージェント → implementation-plan.md + tasks.md
    ↓
 4.5. セルフチェック（計画品質ゲート）→ コード例・設計妥当性・テストパターン検証
@@ -143,6 +145,15 @@ exploration-report.md から論点を抽出する。
 - **論点 1 件以上** → AskUserQuestion で上位4件を一括聴取し、hearing-notes.md に追記
 
 **詳細は [references/workflow-steps.md](references/workflow-steps.md) の Step 3.5 を参照。**
+
+## Step 3.6: 再探索 (条件付き)
+
+Step 3.5 で探索後ヒアリングを実施した場合のみ、ユーザー回答（hearing-notes の `## 探索後ユーザー判断`）を新たな探索ヒントとして codebase-explorer を再起動する。決定された方針に絞った深掘り探索を行い、exploration-report を上書き更新する。
+
+- **Step 3.5 で論点 0 件（ヒアリング未実施）** → スキップして Step 4 へ進む
+- **再探索は 1 回のみ**。再探索で新たな論点が出ても再ヒアリングは行わない（spec-planner が assumption として扱う）
+
+**プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の Step 3.6 を参照。**
 
 ## Step 4: 実装計画生成
 
