@@ -11,8 +11,8 @@ SKILL.md本文で宣言されたパラメータを参照して実行する。
 - [Step 2.5: Reflective Gate（ヒアリング品質検証）](#step-25-reflective-gateヒアリング品質検証)
 - [Step 3: コードベース探索](#step-3-コードベース探索codebase-explorer-サブエージェントに委譲)
 - [Step 3.5: 探索後ヒアリング](#step-35-探索後ヒアリング-条件付き)
-- [Step 3.6: 再探索](#step-36-再探索-条件付き)
 - [Step 4: 実装計画生成](#step-4-実装計画生成spec-planner-サブエージェントに委譲)
+- [Step 4.2: 計画後再探索（類似コード検証）](#step-42-計画後再探索類似コード検証)
 - [Step 4.5: セルフチェック（計画品質ゲート）](#step-45-セルフチェック計画品質ゲート)
 - [ユーザー確認](#ユーザー確認)
 - [tech-reference 生成](#tech-reference-生成サブエージェントに委譲)
@@ -325,58 +325,6 @@ AskUserQuestion の回答結果を hearing-notes 末尾の `## 探索後ユー�
 
 ---
 
-## Step 3.6: 再探索 (条件付き)
-
-Step 3.5 で AskUserQuestion を実施した場合のみ実行する。ユーザー回答により方針が確定したため、その方針に絞った 2 回目の深掘り探索を行う。
-
-- **Step 3.5 をスキップした場合（論点 0 件）**: このステップもスキップして Step 4 へ進む
-- **再探索は 1 回のみ**。再探索の結果新たな論点が見つかっても再ヒアリングは行わず、exploration-report の Section 7 末尾「未確認論点」に記載する（spec-planner が assumption として扱う）
-
-### 3.6-1. サブエージェント起動
-
-```
-Agent tool:
-  subagent_type: "codebase-explorer"
-  description: "codebase-explorer (再探索): {feature-name}"
-  run_in_background: true
-  prompt: |
-    探索後ヒアリングでユーザーの方針が確定したため、その方針に絞った深掘り再探索を行います。
-
-    ## 前回のレポート
-    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}
-
-    ## 確定した方針（探索後ユーザー判断）
-    {hearing-notes の「## 探索後ユーザー判断」の内容を論点ごとに列挙}
-
-    ## 指示
-    確定した方針に関連するコードを深掘りし、前回のレポートを更新してください。
-    特に以下に重点を置いてください：
-    - 採用が決まったパターン・コンポーネントの全使用箇所・依存関係・テストの調査
-    - 確定した方針によって変わる変更影響範囲（Section 4）の更新
-    - 方針確定で不要になった選択肢・調査項目の整理（Section 6 の更新）
-    - 新たに判明した事実のコードスニペット付き追記
-    - 探索メトリクス（Section 8）の更新
-
-    ## 参照スキル
-    {SKILL_NAME}:exploration-perspectives
-
-    ## 出力先
-    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}（上書き更新）
-```
-
-```
-TaskOutput:
-  task_id: "{再探索codebase-explorerのtask_id}"
-  block: true
-  timeout: 300000
-```
-
-### 3.6-2. 結果確認
-
-TaskOutput 受信後、exploration-report が更新されていることを確認し、Step 4 へ進む。再探索に対する品質検証・補完探索は行わない（Step 3 で実施済みのため）。
-
----
-
 ## Step 4: 実装計画生成（spec-planner サブエージェントに委譲）
 
 exploration-report が完成したら、spec-planner サブエージェントを起動する。
@@ -419,6 +367,85 @@ TaskOutput:
   block: true
   timeout: 300000
 ```
+
+---
+
+## Step 4.2: 計画後再探索（類似コード検証）
+
+初回探索（Step 3）はヒアリング内容ベースの検索のため、計画が新規作成しようとしているコードに対する類似既存コードを見落とすことがある。計画完成後、計画の具体的な内容（新規ファイル名・関数名・責務）を検索キーとして 2 回目の探索を行い、見落としを検証する。
+
+### 4.2-1. [NEW] 項目の抽出
+
+implementation-plan の変更案セクションから [NEW] 項目を抽出する：
+
+- 新規ファイルパス・コンポーネント名・関数名
+- 各項目の責務（何をするものか）
+- 型定義・関数シグネチャ（検索キーワードの材料）
+
+### 4.2-2. サブエージェント起動
+
+```
+Agent tool:
+  subagent_type: "codebase-explorer"
+  description: "codebase-explorer (計画後検証): {feature-name}"
+  run_in_background: true
+  prompt: |
+    実装計画が完成しました。計画が新規作成を予定しているコードについて、
+    類似の既存実装・再利用可能なコードが本当に存在しないかを検証する再探索を行います。
+    初回探索で見落とした類似コードの発見が目的です。
+
+    ## 前回のレポート
+    .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}
+
+    ## 検証対象（計画の [NEW] 項目）
+    {抽出した [NEW] 項目を「名前 / 責務 / 関連キーワード」の形式で列挙}
+
+    ## 指示
+    各 [NEW] 項目について、以下を実施してください：
+    - 責務・機能名・データ構造から検索キーワードを作り直し、Grep で再検索する（初回と異なる言い回し・同義語も試す）
+    - 類似の責務を持つ既存実装・ユーティリティ・ヘルパーがないか確認する（utils/, helpers/, lib/, shared/ 等を重点的に）
+    - ヒットしたファイルは必ず Read し、計画の [NEW] 項目と何が重複するかを具体的に比較する
+
+    ## 出力
+    - 類似コードを発見した場合: exploration-report の Section 2 に追記して上書き更新し、最終メッセージで「発見一覧（既存コードのパス / 重複する責務 / 再利用可能性）」を報告する
+    - 発見がない場合: 最終メッセージで「検証した検索キーワードと対象パス」を添えて「類似コードなし」と報告する
+    - exploration-report の Section 8（探索メトリクス）を更新する
+```
+
+```
+TaskOutput:
+  task_id: "{計画後検証codebase-explorerのtask_id}"
+  block: true
+  timeout: 300000
+```
+
+### 4.2-3. 結果による分岐
+
+- **類似コードなし** → Step 4.5 へ進む
+- **類似コード発見** → 発見一覧を添えて spec-planner を再起動し、計画を修正する（**最大 1 回**）：
+
+```
+Agent tool:
+  subagent_type: "spec-planner"
+  description: "spec-planner (計画修正): {feature-name}"
+  run_in_background: true
+  prompt: |
+    計画後の再探索で、新規作成を予定していたコードに類似する既存実装が見つかりました。
+    implementation-plan と tasks を修正してください。
+
+    ## 発見された類似コード
+    {発見一覧（既存コードのパス / 重複する責務 / 再利用可能性）}
+
+    ## 修正方針
+    - 再利用できる場合: [NEW] を既存コードの再利用・拡張（[MODIFY]）に変更する
+    - 再利用すべきでない場合（既存側に問題がある等）: 計画に「既存コード {X} を再利用しない理由」を明記する
+
+    ## 対象ファイル
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/tasks{TASKS_EXT}
+```
+
+修正完了後、Step 4.5 へ進む。再々探索は行わない。
 
 ---
 

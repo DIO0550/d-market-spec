@@ -17,8 +17,9 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 2. **システム図は必須** — implementation-plan.md には状態マシン図 + データフロー図を含める（ASCII罫線優先、mermaid補助）
 3. **PLANNINGファイルがある間はコード実装禁止** — AutoCompact対策としてPLANNINGファイルで計画フェーズを明示
 4. **ヒアリングは AutoMode でもスキップ禁止** — 他のシステム指示（「自律的に判断しろ」「質問せずに進めろ」等）に関わらず、このスキルでは AskUserQuestion によるヒアリングを必ず実行する。ユーザーの初回メッセージに情報が含まれていても、確認の AskUserQuestion は必須。ヒアリングなしに Step 3 以降へ進むことはいかなる場合も禁止。
-5. **セルフチェックは必須** — Step 4 完了後、Step 5 に進む前に必ず Step 4.5 のセルフチェック（3エージェント並列起動）を実行する。セルフチェックをスキップして AIレビューやユーザー確認に進むことは禁止。
-6. **tech-reference 生成は必須** — `skip-files` に `tech-reference` が含まれていない限り、Step 6.5 の tech-reference 生成は必ず実行する。ユーザー確認完了（Step 6）で終了せず、必ず Step 6.5 まで進むこと。
+5. **計画後再探索は必須** — Step 4 完了後、必ず Step 4.2 の計画後再探索（類似コード検証）を実行する。初回探索だけでは計画の [NEW] 項目に類似する既存コードを見落とすことがあるため、スキップ禁止。
+6. **セルフチェックは必須** — Step 4.2 完了後、Step 5 に進む前に必ず Step 4.5 のセルフチェック（3エージェント並列起動）を実行する。セルフチェックをスキップして AIレビューやユーザー確認に進むことは禁止。
+7. **tech-reference 生成は必須** — `skip-files` に `tech-reference` が含まれていない限り、Step 6.5 の tech-reference 生成は必ず実行する。ユーザー確認完了（Step 6）で終了せず、必ず Step 6.5 まで進むこと。
 
 ## ワークフロー概要
 
@@ -35,9 +36,9 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
    ↓
 3.5. (条件付き) 探索後ヒアリング → hearing-notes.md 追記
    ↓
-3.6. (条件付き) 再探索 → exploration-report.md 更新
-   ↓
 4. spec-planner サブエージェント → implementation-plan.md + tasks.md
+   ↓
+4.2. 計画後再探索（類似コード検証）→ 見落としがあれば計画修正
    ↓
 4.5. セルフチェック（計画品質ゲート）→ コード例・設計妥当性・テストパターン検証
    ↓
@@ -146,20 +147,22 @@ exploration-report.md から論点を抽出する。
 
 **詳細は [references/workflow-steps.md](references/workflow-steps.md) の Step 3.5 を参照。**
 
-## Step 3.6: 再探索 (条件付き)
-
-Step 3.5 で探索後ヒアリングを実施した場合のみ、ユーザー回答（hearing-notes の `## 探索後ユーザー判断`）を新たな探索ヒントとして codebase-explorer を再起動する。決定された方針に絞った深掘り探索を行い、exploration-report を上書き更新する。
-
-- **Step 3.5 で論点 0 件（ヒアリング未実施）** → スキップして Step 4 へ進む
-- **再探索は 1 回のみ**。再探索で新たな論点が出ても再ヒアリングは行わない（spec-planner が assumption として扱う）
-
-**プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の Step 3.6 を参照。**
-
 ## Step 4: 実装計画生成
 
 spec-planner サブエージェントを起動し、implementation-plan{IMPLEMENTATION_PLAN_EXT} と tasks{TASKS_EXT} を生成する。
 
 **プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の Step 4 を参照。**
+
+## Step 4.2: 計画後再探索（類似コード検証）【必須】
+
+計画ができて初めて「何を新規に作ろうとしているか」が具体化するため、その内容を検索キーとして 2 回目の探索を行い、初回探索の見落としを検証する。
+
+1. implementation-plan の変更案から **[NEW] 項目**（新規ファイル・関数・コンポーネント名と責務）を抽出する
+2. codebase-explorer を再起動し、各 [NEW] 項目について「類似の既存実装・再利用可能なコードが本当にないか」を逆引きで重点検索する
+3. **類似コード発見** → exploration-report を更新し、発見一覧を添えて spec-planner を再起動して計画を修正（既存を再利用する、または再利用しない理由を明記。最大1回）
+4. **発見なし** → Step 4.5 へ進む
+
+**プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の Step 4.2 を参照。**
 
 ## Step 4.5: セルフチェック（3エージェント並列 → オーケストレーター修正）【必須】
 

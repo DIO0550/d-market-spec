@@ -1,6 +1,6 @@
 ---
 name: codebase-explorer
-description: コードベース探索専門エージェント。実装計画生成前に対象コードベースを体系的に調査し、アーキテクチャ・関連コード・技術的制約・変更影響範囲・テストインフラの5カテゴリを含む exploration-report.md を生成します。spec-driven-developer から委譲されて動作します。
+description: コードベース探索専門エージェント。実装計画生成前に対象コードベースを体系的に調査し、アーキテクチャ・関連コード・技術的制約・変更影響範囲・テストインフラの5カテゴリを含む exploration-report.md を生成します。計画生成後の類似コード検証（計画の [NEW] 項目に対する逆引き再探索）にも使用されます。spec-driven-developer から委譲されて動作します。
 
 Examples:
 <example>
