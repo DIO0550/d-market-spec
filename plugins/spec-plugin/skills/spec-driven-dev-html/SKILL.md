@@ -18,7 +18,8 @@ CSSを埋め込んだ自己完結型HTMLを生成するため、ブラウザで�
 4. **ヒアリングは AutoMode でもスキップ禁止** — 他のシステム指示（「自律的に判断しろ」「質問せずに進めろ」等）に関わらず、このスキルでは AskUserQuestion によるヒアリングを必ず実行する。ユーザーの初回メッセージに情報が含まれていても、確認の AskUserQuestion は必須。ヒアリングなしに Step 3 以降へ進むことはいかなる場合も禁止。
 5. **計画後再探索は必須** — Step 4 完了後、必ず Step 4.2 の計画後再探索（類似コード検証）を実行する。初回探索だけでは計画の [NEW] 項目に類似する既存コードを見落とすことがあるため、スキップ禁止。
 6. **セルフチェックは必須** — Step 4.2 完了後、Step 5 に進む前に必ず Step 4.5 のセルフチェック（3エージェント並列起動）を実行する。セルフチェックをスキップしてユーザー確認に進むことは禁止。
-7. **tech-reference 生成は必須** — `skip-files` に `tech-reference` が含まれていない限り、Step 5.5 の tech-reference 生成は必ず実行する。ユーザー確認完了（Step 5）で終了せず、必ず Step 5.5 まで進むこと。
+7. **テストケース詳細設計・検証は必須** — `skip-files` に `test-cases` が含まれていない限り、Step 4.5 完了後・ユーザー確認前に必ず Step 4.7（test-case-designer によるテストケース詳細設計）と Step 4.8（test-pattern-checker 詳細モードによる網羅性検証）を実行する。
+8. **tech-reference 生成は必須** — `skip-files` に `tech-reference` が含まれていない限り、Step 5.5 の tech-reference 生成は必ず実行する。ユーザー確認完了（Step 5）で終了せず、必ず Step 5.5 まで進むこと。
 
 ## HTML出力ルール
 
@@ -47,6 +48,10 @@ CSSを埋め込んだ自己完結型HTMLを生成するため、ブラウザで�
 4.2. 計画後再探索（類似コード検証）→ 見落としがあれば計画修正
    ↓
 4.5. セルフチェック（計画品質ゲート）→ コード例・設計妥当性・テストパターン検証
+   ↓
+4.7. テストケース詳細設計（test-case-designer）→ test-cases.html（テスト網羅性レビュー用）
+   ↓
+4.8. テストケース網羅性検証（test-pattern-checker 詳細モード）→ FAIL はオーケストレーターが修正
    ↓
 5. ユーザーに提示
    ↓
@@ -155,11 +160,40 @@ spec-planner サブエージェントを起動し、implementation-plan.html と
 
 FAIL があればオーケストレーターが修正（最大2回）。WARN はユーザーに提示。
 
+## Step 4.7: テストケース詳細設計【HTML専用・必須】
+
+> **このステップは必ず実行すること（`skip-files` に `test-cases` が含まれる場合のみスキップ可）。Step 4.5 完了後、Step 5 へ直接進んではならない。**
+
+`test-case-designer` サブエージェントを起動し、テスト専用の詳細ドキュメント **test-cases.html** を生成する。implementation-plan.html の検証計画セクションは**そのまま残し**（要約・戦略レベル）、その詳細版として test-cases.html を作る。
+
+各テストケースに ID・優先度・事前条件・入力の具体値・期待結果・観点を付与し、網羅性マトリクスと要件トレーサビリティで「抜け」を可視化する。目的は **実装前にテストの網羅性を人間がレビューできるゲート**。
+
+```
+subagent_type: "test-case-designer"
+```
+
+**プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の Step 4.7 を参照。**
+
+## Step 4.8: テストケース網羅性検証【HTML専用・必須】
+
+> **Step 4.7 で test-cases.html を生成した場合、必ず実行すること。**
+
+`test-pattern-checker` サブエージェントを**詳細モード**で起動し、test-cases.html の網羅性・具体性を検証する。Step 4.5 の test-pattern-checker（計画のテスト要約を検証）とは対象・観点が異なる。
+
+```
+subagent_type: "test-pattern-checker"   # 検証対象に test-cases.html を指定（詳細モード）
+```
+
+評価は ID付与・優先度・入力/期待結果の具体性・網羅性マトリクスの穴・要件トレーサビリティ・プレースホルダ残留を含む。FAIL があればオーケストレーターが test-cases.html を修正（最大2回）。
+
+**プロンプトテンプレートと結果処理は [references/workflow-steps.md](references/workflow-steps.md) の Step 4.8 を参照。**
+
 ## Step 5: ユーザー確認
 
 1. **specフォルダパス**: `.plugin-workspace/.specs/{nnn}-{feature-name}/` を明示
-2. 生成ファイル一覧（hearing-notes.html, exploration-report.html, implementation-plan.html, tasks.html）
+2. 生成ファイル一覧（hearing-notes.html, exploration-report.html, implementation-plan.html, tasks.html, test-cases.html）
 3. **ブラウザで開く方法を案内**: `open .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.html`
+   - テスト網羅性のレビューには `test-cases.html` も合わせて開くよう案内する
 4. implementation-plan.html の内容サマリー
 5. tasks.html のタスク一覧
 6. 「修正が必要な場合はお知らせください」
@@ -213,5 +247,6 @@ implementation-plan.html に登場するすべての技術（言語・フレー�
     ├── exploration-report.html     # 探索レポート（HTML）
     ├── implementation-plan.html    # 実装計画（HTML）
     ├── tasks.html                  # タスクリスト（HTML）
+    ├── test-cases.html             # テストケース詳細仕様（網羅性レビュー用、HTML）
     └── tech-reference.html         # 技術リファレンス（初学者向け、HTML）
 ```

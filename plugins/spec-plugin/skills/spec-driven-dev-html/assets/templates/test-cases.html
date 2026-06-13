@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>テストケース仕様 — {機能名}</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>テストケース仕様 — {機能名}</h1>
+  <p>実装計画（<code>implementation-plan.html</code>）の検証計画を、人間がレビューできる粒度まで展開したテスト専用ドキュメント。</p>
+  <p>このファイルは <strong>テストの網羅性レビューゲート</strong> として使う。実装前に、各ケースの正しさと「抜けがないか」をここで確認する。</p>
+</header>
+
+<nav class="toc">
+  <h2>目次</h2>
+  <ul>
+    <li><a href="#strategy">テスト戦略サマリ</a></li>
+    <li><a href="#coverage-matrix">網羅性マトリクス</a></li>
+    <li><a href="#test-data">テストデータ定義</a></li>
+    <li><a href="#mock-strategy">モック戦略</a></li>
+    <li><a href="#cases">テストケース一覧</a></li>
+    <li><a href="#traceability">要件トレーサビリティ</a></li>
+    <li><a href="#manual">手動検証</a></li>
+  </ul>
+</nav>
+
+<!-- ============================================================ -->
+<section id="strategy" class="section">
+  <h2>テスト戦略サマリ</h2>
+  <!-- implementation-plan の検証計画と整合させること。詳細はこちらに展開する。 -->
+  <dl class="metadata">
+    <div><dt>機能タイプ</dt><dd>{Pure Logic / API Integration / Data Transformation / State Management / UI Component / Async Operations / Security/Auth / Configuration / DOM Manipulation（複数可）}</dd></div>
+    <div><dt>テスト方針</dt><dd>{TDD / テスト追加 / 手動検証のみ}</dd></div>
+    <div><dt>根拠</dt><dd>{なぜこの方針か — test-design-patterns.md の決定フローに基づく}</dd></div>
+    <div><dt>テストランナー</dt><dd>{Vitest / Jest / pytest / cargo test など — exploration-report のテストインフラから}</dd></div>
+    <div><dt>ファイル配置 / 命名</dt><dd>{colocated / __tests__/ ・ *.test.ts / *.spec.ts など}</dd></div>
+    <div><dt>アサーション / モック</dt><dd>{expect ・ vi.mock / jest.mock / nock など}</dd></div>
+  </dl>
+
+  <h3>ケース件数サマリ</h3>
+  <!-- 全テストファイルを合算したカテゴリ別件数。レビュー時に分布の偏りを一目で見るため。 -->
+  <table>
+    <thead>
+      <tr><th>カテゴリ</th><th>件数</th><th>備考</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>正常系</td><td>{n}</td><td>{}</td></tr>
+      <tr><td>境界値</td><td>{n}</td><td>{}</td></tr>
+      <tr><td>異常系</td><td>{n}</td><td>{}</td></tr>
+      <tr><td>エッジケース</td><td>{n}</td><td>{}</td></tr>
+      <tr><td><strong>合計</strong></td><td><strong>{n}</strong></td><td></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<section id="coverage-matrix" class="section">
+  <h2>網羅性マトリクス</h2>
+  <p>入力次元ごとに「どの値クラスをテストでカバーするか」を示す。<strong>レビューで最初に見るべきはここ</strong> — 空欄＝テストの穴。</p>
+  <!--
+    行: 入力パラメータ/条件の次元（例: 数量, ユーザー権限, ネットワーク状態）
+    列: 同値クラス・境界（例: 正常値 / 最小 / 最大 / ゼロ / 不正 / null）
+    セル: その組み合わせをカバーするテストケースID（TC-xxx）。テスト不要なら "N/A" + 理由
+  -->
+  <table>
+    <thead>
+      <tr><th>入力次元</th><th>正常値</th><th>境界（最小/最大/ゼロ/空）</th><th>不正値（型違い/null）</th><th>特殊（特殊文字/大量データ）</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>{次元1: 例 入力数量}</td><td>{TC-001}</td><td>{TC-003, TC-004}</td><td>{TC-007}</td><td>{TC-010}</td></tr>
+      <tr><td>{次元2}</td><td>{TC-002}</td><td>{TC-005}</td><td>{TC-008}</td><td>{N/A — 理由}</td></tr>
+    </tbody>
+  </table>
+  <div class="callout callout-info">
+    <strong>網羅性の根拠</strong>: {この行・列の組み合わせで入力空間を十分カバーできる理由。意図的に省いた組み合わせがあればその根拠（同値クラスで代表される 等）}
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="test-data" class="section">
+  <h2>テストデータ定義</h2>
+  <p>複数ケースで共有する入力データ・フィクスチャをここで定義し、各ケースからは名前で参照する。</p>
+  <!-- 共有データがない場合はこのセクションを「該当なし」とする -->
+  <table>
+    <thead>
+      <tr><th>名前</th><th>内容（具体値）</th><th>用途</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>{validUser}</code></td><td>{ id: 1, role: "admin", … }</td><td>{正常系の認証テスト}</td></tr>
+      <tr><td><code>{emptyCart}</code></td><td>{ items: [] }</td><td>{境界値・空状態テスト}</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<section id="mock-strategy" class="section">
+  <h2>モック戦略</h2>
+  <!-- API Integration / Async / 外部依存がある場合のみ。なければ「外部依存なし — モック不要」と記載 -->
+  <p>外部依存ごとのモック/スタブ方針。何を本物のまま使い、何を差し替えるかを明示する。</p>
+  <table>
+    <thead>
+      <tr><th>依存</th><th>モック方法</th><th>差し替える理由 / 本物を使う理由</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>{外部API GET /users}</td><td>{nock でHTTPスタブ}</td><td>{ネットワーク非依存・レスポンス制御のため}</td></tr>
+      <tr><td>{システム時刻}</td><td>{vi.useFakeTimers()}</td><td>{タイムアウト・期限テストの再現性のため}</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<section id="cases" class="section">
+  <h2>テストケース一覧</h2>
+  <!--
+    テストファイルごとに <h3> セクションを作る。
+    各ケースは ID（TC-xxx）で一意に識別し、網羅性マトリクス・トレーサビリティから参照される。
+    カテゴリ順: 正常系 → 境界値 → 異常系 → エッジケース
+    優先度: P0(badge-high) 必須 / P1(badge-mid) 重要 / P2(badge-low) 余裕があれば
+  -->
+
+  <h3><code>{テストファイルパス1}</code></h3>
+  <p><strong>役割</strong>: {このファイルが何を検証するか — 対象モジュールと観点を1文で}</p>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>優先度</th><th>カテゴリ</th>
+        <th>事前条件</th><th>入力（具体値）</th><th>操作</th>
+        <th>期待結果（具体値）</th><th>観点 / 同値クラス</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>TC-001</td><td><span class="badge badge-high">P0</span></td><td>正常系</td>
+        <td>{セットアップ状態。なければ「なし」}</td>
+        <td><code>{具体的な入力値}</code></td>
+        <td>{呼び出す関数・操作}</td>
+        <td><code>{戻り値・状態の具体値}</code></td>
+        <td>{この行が代表する同値クラス・観点}</td>
+      </tr>
+      <tr>
+        <td>TC-002</td><td><span class="badge badge-mid">P1</span></td><td>境界値</td>
+        <td>{}</td><td><code>{最小値/最大値/ゼロ}</code></td><td>{}</td>
+        <td><code>{期待される振る舞い}</code></td><td>{境界}</td>
+      </tr>
+      <tr>
+        <td>TC-003</td><td><span class="badge badge-high">P0</span></td><td>異常系</td>
+        <td>{}</td><td><code>{不正入力}</code></td><td>{}</td>
+        <td><code>{エラー応答/例外の型・メッセージ}</code></td><td>{異常入力}</td>
+      </tr>
+      <tr>
+        <td>TC-004</td><td><span class="badge badge-low">P2</span></td><td>エッジケース</td>
+        <td>{}</td><td><code>{想定外だが起こりうる入力}</code></td><td>{}</td>
+        <td><code>{期待される振る舞い}</code></td><td>{エッジ}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3><code>{テストファイルパス2}</code></h3>
+  <p><strong>役割</strong>: {このファイルが何を検証するか}</p>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>優先度</th><th>カテゴリ</th>
+        <th>事前条件</th><th>入力（具体値）</th><th>操作</th>
+        <th>期待結果（具体値）</th><th>観点 / 同値クラス</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>TC-005</td><td><span class="badge badge-high">P0</span></td><td>正常系</td>
+        <td>{}</td><td><code>{}</code></td><td>{}</td><td><code>{}</code></td><td>{}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- テストファイルが増える場合は同じ形式で <h3> セクションを追加 -->
+
+  <h3>テスト実行コマンド</h3>
+  <pre><code>{テストを実行するコマンド。特定ファイルのみ実行する例も添える}</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="traceability" class="section">
+  <h2>要件トレーサビリティ</h2>
+  <p>hearing-notes の要件・implementation-plan の Definition of Done と、テストケースの対応。<strong>各要件に最低1つのケースが紐づくこと</strong>を確認する。</p>
+  <table>
+    <thead>
+      <tr><th>要件 / 受入条件</th><th>対応テストケース</th><th>カバー状況</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>{要件1（hearing-notes / DoD から）}</td><td>{TC-001, TC-002}</td><td>カバー済</td></tr>
+      <tr><td>{要件2}</td><td>{TC-005}</td><td>カバー済</td></tr>
+      <tr><td>{要件3}</td><td>{—}</td><td>{未カバー → 要追加 / 手動検証で対応}</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<section id="manual" class="section">
+  <h2>手動検証</h2>
+  <p>自動テストで担保しきれない確認項目。手動検証のみの方針の場合はここが主役になる。</p>
+  <ol>
+    <li>{具体的な確認手順1 — 操作と期待される見え方}</li>
+    <li>{具体的な確認手順2}</li>
+    <li>{具体的な確認手順3}</li>
+  </ol>
+</section>
+
+</body>
+</html>
