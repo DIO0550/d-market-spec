@@ -166,7 +166,7 @@ FAIL があればオーケストレーターが修正（最大2回）。WARN は
 
 `test-case-designer` サブエージェントを起動し、テスト専用の詳細ドキュメント **test-cases.html** を生成する。implementation-plan.html の検証計画セクションは**そのまま残し**（要約・戦略レベル）、その詳細版として test-cases.html を作る。
 
-各テストケースに ID・優先度・事前条件・入力の具体値・期待結果・観点を付与し、網羅性マトリクスと要件トレーサビリティで「抜け」を可視化する。目的は **実装前にテストの網羅性を人間がレビューできるゲート**。
+test-cases.html は**マスター詳細型のレビューUI**で、CSS・ヘルパー・レンダラがテンプレートに固定済み。エージェントは先頭の **DATA スクリプト（`FILES` / `PLAN`）だけ**を埋める（HTMLは書かない）。**他のHTMLファイルと違い `<link>`→style.css 置換は不要**（自己完結済み）。各ケースに ID・優先度・カテゴリ・入力/期待結果の具体値・カバレッジを付与し、`gaps` と `PLAN.trace` で「抜け」を可視化する。目的は **実装前にテストの網羅性を人間がレビューできるゲート**。
 
 ```
 subagent_type: "test-case-designer"
@@ -184,7 +184,7 @@ subagent_type: "test-case-designer"
 subagent_type: "test-pattern-checker"   # 検証対象に test-cases.html を指定（詳細モード）
 ```
 
-評価は ID付与・優先度・入力/期待結果の具体性・網羅性マトリクスの穴・要件トレーサビリティ・プレースホルダ残留を含む。FAIL があればオーケストレーターが test-cases.html を修正（最大2回）。
+検証対象は test-cases.html 先頭の DATA スクリプト（`FILES` / `PLAN`）。評価は D1〜D9（データ妥当性・ケースID・カテゴリ妥当性/網羅・優先度・具体性・カバレッジ整合・シナリオ充足・gaps の正直性・要件トレーサビリティ）。FAIL があればオーケストレーターが DATA スクリプトを修正（最大2回、CSS・レンダラは触らない）。
 
 **プロンプトテンプレートと結果処理は [references/workflow-steps.md](references/workflow-steps.md) の Step 4.8 を参照。**
 

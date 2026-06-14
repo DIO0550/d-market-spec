@@ -541,7 +541,7 @@ Agent tool (並列 3/3):
 
 Step 4.5 のセルフチェック通過後、ユーザー確認に進む前に、test-case-designer サブエージェントを起動して **テスト専用の詳細ドキュメント** `test-cases.html` を生成する。
 
-implementation-plan の検証計画セクション（テスト戦略 + テスト表）は**そのまま残す**（要約・戦略レベル）。test-cases.html はその**詳細版**であり、各テストケースに ID・優先度・事前条件・入力の具体値・期待結果・観点を付与し、網羅性マトリクスと要件トレーサビリティで「抜け」を可視化する。目的は **実装前にテストの網羅性を人間がレビューできるゲート** を提供すること。
+implementation-plan の検証計画セクション（テスト戦略 + テスト表）は**そのまま残す**（要約・戦略レベル）。test-cases.html はその**詳細版**。test-cases.html はマスター詳細型のレビューUIで、CSS・レンダラは固定済み。エージェントは先頭の **DATA スクリプト（`FILES` / `PLAN`）だけ**を埋める（HTMLは書かない）。目的は **実装前にテストの網羅性を人間がレビューできるゲート** を提供すること。
 
 ### サブエージェント起動
 
@@ -551,13 +551,13 @@ Agent tool:
   description: "test-case-designer: {feature-name}"
   run_in_background: true
   prompt: |
-    implementation-plan の検証計画を起点に、テスト専用の詳細ドキュメント test-cases.html を生成してください。
+    implementation-plan の検証計画を起点に、テスト専用ドキュメント test-cases.html を生成してください。
     implementation-plan の検証計画セクションは編集せず（要約として残す）、その詳細版を test-cases.html として作成します。
 
     ## 入力
     - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.html  ← 検証計画の起点
     - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.html        ← 要件・受入条件
-    - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.html   ← テストインフラ
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.html   ← テストインフラ・対象ファイル
 
     ## リファレンス
     - references/test-design-patterns.md（機能タイプ分類 §1、タイプ別シナリオ §3、テストインフラ §6）
@@ -566,19 +566,21 @@ Agent tool:
     - テンプレート: spec-driven-dev-html:test-cases
     - 出力: .plugin-workspace/.specs/{nnn}-{feature-name}/test-cases.html
 
-    ## 出力形式
-    **HTML形式で出力すること。**
-    1. spec-driven-dev-html:style を Read してCSSを取得
-    2. spec-driven-dev-html:test-cases を Read してHTMLテンプレートを取得
-    3. テンプレートの <link> を <style>{CSS}</style> に置換
-    4. すべてのプレースホルダを内容で埋める（残さない）
-    5. 自己完結型HTMLとして出力
+    ## 生成方法（重要）
+    test-cases.html はマスター詳細型のレビューUIで、CSS・ヘルパー・レンダラは固定済み。
+    1. spec-driven-dev-html:test-cases を Read する
+    2. テンプレート先頭の DATA スクリプト（スキーマ説明コメント + const FILES + const PLAN）を実データで丸ごと置き換える
+    3. それ以外（<style>・ヘルパー/レンダラの2スクリプト・HTMLシェル）は1文字も変更しない。<link>→style.css 置換は不要（自己完結済み）
+    4. <title> の {機能名} を実際の機能名に置換する
+    5. test-cases.html に Write する（プレースホルダ {...} を残さない）
 
-    ## 必須要件
-    - 各テストケースに ID（TC-xxx）・優先度（P0/P1/P2）・事前条件・入力の具体値・期待結果の具体値・観点を付与すること
-    - 網羅性マトリクス（入力次元 × 値クラス、セルに TC-ID）で入力空間の穴を可視化すること
-    - test-design-patterns.md §3 の該当タイプのシナリオをすべてチェックし反映すること
-    - 要件トレーサビリティで各要件に最低1ケースを紐づけ、未カバーは明示すること
+    ## 必須要件（データモデル）
+    - FILES[].cases[] の各ケースに id / cat(normal|boundary|error|edge) / prio(high|med|low) / precond / steps / input / expected(具体値) / throws / coverage / ai を付与
+    - 各ケースの coverage に k:"関数" を必ず含める（網羅性マトリクスの行になる）
+    - 各 file の coverage.fns / coverage.branches を [到達,全体] の数値で記載
+    - gaps[] に未カバーの疑いを正直に記載（カバー済なら空配列）
+    - PLAN.trace で各要件に最低1ケースを紐づけ、未カバーは status:"gap" で明示
+    - test-design-patterns.md §3 の該当タイプのシナリオをすべてチェックし反映
 ```
 
 ```
@@ -618,7 +620,8 @@ Agent tool:
     - references/test-design-patterns.md
 
     ## 検証観点
-    計画モードの6項目に加え、詳細モードの追加項目（ケースID付与・優先度・入力/期待結果の具体性・網羅性マトリクス・要件トレーサビリティ・プレースホルダ残留）を評価すること。
+    検証対象は test-cases.html 先頭の DATA スクリプト（FILES / PLAN）です。
+    詳細モードの D1〜D9（データ妥当性・ケースID・カテゴリ妥当性/網羅・優先度・具体性・カバレッジ整合・シナリオ充足・gaps の正直性・要件トレーサビリティ）を評価すること。
 ```
 
 ```
@@ -631,7 +634,7 @@ TaskOutput:
 ### 結果の処理（オーケストレーター）
 
 1. **PASS** → ユーザー確認へ進む
-2. **FAIL** → オーケストレーターが test-cases.html を直接修正する（**最大2回**）。修正の優先順: プレースホルダ残留 → 網羅性マトリクスの穴 → 不足シナリオ → 具体性。2回修正しても解決しない FAIL はユーザーに提示してから次に進む
+2. **FAIL** → オーケストレーターが test-cases.html の DATA スクリプト（FILES / PLAN）を直接修正する（**最大2回**、CSS・レンダラは触らない）。修正の優先順: データ妥当性/プレースホルダ残留 → カバレッジ整合（k:"関数" 欠落）→ 不足シナリオ・gaps → 具体性。2回修正しても解決しない FAIL はユーザーに提示してから次に進む
 
 ---
 
