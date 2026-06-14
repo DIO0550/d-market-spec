@@ -20,12 +20,21 @@ color: yellow
 
 ## 入力ファイル
 
-プロンプトで指定された `.plugin-workspace/.specs/{nnn}-{feature-name}/` ディレクトリから以下を読み込む：
+検証対象ファイルは**プロンプトで指定される**。2つのモードがある：
+
+| モード | 検証対象 | 使われる場面 |
+|--------|---------|------------|
+| **計画モード**（デフォルト） | `implementation-plan{EXT}` のテスト戦略セクション | spec-driven-dev / -lite の Step 4.5、spec-driven-dev-html の Step 4.5（計画のテスト要約を検証） |
+| **詳細モード** | `test-cases.html`（テスト専用詳細ドキュメント） | spec-driven-dev-html の Step 4.8（詳細テストケースの網羅性を検証） |
+
+プロンプトで指定された `.plugin-workspace/.specs/{nnn}-{feature-name}/` ディレクトリから読み込む：
 
 ```
-Read: .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{EXT}
+Read: {プロンプトで指定された検証対象ファイル}   # implementation-plan{EXT} または test-cases.html
 Read: .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{EXT}
 ```
+
+プロンプトに `test-cases.html` が検証対象として指定された場合は**詳細モード**、それ以外は**計画モード**で評価する。
 
 ## リファレンス
 
@@ -47,6 +56,24 @@ Read: references/test-design-patterns.md
 | 4 | シナリオ充足 | 各カテゴリのテストケースが test-design-patterns.md のタイプ別シナリオと照合して不足がない | test-design-patterns.md §3 |
 | 5 | 具体性 | 各テストケースのユースケースと期待結果が具体的（「テストする」「正常に動く」のような抽象的記述でない） | — |
 | 6 | テスト方針の根拠 | テスト方針（TDD / テスト追加 / 手動検証のみ）の選択理由が機能タイプに基づいて記載されている | test-design-patterns.md §4 決定フロー |
+
+### 詳細モード（test-cases.html）の評価項目
+
+検証対象が `test-cases.html` の場合、検証するのは先頭の **DATA スクリプト（`const FILES` と `const PLAN`）**である。HTMLやCSSは固定テンプレートなので評価対象外。`FILES` / `PLAN` を JS オブジェクトとして読み取り、以下を PASS / FAIL で判定する（このモードでは計画モードの 1〜6 は適用せず、下記で置き換える）。
+
+| # | 評価項目 | 合格基準 |
+|---|---------|---------|
+| D1 | データ妥当性 | `FILES` / `PLAN` が有効な JS リテラルで、プレースホルダ `{...}` が残っていない |
+| D2 | ケースID | 全 `case` に一意な `id`（`TC-xx`）がある |
+| D3 | カテゴリ妥当性・網羅 | 全 `case` の `cat` が `normal`/`boundary`/`error`/`edge` のいずれか。機能タイプに必要なカテゴリ（test-design-patterns.md §3）が揃っている |
+| D4 | 優先度 | 全 `case` に `prio`（`high`/`med`/`low`）がある。Security/Auth と正常系主要パスが `high` |
+| D5 | 具体性 | `input` と `expected` が具体値（`-1`, `""`, `null`, 例外の型/メッセージ等）。「不正な入力」「正常に動く」のような抽象記述でない |
+| D6 | カバレッジ整合 | 全 `case` の `coverage` に `k:"関数"` の項目がある（網羅性マトリクスが描画される条件）。各 file の `coverage.fns` / `coverage.branches` が `[到達, 全体]` の数値で入っている |
+| D7 | シナリオ充足 | test-design-patterns.md §3 の該当タイプのシナリオが `case` 群でカバーされている。不足は `gaps` に明示されているか |
+| D8 | gaps の正直性 | 未カバーの疑いが `gaps` に記載されている。`gaps:[]`（カバー済主張）の場合、主要な関数・分岐が実際にケースで触れられているか |
+| D9 | 要件トレーサビリティ | `PLAN.trace` の各要件が hearing-notes / DoD を反映し、`tcs` を持つか `status:"gap"` で未カバーを明示している |
+
+詳細モードでは、§3 のタイプ別シナリオの網羅性を **`cases[].coverage`（関数 × カテゴリ）と `gaps` を基準に**突合する（触れられていない関数・分岐 = 穴）。
 
 ### テスト不要と判断されている場合
 
@@ -81,6 +108,17 @@ test-design-patterns.md §5「テスト不要の判断基準」の4条件をす�
 - [PASS/FAIL] シナリオ充足: {詳細。不足シナリオがあれば列挙}
 - [PASS/FAIL] 具体性: {詳細。抽象的な記述があれば列挙}
 - [PASS/FAIL] テスト方針の根拠: {詳細}
+
+（詳細モード = test-cases.html の場合は 1〜6 の代わりに以下を報告）
+- [PASS/FAIL] D1 データ妥当性: {詳細。プレースホルダ残留があれば列挙}
+- [PASS/FAIL] D2 ケースID: {詳細}
+- [PASS/FAIL] D3 カテゴリ妥当性・網羅: {詳細。不足カテゴリがあれば列挙}
+- [PASS/FAIL] D4 優先度: {詳細}
+- [PASS/FAIL] D5 具体性: {詳細。抽象的な記述があれば列挙}
+- [PASS/FAIL] D6 カバレッジ整合: {詳細。k:"関数" 欠落や coverage 数値欠落があれば列挙}
+- [PASS/FAIL] D7 シナリオ充足: {詳細。不足シナリオがあれば列挙}
+- [PASS/FAIL] D8 gaps の正直性: {詳細}
+- [PASS/FAIL] D9 要件トレーサビリティ: {詳細。未カバー要件があれば列挙}
 
 ### 不足しているテストシナリオ（FAIL がある場合）
 - {不足シナリオ1}: {どのカテゴリに追加すべきか}

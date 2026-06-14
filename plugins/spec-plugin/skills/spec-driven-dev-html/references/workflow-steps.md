@@ -14,6 +14,8 @@ SKILL.md本文で宣言されたパラメータを参照して実行する。
 - [Step 4: 実装計画生成](#step-4-実装計画生成spec-planner-サブエージェントに委譲)
 - [Step 4.2: 計画後再探索（類似コード検証）](#step-42-計画後再探索類似コード検証)
 - [Step 4.5: セルフチェック（計画品質ゲート）](#step-45-セルフチェック計画品質ゲート)
+- [Step 4.7: テストケース詳細設計（test-cases 生成）](#step-47-テストケース詳細設計test-cases-生成html専用)
+- [Step 4.8: テストケース網羅性検証（test-cases 検証）](#step-48-テストケース網羅性検証test-cases-検証html専用)
 - [ユーザー確認](#ユーザー確認)
 - [tech-reference 生成](#tech-reference-生成サブエージェントに委譲)
 - [ガード解除 / PLANNINGファイル削除](#ガード解除use_guard--true-の場合)
@@ -533,6 +535,109 @@ Agent tool (並列 3/3):
 
 ---
 
+## Step 4.7: テストケース詳細設計（test-cases 生成）【HTML専用】
+
+> **このステップは spec-driven-dev-html でのみ実行する（test-cases は HTML 専用ドキュメント）。`skip-files` に `test-cases` が含まれている場合のみスキップ可。**
+
+Step 4.5 のセルフチェック通過後、ユーザー確認に進む前に、test-case-designer サブエージェントを起動して **テスト専用の詳細ドキュメント** `test-cases.html` を生成する。
+
+implementation-plan の検証計画セクション（テスト戦略 + テスト表）は**そのまま残す**（要約・戦略レベル）。test-cases.html はその**詳細版**。test-cases.html はマスター詳細型のレビューUIで、CSS・レンダラは固定済み。エージェントは先頭の **DATA スクリプト（`FILES` / `PLAN`）だけ**を埋める（HTMLは書かない）。目的は **実装前にテストの網羅性を人間がレビューできるゲート** を提供すること。
+
+### サブエージェント起動
+
+```
+Agent tool:
+  subagent_type: "test-case-designer"
+  description: "test-case-designer: {feature-name}"
+  run_in_background: true
+  prompt: |
+    implementation-plan の検証計画を起点に、テスト専用ドキュメント test-cases.html を生成してください。
+    implementation-plan の検証計画セクションは編集せず（要約として残す）、その詳細版を test-cases.html として作成します。
+
+    ## 入力
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.html  ← 検証計画の起点
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.html        ← 要件・受入条件
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.html   ← テストインフラ・対象ファイル
+
+    ## リファレンス
+    - references/test-design-patterns.md（機能タイプ分類 §1、タイプ別シナリオ §3、テストインフラ §6）
+
+    ## テンプレート・出力先
+    - テンプレート: spec-driven-dev-html:test-cases
+    - 出力: .plugin-workspace/.specs/{nnn}-{feature-name}/test-cases.html
+
+    ## 生成方法（重要）
+    test-cases.html はマスター詳細型のレビューUIで、CSS・ヘルパー・レンダラは固定済み。
+    1. spec-driven-dev-html:test-cases を Read する
+    2. テンプレート先頭の DATA スクリプト（スキーマ説明コメント + const FILES + const PLAN）を実データで丸ごと置き換える
+    3. それ以外（<style>・ヘルパー/レンダラの2スクリプト・HTMLシェル）は1文字も変更しない。<link>→style.css 置換は不要（自己完結済み）
+    4. <title> の {機能名} を実際の機能名に置換する
+    5. test-cases.html に Write する（プレースホルダ {...} を残さない）
+
+    ## 必須要件（データモデル）
+    - FILES[].cases[] の各ケースに id / cat(normal|boundary|error|edge) / prio(high|med|low) / precond / steps / input / expected(具体値) / throws / coverage / ai を付与
+    - 各ケースの coverage に k:"関数" を必ず含める（網羅性マトリクスの行になる）
+    - 各 file の coverage.fns / coverage.branches を [到達,全体] の数値で記載
+    - gaps[] に未カバーの疑いを正直に記載（カバー済なら空配列）
+    - PLAN.trace で各要件に最低1ケースを紐づけ、未カバーは status:"gap" で明示
+    - test-design-patterns.md §3 の該当タイプのシナリオをすべてチェックし反映
+```
+
+```
+TaskOutput:
+  task_id: "{test-case-designerのtask_id}"
+  block: true
+  timeout: 240000
+```
+
+生成完了後、Step 4.8 へ進む。
+
+---
+
+## Step 4.8: テストケース網羅性検証（test-cases 検証）【HTML専用】
+
+> **このステップは Step 4.7 で test-cases.html を生成した場合に実行する。`skip-files` に `test-cases` が含まれている場合はスキップ。**
+
+test-case-designer が生成した `test-cases.html` の網羅性・具体性を、test-pattern-checker サブエージェント（**詳細モード**）で検証する。エージェントは評価のみ行い、修正はオーケストレーターが実施する。
+
+Step 4.5 の test-pattern-checker は計画のテスト要約（種）を検証する。本ステップはその展開結果である詳細ドキュメントを検証するもので、対象と観点が異なる。
+
+### サブエージェント起動
+
+```
+Agent tool:
+  subagent_type: "test-pattern-checker"
+  description: "test-pattern-checker (詳細): {feature-name}"
+  prompt: |
+    以下のテストケース詳細ドキュメント（test-cases.html）の網羅性・具体性を検証してください。
+    **検証対象は test-cases.html です（詳細モード）。**
+
+    ## 入力
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/test-cases.html   ← 検証対象（詳細モード）
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.html
+
+    ## リファレンス
+    - references/test-design-patterns.md
+
+    ## 検証観点
+    検証対象は test-cases.html 先頭の DATA スクリプト（FILES / PLAN）です。
+    詳細モードの D1〜D9（データ妥当性・ケースID・カテゴリ妥当性/網羅・優先度・具体性・カバレッジ整合・シナリオ充足・gaps の正直性・要件トレーサビリティ）を評価すること。
+```
+
+```
+TaskOutput:
+  task_id: "{test-pattern-checker (詳細)のtask_id}"
+  block: true
+  timeout: 180000
+```
+
+### 結果の処理（オーケストレーター）
+
+1. **PASS** → ユーザー確認へ進む
+2. **FAIL** → オーケストレーターが test-cases.html の DATA スクリプト（FILES / PLAN）を直接修正する（**最大2回**、CSS・レンダラは触らない）。修正の優先順: データ妥当性/プレースホルダ残留 → カバレッジ整合（k:"関数" 欠落）→ 不足シナリオ・gaps → 具体性。2回修正しても解決しない FAIL はユーザーに提示してから次に進む
+
+---
+
 ## ユーザー確認
 
 生成したファイルをユーザーに提示:
@@ -543,6 +648,7 @@ Agent tool (並列 3/3):
    - `.plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}`
    - `.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}`
    - `.plugin-workspace/.specs/{nnn}-{feature-name}/tasks{TASKS_EXT}`
+   - `.plugin-workspace/.specs/{nnn}-{feature-name}/test-cases.html`（spec-driven-dev-html のみ・テスト網羅性レビュー用）
    - `.plugin-workspace/.specs/{nnn}-{feature-name}/tech-reference{TECH_REFERENCE_EXT}`（tech-reference 生成後に追加提示）
 3. implementation-plan の内容サマリー
 4. tasks のタスク一覧
