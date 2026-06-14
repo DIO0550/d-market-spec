@@ -34,10 +34,12 @@ test-cases.html は **マスター詳細型のレビューUI**（左にファイ
 
 ## 入力ファイル
 
+**プロンプトで指定された入力ファイル**を Read する（拡張子はスキル設定に従い `.md` / `.html` のいずれか）。
+
 ```
-Read: .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.html  ← 検証計画の起点
-Read: .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.html        ← 要件・受入条件
-Read: .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.html   ← テストインフラ・対象ファイル
+Read: .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{EXT}  ← 検証計画の起点
+Read: .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{EXT}        ← 要件・受入条件
+Read: .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXT}   ← テストインフラ・対象ファイル
 ```
 
 ## リファレンス
@@ -50,7 +52,7 @@ Read: references/test-design-patterns.md
 
 ## 生成手順
 
-1. `spec-driven-dev-html:test-cases` を Read してテンプレートを取得する
+1. **プロンプトで指定されたテンプレート**（`spec-driven-dev-html:test-cases` または `spec-driven-dev:test-cases`）を Read してテンプレートを取得する
 2. テンプレート先頭の DATA スクリプト（`/* ... */` のスキーマ説明 + `const FILES = [...]` + `const PLAN = {...}`）を、実データで**丸ごと置き換える**
 3. それ以外（`<style>`・ヘルパー・レンダラの 2 スクリプト・HTMLシェル）は**1文字も変更しない**
 4. `<title>` の `{機能名}` を実際の機能名に置換する

@@ -25,7 +25,7 @@ spec-plugin のワークスペース初期化と設定を行うスキル。
 | `output-formats.implementation-plan` | `md` / `html` | implementation-plan の出力形式 |
 | `output-formats.tasks` | `md` / `html` | tasks の出力形式 |
 | `output-formats.tech-reference` | `md` / `html` | tech-reference の出力形式 |
-| `skip-files` | リスト | 生成をスキップするファイル（例: `[tech-reference, test-cases]`）。`test-cases` は spec-driven-dev-html 専用 |
+| `skip-files` | リスト | 生成をスキップするファイル（例: `[tech-reference, test-cases]`）。`test-cases` は spec-driven-dev / spec-driven-dev-html で有効 |
 
 ## ワークフロー
 
@@ -90,12 +90,12 @@ options:
   - label: "tech-reference"
     description: "技術リファレンス（初学者向け解説）を生成しない"
   - label: "test-cases"
-    description: "テストケース詳細仕様（test-cases.html）を生成しない。spec-driven-dev-html 専用"
+    description: "テストケース詳細仕様（test-cases.html）を生成しない。spec-driven-dev / spec-driven-dev-html で有効"
 ```
 
 選択結果から `skip-files` リストを構築する。何も選択されなかった場合は `skip-files` キーを出力しない。
 
-`test-cases` は HTML 専用ドキュメントのため、`spec-driven-dev-html` でのみ意味を持つ（他のスキルでは無視される）。
+`test-cases` は `spec-driven-dev` / `spec-driven-dev-html` で意味を持つ（test-cases.html を生成するスキル。他のスキルでは無視される）。
 
 ### Step 4: 設定ファイルの書き出し
 
@@ -116,7 +116,7 @@ output-formats:
   tech-reference: {md or html}
 
 # 生成をスキップするファイル（Step 3.5 で選択された場合のみ出力）
-# test-cases は spec-driven-dev-html 専用
+# test-cases は spec-driven-dev / spec-driven-dev-html で有効
 skip-files:
   - tech-reference
   - test-cases
