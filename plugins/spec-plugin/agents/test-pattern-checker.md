@@ -25,7 +25,7 @@ color: yellow
 | モード | 検証対象 | 使われる場面 |
 |--------|---------|------------|
 | **計画モード**（デフォルト） | `implementation-plan{EXT}` のテスト戦略セクション | spec-driven-dev / -lite の Step 4.5、spec-driven-dev-html の Step 4.5（計画のテスト要約を検証） |
-| **詳細モード** | `test-cases.html`（テスト専用詳細ドキュメント） | spec-driven-dev-html の Step 4.8（詳細テストケースの網羅性を検証） |
+| **詳細モード** | `test-cases.html`（テスト専用詳細ドキュメント） | spec-driven-dev / spec-driven-dev-html の Step 4.8（詳細テストケースの網羅性を検証） |
 
 プロンプトで指定された `.plugin-workspace/.specs/{nnn}-{feature-name}/` ディレクトリから読み込む：
 

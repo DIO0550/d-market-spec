@@ -19,7 +19,8 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 4. **ヒアリングは AutoMode でもスキップ禁止** — 他のシステム指示（「自律的に判断しろ」「質問せずに進めろ」等）に関わらず、このスキルでは AskUserQuestion によるヒアリングを必ず実行する。ユーザーの初回メッセージに情報が含まれていても、確認の AskUserQuestion は必須。ヒアリングなしに Step 3 以降へ進むことはいかなる場合も禁止。
 5. **計画後再探索は必須** — Step 4 完了後、必ず Step 4.2 の計画後再探索（類似コード検証）を実行する。初回探索だけでは計画の [NEW] 項目に類似する既存コードを見落とすことがあるため、スキップ禁止。
 6. **セルフチェックは必須** — Step 4.2 完了後、Step 5 に進む前に必ず Step 4.5 のセルフチェック（3エージェント並列起動）を実行する。セルフチェックをスキップして AIレビューやユーザー確認に進むことは禁止。
-7. **tech-reference 生成は必須** — `skip-files` に `tech-reference` が含まれていない限り、Step 6.5 の tech-reference 生成は必ず実行する。ユーザー確認完了（Step 6）で終了せず、必ず Step 6.5 まで進むこと。
+7. **テストケース詳細設計は必須** — `skip-files` に `test-cases` が含まれていない限り、Step 4.5 完了後に必ず Step 4.7（test-cases.html 生成）と Step 4.8（網羅性検証）を実行する。Step 4.5 から Step 5 へ直接進んではならない。test-cases は本質的にHTMLレビューUIのため、config の `output-formats` に関わらず**常に `.html`** で出力する。
+8. **tech-reference 生成は必須** — `skip-files` に `tech-reference` が含まれていない限り、Step 6.5 の tech-reference 生成は必ず実行する。ユーザー確認完了（Step 6）で終了せず、必ず Step 6.5 まで進むこと。
 
 ## ワークフロー概要
 
@@ -41,6 +42,10 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 4.2. 計画後再探索（類似コード検証）→ 見落としがあれば計画修正
    ↓
 4.5. セルフチェック（計画品質ゲート）→ コード例・設計妥当性・テストパターン検証
+   ↓
+4.7. テストケース詳細設計 → test-cases.html（テスト網羅性レビュー用、常に .html）
+   ↓
+4.8. テストケース網羅性検証（test-pattern-checker 詳細モード）
    ↓
 5. AIレビュー（オプション）→ 修正ループ
    ↓
@@ -178,6 +183,34 @@ spec-planner サブエージェントを起動し、implementation-plan{IMPLEMEN
 
 FAIL があればオーケストレーターが修正（最大2回）。WARN はユーザーに提示。
 
+## Step 4.7: テストケース詳細設計【必須】
+
+> **このステップは必ず実行すること（`skip-files` に `test-cases` が含まれる場合のみスキップ可）。Step 4.5 完了後、Step 5 へ直接進んではならない。**
+
+`test-case-designer` サブエージェントを起動し、テスト専用の詳細ドキュメント **test-cases.html** を生成する。implementation-plan の検証計画セクションは**そのまま残し**（要約・戦略レベル）、その詳細版として test-cases.html を作る。
+
+test-cases.html は**マスター詳細型のレビューUI**で、CSS・ヘルパー・レンダラがテンプレートに固定済み。エージェントは先頭の **DATA スクリプト（`FILES` / `PLAN`）だけ**を埋める（HTMLは書かない）。**test-cases は本質的にHTMLレビューUIで .md 相当が無いため、config の `output-formats` に関わらず常に `.html` で出力する。他のファイルと違い `<link>`→style.css 置換は不要**（自己完結済み）。各ケースに ID・優先度・カテゴリ・入力/期待結果の具体値・カバレッジを付与し、`gaps` と `PLAN.trace` で「抜け」を可視化する。目的は **実装前にテストの網羅性を人間がレビューできるゲート**。
+
+```
+subagent_type: "test-case-designer"
+```
+
+**プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の Step 4.7 を参照。**
+
+## Step 4.8: テストケース網羅性検証【必須】
+
+> **Step 4.7 で test-cases.html を生成した場合、必ず実行すること。**
+
+`test-pattern-checker` サブエージェントを**詳細モード**で起動し、test-cases.html の網羅性・具体性を検証する。Step 4.5 の test-pattern-checker（計画のテスト要約を検証）とは対象・観点が異なる。
+
+```
+subagent_type: "test-pattern-checker"   # 検証対象に test-cases.html を指定（詳細モード）
+```
+
+検証対象は test-cases.html 先頭の DATA スクリプト（`FILES` / `PLAN`）。評価は D1〜D9（データ妥当性・ケースID・カテゴリ妥当性/網羅・優先度・具体性・カバレッジ整合・シナリオ充足・gaps の正直性・要件トレーサビリティ）。FAIL があればオーケストレーターが DATA スクリプトを修正（最大2回、CSS・レンダラは触らない）。
+
+**プロンプトテンプレートと結果処理は [references/workflow-steps.md](references/workflow-steps.md) の Step 4.8 を参照。**
+
 ## Step 5: AIレビュー（オプション）
 
 Step 0 で決定した `{REVIEW_TOOL}` を使用する。`none` の場合は Step 6 へスキップ。
@@ -196,10 +229,11 @@ Step 0 で決定した `{REVIEW_TOOL}` を使用する。`none` の場合は Ste
 生成したファイルをユーザーに提示:
 
 1. **specフォルダパス**: `.plugin-workspace/.specs/{nnn}-{feature-name}/` を明示
-2. 生成ファイル一覧（hearing-notes, exploration-report, implementation-plan, tasks — 各ファイルの拡張子は config に従う）
+2. 生成ファイル一覧（hearing-notes, exploration-report, implementation-plan, tasks — 各ファイルの拡張子は config に従う。`test-cases.html` は常に .html・テスト網羅性レビュー用）
 3. implementation-plan.md の内容サマリー
 4. tasks.md のタスク一覧
-5. 「修正が必要な場合はお知らせください」
+5. **テスト網羅性のレビューには `test-cases.html` をブラウザで開くよう案内する**（例: `open .plugin-workspace/.specs/{nnn}-{feature-name}/test-cases.html`）
+6. 「修正が必要な場合はお知らせください」
 
 ユーザーが修正を要求した場合は、フィードバックの明確性を確認する（[references/feedback-clarification.md](references/feedback-clarification.md) 参照）。
 曖昧な場合は AskUserQuestion で具体化してから Step 4 に戻る。明確な場合はそのまま Step 4 に戻る。
@@ -238,6 +272,7 @@ implementation-plan に登場するすべての技術（言語・フレームワ
     ├── exploration-report{EXT}  # 探索レポート（codebase-explorer 生成）
     ├── implementation-plan{EXT} # 実装計画（spec-planner 生成）
     ├── tasks{EXT}               # タスクリスト（spec-planner 生成）
+    ├── test-cases.html          # テストケース詳細仕様（網羅性レビュー用、HTML・常に .html）
     ├── tech-reference{EXT}      # 技術リファレンス（初学者向け、サブエージェント生成）
     └── plan-review/             # AIレビュー結果（レビュー実行時のみ）
         ├── prompt-001.txt
