@@ -21,6 +21,7 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 6. **セルフチェックは必須** — Step 4.2 完了後、Step 5 に進む前に必ず Step 4.5 のセルフチェック（3エージェント並列起動）を実行する。セルフチェックをスキップして AIレビューやユーザー確認に進むことは禁止。
 7. **テストケース詳細設計は必須** — `skip-files` に `test-cases` が含まれていない限り、Step 4.5 完了後に必ず Step 4.7（test-cases.html 生成）と Step 4.8（網羅性検証）を実行する。Step 4.5 から Step 5 へ直接進んではならない。test-cases は本質的にHTMLレビューUIのため、config の `output-formats` に関わらず**常に `.html`** で出力する。
 8. **tech-reference 生成は必須** — `skip-files` に `tech-reference` が含まれていない限り、Step 6.5 の tech-reference 生成は必ず実行する。ユーザー確認完了（Step 6）で終了せず、必ず Step 6.5 まで進むこと。
+9. **requirements の未解決事項は確定必須** — Step 3.5 で requirements.md（ユースケース + 要件・制約）を生成し、「未解決の確認事項」の `□`（コードベースを調べても解決できず、ユーザーにしか決められない分岐）を AskUserQuestion で確認して `■`/「なし」に解消してから Step 4 へ進む。`□` を残したまま implementation-plan に進むことは hook（`guard-requirements.sh`）がブロックする。AutoMode でもスキップ禁止。
 
 ## ワークフロー概要
 
@@ -35,7 +36,8 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
    ↓
 3. codebase-explorer サブエージェント → exploration-report.md
    ↓
-3.5. (条件付き) 探索後ヒアリング → hearing-notes.md 追記
+3.5. requirements 確定 → requirements.md（ユースケース + 要件・制約 + 未解決の確認事項）
+     └ 未解決の確認事項（□）は AskUserQuestion で確認して解消（残ると hook がブロック）
    ↓
 4. spec-planner サブエージェント → implementation-plan.md + tasks.md
    ↓
@@ -143,18 +145,22 @@ hearing-notes.md から探索ヒント（キーワード5-10個、推定対象�
 
 探索の5カテゴリ詳細は `references/exploration-perspectives.md` を参照。
 
-## Step 3.5: 探索後ヒアリング (条件付き)
+## Step 3.5: requirements 確定【必須】
 
-exploration-report.md から論点を抽出する。
+exploration-report.md と hearing-notes.md を統合し、ユースケースと要件・制約を確定した **requirements.md** を**オーケストレーター自身**が生成する（サブエージェントには委譲しない — ユーザーと対話して確定するため）。requirements は hook のパース対象のため、config の `output-formats` に関わらず**常に `.md`** で出力する。
 
-- **論点 0 件** → Step 4 へ進む
-- **論点 1 件以上** → AskUserQuestion で上位4件を一括聴取し、hearing-notes.md に追記
+1. テンプレート `assets/templates/requirements.md` を埋め、ユースケース（誰が・どの状況で・何を達成したいか）と機能/非機能要件・制約・設計方針を記述する
+2. 「コードベースを調べても解決できず、ユーザーにしか決められない分岐」を **未解決の確認事項** に行頭 `□` で列挙する
+3. `□` 項目があれば AskUserQuestion（上限4件/ターン）で確認し、回答を反映して `□` → `■`、または項目を消して「なし」にする
+4. 未解決の確認事項が解消（`□` ゼロ）したら Step 4 へ進む
+
+> `□` が残ったまま implementation-plan を書こうとすると `guard-requirements.sh` がブロックする。AutoMode でも `□` の解消を AskUserQuestion でスキップしてはならない。
 
 **詳細は [references/workflow-steps.md](references/workflow-steps.md) の Step 3.5 を参照。**
 
 ## Step 4: 実装計画生成
 
-spec-planner サブエージェントを起動し、implementation-plan{IMPLEMENTATION_PLAN_EXT} と tasks{TASKS_EXT} を生成する。
+spec-planner サブエージェントを起動し、implementation-plan{IMPLEMENTATION_PLAN_EXT} と tasks{TASKS_EXT} を生成する。**hearing-notes・exploration-report に加え requirements.md（ユースケース・要件・制約）も入力として渡し**、計画が確定済みのユースケースを満たすことを前提条件とする。
 
 **プロンプトテンプレートは [references/workflow-steps.md](references/workflow-steps.md) の Step 4 を参照。**
 
@@ -270,6 +276,7 @@ implementation-plan に登場するすべての技術（言語・フレームワ
     ├── PLANNING                 # 計画中は存在、実装開始時に削除
     ├── hearing-notes{EXT}       # ヒアリング結果（オーケストレーター生成）
     ├── exploration-report{EXT}  # 探索レポート（codebase-explorer 生成）
+    ├── requirements.md          # ユースケース + 要件・制約（オーケストレーター生成、hook パース対象ゆえ常に .md）
     ├── implementation-plan{EXT} # 実装計画（spec-planner 生成）
     ├── tasks{EXT}               # タスクリスト（spec-planner 生成）
     ├── test-cases.html          # テストケース詳細仕様（網羅性レビュー用、HTML・常に .html）
