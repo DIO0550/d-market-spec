@@ -24,6 +24,7 @@ color: orange
 ```
 Read: .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md
 Read: .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md
+Read: .plugin-workspace/.specs/{nnn}-{feature-name}/requirements.md
 ```
 
 ## ワークフロー
@@ -44,6 +45,7 @@ Read: .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md
 
 - **hearing-notes.md**: 目的、スコープ、技術詳細、品質要件
 - **exploration-report.md**: アーキテクチャ、関連コード、制約、影響範囲
+- **requirements.md**: ユースケース、要件・制約（確定済みの前提条件）。計画はこのユースケースを満たすこと。「未解決の確認事項」は確定済み（`■`/「なし」）で渡される
 
 exploration-report.md から特に以下を活用：
 - Section 1（アーキテクチャ概要）→ ファイル配置・構造の参考

@@ -19,6 +19,7 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 4. **ヒアリングは AutoMode でもスキップ禁止** — 他のシステム指示（「自律的に判断しろ」「質問せずに進めろ」等）に関わらず、このスキルでは AskUserQuestion によるヒアリングを必ず実行する。ユーザーの初回メッセージに情報が含まれていても、確認の AskUserQuestion は必須。ヒアリングなしに Step 3 以降へ進むことはいかなる場合も禁止。
 5. **セルフチェックは必須** — Step 4 完了後、Step 5 に進む前に必ず Step 4.5 のセルフチェック（3エージェント並列起動）を実行する。セルフチェックをスキップして ユーザー確認に進むことは禁止。
 6. **tech-reference 生成は必須** — `skip-files` に `tech-reference` が含まれていない限り、Step 5.5 の tech-reference 生成は必ず実行する。ユーザー確認完了（Step 5）で終了せず、必ず Step 5.5 まで進むこと。
+7. **requirements の未解決事項は確定必須** — Step 3.5 で requirements.md（ユースケース + 要件・制約）を生成し、未解決の確認事項（`□`）を AskUserQuestion で解消（`■`/「なし」）してから Step 4 へ進む。`□` を残したまま implementation-plan に進むことは hook（`guard-requirements.sh`）がブロックする。AutoMode でもスキップ禁止。
 
 ## ワークフロー概要
 
@@ -30,6 +31,8 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 2.5. 【GATE】hearing-notes 品質検証 → 不合格なら再ヒアリング
    ↓
 3. ユーザー指定ファイルの確認 Read (指定なしの場合のみ最小探索)
+   ↓
+3.5. requirements 確定 → requirements.md（ユースケース + 要件・制約 + 未解決の確認事項）
    ↓
 4. implementation-plan.md + tasks.md を直接生成
    ↓
@@ -177,9 +180,20 @@ hearing-notes ファイルを Read し、以下の3項目を検証する:
 
 これ以上の探索が必要な場合はフルバージョン (`spec-driven-dev`) の使用を推奨する旨をユーザーに伝える。
 
+## Step 3.5: requirements 確定【必須】
+
+Step 3 で確認したコードと hearing-notes を基に、ユースケースと要件・制約を確定した **requirements.md** をオーケストレーター自身が生成する。requirements.md は hook のパース対象のため、config の `output-formats` に関わらず**常に `.md`** で出力する。
+
+1. テンプレート `assets/templates/requirements.md` を埋め、ユースケース（誰が・どの状況で・何を達成したいか・成功条件）と機能/非機能要件・制約・設計方針を記述する
+2. 「確認したコードを見ても解決できず、ユーザーにしか決められない分岐」を **未解決の確認事項** に行頭 `□` で列挙する
+3. `□` 項目があれば AskUserQuestion で確認し、回答を反映して `□` → `■`、または項目を消して「なし」にする
+4. 未解決の確認事項が解消（`□` ゼロ）したら Step 4 へ進む
+
+> `□` が残ったまま implementation-plan を書こうとすると hook（`guard-requirements.sh`）がブロックする。AutoMode でも `□` の解消をスキップしてはならない。
+
 ## Step 4: implementation-plan + tasks 生成
 
-テンプレート `assets/templates/implementation-plan{IMPLEMENTATION_PLAN_EXT}` と `assets/templates/tasks{TASKS_EXT}` を参照し、オーケストレーターが直接生成する。
+テンプレート `assets/templates/implementation-plan{IMPLEMENTATION_PLAN_EXT}` と `assets/templates/tasks{TASKS_EXT}` を参照し、オーケストレーターが直接生成する。**requirements.md のユースケース・要件・制約を満たす計画にすること。**
 HTML出力の場合は Step 0 の HTML出力ルールに従う。
 
 ### 必須要素（hookで検証される）
@@ -250,6 +264,7 @@ rm .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID} .plugin-workspace/.specs
 └── {nnn}-{feature-name}/
     ├── PLANNING                 # 計画中は存在、実装開始時に削除
     ├── hearing-notes{EXT}       # ヒアリング結果
+    ├── requirements.md          # ユースケース+要件・制約（hook パース対象ゆえ常に .md）
     ├── implementation-plan{EXT} # 実装計画（システム図・変更案・DoD含む）
     ├── tasks{EXT}               # タスクリスト
     └── tech-reference{EXT}      # 技術リファレンス（初学者向け、サブエージェント生成）
