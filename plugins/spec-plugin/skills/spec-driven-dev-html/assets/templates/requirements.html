@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Requirements — {機能名}</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>Requirements: {機能名}</h1>
+  <p>research（exploration-report）と plan（implementation-plan）の間で、「誰が・何のために・どう使うか」と要件・制約を確定する中間ドキュメント。ユースケースを起点に、技術計画に進む前の前提を固める。</p>
+</header>
+
+<section class="section">
+  <h2>ユースケース</h2>
+
+  <h3>UC-1: {ユースケースのタイトル}</h3>
+  <ul>
+    <li><strong>アクター</strong>: {誰が}</li>
+    <li><strong>状況/前提</strong>: {どの状況・前提条件で}</li>
+    <li><strong>達成したいこと</strong>: {何を実現したいか}</li>
+    <li><strong>成功条件</strong>: {どうなれば成功と言えるか}</li>
+  </ul>
+
+  <h3>UC-2: {ユースケースのタイトル}</h3>
+  <ul>
+    <li><strong>アクター</strong>: {誰が}</li>
+    <li><strong>状況/前提</strong>: {どの状況・前提条件で}</li>
+    <li><strong>達成したいこと</strong>: {何を実現したいか}</li>
+    <li><strong>成功条件</strong>: {どうなれば成功と言えるか}</li>
+  </ul>
+</section>
+
+<section class="section">
+  <h2>要件・制約</h2>
+
+  <h3>機能要件</h3>
+  <ul>
+    <li>{システムが満たすべき振る舞い}</li>
+  </ul>
+
+  <h3>非機能要件</h3>
+  <ul>
+    <li>{性能・セキュリティ・可用性・保守性・アクセシビリティなどの要件}</li>
+  </ul>
+
+  <h3>制約・設計方針</h3>
+  <ul>
+    <li>{技術的制約・既存方針・踏襲すべき設計判断}</li>
+  </ul>
+</section>
+
+<section class="section">
+  <h2>未解決の確認事項</h2>
+
+  <blockquote>
+    コードベースを調べても解決できず、<strong>ユーザーにしか決められない分岐</strong>をここに列挙する。<br>
+    未確認の項目はチェックボックス（未チェック）、解決済みはチェック済みで示す。確認が不要なら下のリストを削除して「なし」とだけ書く。<br>
+    未チェックの項目が残ったまま implementation-plan に進もうとすると hook がブロックする。<br>
+    AskUserQuestion で確認し、回答を反映して該当項目の <code>span</code> に <code>done</code> クラスを付ける（または項目を消して「なし」）。
+  </blockquote>
+
+  <ul class="task-list">
+    <li><span class="checkbox"></span>{ユーザー確認が必要な分岐 — 例: 認証方式は OAuth か API キーか（既存コードからは判断不能）}</li>
+  </ul>
+</section>
+
+</body>
+</html>

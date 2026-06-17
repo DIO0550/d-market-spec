@@ -20,7 +20,7 @@ CSSを埋め込んだ自己完結型HTMLを生成するため、ブラウザで�
 6. **セルフチェックは必須** — Step 4.2 完了後、Step 5 に進む前に必ず Step 4.5 のセルフチェック（3エージェント並列起動）を実行する。セルフチェックをスキップしてユーザー確認に進むことは禁止。
 7. **テストケース詳細設計・検証は必須** — `skip-files` に `test-cases` が含まれていない限り、Step 4.5 完了後・ユーザー確認前に必ず Step 4.7（test-case-designer によるテストケース詳細設計）と Step 4.8（test-pattern-checker 詳細モードによる網羅性検証）を実行する。
 8. **tech-reference 生成は必須** — `skip-files` に `tech-reference` が含まれていない限り、Step 5.5 の tech-reference 生成は必ず実行する。ユーザー確認完了（Step 5）で終了せず、必ず Step 5.5 まで進むこと。
-9. **requirements の未解決事項は確定必須** — Step 3.5 で requirements.md（ユースケース + 要件・制約）を生成し、未解決の確認事項（`□`）を AskUserQuestion で解消（`■`/「なし」）してから Step 4 へ進む。`□` を残したまま implementation-plan に進むことは hook（`guard-requirements.sh`）がブロックする。**requirements は hook のパース対象のため、HTML出力ルールの例外として常に `.md`** で出力する。AutoMode でもスキップ禁止。
+9. **requirements の未解決事項は確定必須** — Step 3.5 で requirements.html（ユースケース + 要件・制約）を生成し、未解決の確認事項（未チェックの `<span class="checkbox">`）を AskUserQuestion で解消（`checkbox done`/「なし」）してから Step 4 へ進む。未チェック項目を残したまま implementation-plan に進むことは hook（`guard-requirements.sh`）がブロックする。**requirements も他の生成物と同様に `.html` で出力する**（hook は HTML 構造をパースして未解決チェックボックスを検出する）。AutoMode でもスキップ禁止。
 
 ## HTML出力ルール
 
@@ -42,8 +42,8 @@ CSSを埋め込んだ自己完結型HTMLを生成するため、ブラウザで�
    ↓
 3. codebase-explorer サブエージェント → exploration-report.html
    ↓
-3.5. requirements 確定 → requirements.md（ユースケース + 要件・制約 + 未解決の確認事項。常に .md）
-     └ 未解決の確認事項（□）は AskUserQuestion で確認して解消（残ると hook がブロック）
+3.5. requirements 確定 → requirements.html（ユースケース + 要件・制約 + 未解決の確認事項）
+     └ 未解決の確認事項（未チェックの checkbox）は AskUserQuestion で確認して解消（残ると hook がブロック）
    ↓
 4. spec-planner サブエージェント → implementation-plan.html + tasks.html
    ↓
@@ -119,11 +119,11 @@ hearing-notes.html から探索ヒント（キーワード5-10個、推定対象
 
 ## Step 3.5: requirements 確定【必須】
 
-**[references/workflow-steps.md](references/workflow-steps.md) の Step 3.5 と同一ロジック。** exploration-report と hearing-notes を統合して requirements.md を起案し、「未解決の確認事項」の `□`（コードベースを調べても解決できず、ユーザーにしか決められない分岐）を AskUserQuestion で解消（`■`/「なし」）してから Step 4 へ進む。**requirements は hook のパース対象のため、HTML出力ルールの例外として常に `.md`** で出力する（HTMLテンプレートは使わず `assets/templates/requirements.md` を使う）。`□` が残ったまま implementation-plan に進もうとすると hook がブロックする。
+**[references/workflow-steps.md](references/workflow-steps.md) の Step 3.5 と同一ロジック。** exploration-report と hearing-notes を統合して requirements.html を起案し、「未解決の確認事項」の未チェック項目（`<span class="checkbox">`、コードベースを調べても解決できず、ユーザーにしか決められない分岐）を AskUserQuestion で解消（`checkbox done`/「なし」）してから Step 4 へ進む。`assets/templates/requirements.html` を使い、他の生成物と同様に `.html` で出力する（hook は HTML 構造をパースする）。未チェック項目が残ったまま implementation-plan に進もうとすると hook がブロックする。
 
 ## Step 4: 実装計画生成
 
-spec-planner サブエージェントを起動し、implementation-plan.html と tasks.html を生成する。**hearing-notes・exploration-report に加え requirements.md（ユースケース・要件・制約）も入力として渡し**、計画が確定済みのユースケースを満たすことを前提条件とする。
+spec-planner サブエージェントを起動し、implementation-plan.html と tasks.html を生成する。**hearing-notes・exploration-report に加え requirements.html（ユースケース・要件・制約）も入力として渡し**、計画が確定済みのユースケースを満たすことを前提条件とする。
 
 ### サブエージェントへのHTML出力指示
 
@@ -247,7 +247,7 @@ implementation-plan.html に登場するすべての技術（言語・フレー�
     ├── PLANNING                    # 計画中は存在、実装開始時に削除
     ├── hearing-notes.html          # ヒアリング結果（HTML）
     ├── exploration-report.html     # 探索レポート（HTML）
-    ├── requirements.md             # ユースケース+要件・制約（hook パース対象ゆえ常に .md）
+    ├── requirements.html           # ユースケース+要件・制約（HTML）
     ├── implementation-plan.html    # 実装計画（HTML）
     ├── tasks.html                  # タスクリスト（HTML）
     ├── test-cases.html             # テストケース詳細仕様（網羅性レビュー用、HTML）
