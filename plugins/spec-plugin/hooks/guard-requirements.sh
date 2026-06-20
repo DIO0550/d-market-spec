@@ -37,7 +37,7 @@ case "$FILE" in
   *) exit 0 ;;
 esac
 
-# ── 同ディレクトリの requirements ファイルを探す（常に .md だが .html も一応見る）──
+# ── 同ディレクトリの requirements ファイルを探す（.md=通常スキル / .html=HTMLスキル）──
 DIR=$(dirname "$FILE")
 REQ_FILE=""
 for ext in md html; do
@@ -51,23 +51,37 @@ done
 if [ -z "$REQ_FILE" ]; then
   cat >&2 <<EOF
 【requirements フェーズ】implementation-plan の作成はまだできません。
-先に ${DIR}/requirements.md を作成し、ユースケース・要件・制約と
-「未解決の確認事項」を確定させてください（research → requirements → plan の順）。
+先に ${DIR}/requirements.md（HTML出力時は requirements.html）を作成し、
+ユースケース・要件・制約と「未解決の確認事項」を確定させてください
+（research → requirements → plan の順）。
 EOF
   exit 2
 fi
 
-# ── 「未解決の確認事項」セクション内に未確認項目（行頭 □）が残るか確認 ──
-# 凡例は引用 "> " で書くため行頭 □ にはならず、誤検出しない
+# ── 「未解決の確認事項」セクション内に未確認項目が残るか確認 ──
+# .md  : セクションは「# 見出し」、未確認は行頭 □（凡例は引用 "> " ゆえ行頭 □ にならず誤検出しない）
+# .html: セクションは <h*>...未解決の確認事項...</h*>、未確認は <span class="checkbox">
+#        （解決済みは class="checkbox done"、凡例の &lt;span ...&gt; は < 始まりでないので誤検出しない）
 content=$(cat "$REQ_FILE")
-section=$(echo "$content" | sed -n '/^#\{1,4\}.*未解決の確認事項/,/^#\{1,4\} /p')
+case "$REQ_FILE" in
+  *.html)
+    section=$(echo "$content" | sed -n '/未解決の確認事項/,/<h[1-4][ >]/p')
+    # 実体の未チェック項目だけにマッチ（解決済みは class="checkbox done"、
+    # 凡例内のエスケープ表記 &lt;span ...&gt; は < で始まらないので誤検出しない）
+    unresolved_pattern='<span class="checkbox">'
+    ;;
+  *)
+    section=$(echo "$content" | sed -n '/^#\{1,4\}.*未解決の確認事項/,/^#\{1,4\} /p')
+    unresolved_pattern='^[[:space:]]*□'
+    ;;
+esac
 
-if echo "$section" | grep -qE '^[[:space:]]*□'; then
+if echo "$section" | grep -qE "$unresolved_pattern"; then
   cat >&2 <<EOF
-【requirements フェーズ】未解決の確認事項（□）が残っています: ${REQ_FILE}
+【requirements フェーズ】未解決の確認事項が残っています: ${REQ_FILE}
 コードベースを調べても解決できない分岐は、AskUserQuestion でユーザーに確認し、
-回答を requirements に反映（□ → ■、または「なし」）してから
-implementation-plan に進んでください。
+回答を requirements に反映（.md は □ → ■ / .html は checkbox に done 付与、
+または「なし」）してから implementation-plan に進んでください。
 EOF
   exit 2
 fi
