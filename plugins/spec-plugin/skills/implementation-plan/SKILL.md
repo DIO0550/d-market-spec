@@ -11,7 +11,7 @@ allowed-tools: Bash(mkdir *)
 
 ## ⚠️ 重要: システム図は必須
 
-このスキルで生成する実装設計書には**必ずシステム図（状態マシン図 + データフロー図）を含めること**。
+このスキルで生成する実装設計書には**必ずシステム図（状態マシン図 + データフロー図）を含めること**（PostToolUse フック `enforce-diagrams.sh` が状態マシン図・データフロー図の有無を検証するため）。
 システム図がない実装設計書は不完全であり、生成完了とみなさない。
 
 ## ワークフロー
@@ -96,6 +96,8 @@ allowed-tools: Bash(mkdir *)
 2. **TDD サイクルでの移行計画**: 各 Phase のタスクを Red-Green-Refactor サイクルで構成
 3. **テスト順序**: シンプルな正常系 → バリエーション → 境界値 → 異常系・エッジケース
 
+詳細はプラグインの `references/tdd-guidelines.md`・`references/test-design-patterns.md` を参照。
+
 ## Step 3: ユーザー確認
 
 生成した実装設計書をユーザーに提示:
@@ -109,9 +111,9 @@ allowed-tools: Bash(mkdir *)
 
 ```
 .plugin-workspace/.specs/
-└── {feature-name}/
+└── {nnn}-{feature-name}/
     └── implementation-plan.md
 ```
 
-`{nnn}` は `.plugin-workspace/.specs/` 内の既存フォルダ数に基づく3桁の連番（001, 002, 003...）
+`{nnn}` は `.plugin-workspace/.specs/` 内（`archive/` 配下も含む）の既存の最大番号 + 1 の3桁連番（001, 002, 003...）
 `{feature-name}` はケバブケースで命名。

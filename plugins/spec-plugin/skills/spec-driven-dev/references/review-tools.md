@@ -40,7 +40,7 @@ codex exec --cd "$PWD" --dangerously-bypass-approvals-and-sandbox "$(cat .plugin
 
 **プロンプト補足** — prompt-{NNN}.txt の末尾に追記:
 ```
-レビュー対象: .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.md
+レビュー対象: .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
 ```
 
 ---
@@ -48,12 +48,12 @@ codex exec --cd "$PWD" --dangerously-bypass-approvals-and-sandbox "$(cat .plugin
 ## GitHub Copilot CLI
 
 ```bash
-copilot -p "$(cat .plugin-workspace/.specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt)" < .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.md > .plugin-workspace/.specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md
+copilot -p "$(cat .plugin-workspace/.specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt)" < .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT} > .plugin-workspace/.specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md
 ```
 
 **プロンプト補足** — prompt-{NNN}.txt の末尾に追記:
 ```
-以下は標準入力で渡される implementation-plan.md の内容です:
+以下は標準入力で渡される implementation-plan{IMPLEMENTATION_PLAN_EXT} の内容です:
 ```
 
 ---
@@ -61,7 +61,7 @@ copilot -p "$(cat .plugin-workspace/.specs/{nnn}-{feature-name}/plan-review/prom
 ## Claude Code CLI
 
 ```bash
-claude -p "$(cat .plugin-workspace/.specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt)" .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.md > .plugin-workspace/.specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md
+claude -p "$(cat .plugin-workspace/.specs/{nnn}-{feature-name}/plan-review/prompt-{NNN}.txt)" .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT} > .plugin-workspace/.specs/{nnn}-{feature-name}/plan-review/review-{NNN}.md
 ```
 
 **プロンプト補足**: 不要（ファイルが引数で直接渡されるため）
@@ -83,7 +83,7 @@ mkdir -p .plugin-workspace/.specs/{nnn}-{feature-name}/plan-review
 1. 保存したレビュー結果ファイルを読み込み、内容を解析
 2. 「問題なし」なら次のステップ（ユーザー確認）へ進む
 3. 問題があれば:
-   - 指摘内容を元に implementation-plan.md を修正
+   - 指摘内容を元に implementation-plan{IMPLEMENTATION_PLAN_EXT} を修正
    - **反映履歴は書かない**: 設計内容そのものだけを修正する
    - 連番をインクリメントして再度レビューを実行・保存
    - **最大5回**までループ

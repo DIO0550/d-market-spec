@@ -1,7 +1,7 @@
 ---
 name: spec-setup
 description: spec-pluginのワークスペース初期化と設定を行う。.plugin-workspace/.specs/ディレクトリの作成、デフォルトのレビューツール設定、ファイルごとの出力形式設定(.config.yml)を対話的にセットアップする。「spec setup」「spec初期化」「specセットアップ」「レビューツール設定」「デフォルトレビュー変更」「spec config」「出力形式変更」などでトリガー。設定ファイルにより各スキル実行時のAskUserQuestion問い合わせを省略できる。
-allowed-tools: Bash(ls *), Bash(mkdir *)
+allowed-tools: Bash(ls *), Bash(mkdir *), Write
 ---
 
 # Spec Setup

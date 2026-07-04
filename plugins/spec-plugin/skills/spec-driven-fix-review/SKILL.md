@@ -14,6 +14,7 @@ spec-viewerの未解決レビューコメントを implementation-plan.md と ta
 ### Step 1: コメントと計画を読み込む
 
 現在作業中のspecフォルダ（会話コンテキストから既知）を `$SPEC_DIR` とする。
+不明な場合は引数で指定された番号のspecフォルダを、それもなければ `.plugin-workspace/.specs/` 直下（`archive/` を除く）の最大番号フォルダを対象とする。
 
 `$SPEC_DIR/.comments/impl.json` と `$SPEC_DIR/implementation-plan.md` を Read で読み込む。
 

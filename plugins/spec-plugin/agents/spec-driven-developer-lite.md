@@ -64,6 +64,12 @@ next_num=$(printf "%03d" $(( $(ls -1d .plugin-workspace/.specs/[0-9][0-9][0-9]-*
 mkdir -p .plugin-workspace/.specs/${next_num}-{feature-name} && touch .plugin-workspace/.specs/${next_num}-{feature-name}/PLANNING
 ```
 
+PLANNINGファイル作成の直後に、ガードファイルを作成する（`guard-planning-writes.sh` フックによる `.plugin-workspace/.specs/` 外への書き込みブロックを有効化する）:
+
+```bash
+mkdir -p .plugin-workspace/.specs/.guard && touch .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID}
+```
+
 ## Step 1: ヒアリング → hearing-notes.md 書き出し
 
 AskUserQuestion でヒアリングし、結果を `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md` に書き出す。

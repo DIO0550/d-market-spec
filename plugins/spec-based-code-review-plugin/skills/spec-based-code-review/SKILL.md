@@ -1,6 +1,6 @@
 ---
 name: spec-based-code-review
-description: コードレビュースキル（オーケストレーター）。ユニバーサルな設計・パフォーマンス・テスト・コメント原則に基づいて、専門サブエージェント（パフォーマンス・設計・テスト品質・コメント品質 + 仕様整合性）が並列でコードレビューを実行する。spec番号を指定すると計画ドキュメントも参考にする。「specレビュー」「仕様レビュー」「spec review」「仕様整合性チェック」「計画に基づくレビュー」「実装が計画通りか確認」「意図ベースレビュー」「コードレビュー」「spec-based-code-review」「テストレビュー」「test review」「テスト品質チェック」「モック使いすぎ」「古典学派」「コメントレビュー」「docコメント」「コメント品質」などでトリガー。
+description: コードレビュースキル（オーケストレーター）。実装全体を多観点（パフォーマンス・設計・コメント品質・テスト品質・仕様整合性）で統合レビューする場合に使用する。専門サブエージェントが並列でレビューを実行し、結果を統合する。spec番号を指定すると計画ドキュメントも参考にする。テストコード単体を素早くレビューしたい場合は test-review スキルを使用すること。「specレビュー」「仕様レビュー」「spec review」「仕様整合性チェック」「計画に基づくレビュー」「実装が計画通りか確認」「意図ベースレビュー」「コードレビュー」「統合レビュー」「spec-based-code-review」「コメントレビュー」「docコメント」「コメント品質」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[番号]"
 ---
@@ -147,6 +147,8 @@ options:
 - `[NEW]` ファイルのフルパス
 
 ## Step 3: サブエージェントを並列起動
+
+**パス解決**: 以下のプロンプト内の `{spec-based-code-review-plugin-path}` は、このプラグインのルートディレクトリ（本スキルの SKILL.md があるディレクトリから2階層上、`.../plugins/spec-based-code-review-plugin`）を指す。実際の絶対パスに置き換えてサブエージェントに渡すこと。
 
 **specフォルダがある場合**: 5エージェント（performance, design, spec-alignment, test-quality, comment-quality）を起動
 **specフォルダがない場合**: 4エージェント（performance, design, test-quality, comment-quality）を起動。spec-alignment-reviewer は仕様整合性チェックが本質のため、spec不在時は起動しない。

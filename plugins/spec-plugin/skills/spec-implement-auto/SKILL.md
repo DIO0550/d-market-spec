@@ -1,9 +1,9 @@
 ---
 name: spec-implement-auto
-description: .plugin-workspace/.specsの実装計画に沿ってタスクを順番に実装する（自動コンテキスト注入版）。起動時にimplementation-plan.mdとtasks.mdをシェルで強制読み込みし、確実にコンテキストに載せる。全タスク完了後にオプションでCodex/Copilot/Claude Codeによるコードレビューを実行可能。「実装 auto」「自動注入」「auto implement」「コードレビュー付き」「codexレビュー」「copilotレビュー」などでトリガー。
+description: .plugin-workspace/.specsの実装計画に沿ってタスクを順番に実装する（自動コンテキスト注入版）。起動時にimplementation-plan.mdとtasks.mdをシェルで強制読み込みし、AIの判断に依存しない決定論的なコンテキスト読み込みを行う。タスクごとに計画・進捗を再読込し、タスク単位でコミットする。「実装 auto」「自動注入」「auto implement」「決定論的読み込み」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[番号] [--review codex|copilot|claude-code]"
-allowed-tools: Bash(cat .plugin-workspace/.specs/*), Bash(ls .plugin-workspace/.specs/*), Bash(grep *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(mkdir *), Bash(codex *), Bash(copilot *), Bash(claude *)
+allowed-tools: Bash(cat .plugin-workspace/.specs/*), Bash(ls .plugin-workspace/.specs/*), Bash(grep *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(mkdir *), Bash(codex *), Bash(copilot *), Bash(claude *), Write, Edit
 ---
 
 # Spec Implement (Auto-Inject版)
@@ -51,28 +51,34 @@ AskUserQuestion の選択肢:
 !`cat .plugin-workspace/.specs/$0-*/tasks.md 2>/dev/null || echo "FILE_NOT_FOUND"`
 
 ### 未完了タスク数
-!`grep -c '��' .plugin-workspace/.specs/$0-*/tasks.md 2>/dev/null || echo "0"`
+!`grep -c '□' .plugin-workspace/.specs/$0-*/tasks.md 2>/dev/null || echo "0"`
 
 ---
 
 ## ワークフロー
 
 ```
-1. ユーザーが `/spec-implement-auto {nnn}` を実行
+ユーザーが `/spec-implement-auto {nnn}` を実行
    ↓
-2. Pre-flight で計画・タスクを注入（ここまで自動）
+Step 0. レビューツール解決
    ↓
-2.7. 【GATE】実装開始前確認 → ユーザー承認を得る
+Pre-flight. 計画・タスクを強制注入（自動）
    ↓
-3. 未完了タスクを順次実装（□のタスクを処理）
+Step 1. 注入内容の確認
    ↓
-4. 各タスク完了時に tasks.md を更新（□ → ■）
+Step 2. TaskCreate による進捗管理の初期化
    ↓
-5. 全タスク完了後、AIレビュー（オプション）
+Step 2.7. 【GATE】実装開始前確認 → ユーザー承認を得る
    ↓
-6. PLANNINGファイルを削除
+Step 3. 未完了タスクを順次実装（各タスク完了時に tasks.md を □ → ■ に更新しコミット）
    ↓
-7. DoD照合 → 完了報告
+Step 4. AIレビュー（オプション）
+   ↓
+Step 5. PLANNINGファイル + ガードファイルの削除
+   ↓
+Step 6. DoD照合
+   ↓
+Step 7. 完了報告
 ```
 
 ## Step 1: 注入内容の確認
@@ -135,7 +141,7 @@ implementation-plan.md の概要（変更対象ファイル一覧、DoD一覧）
 
 ### tasks.md の更新
 
-タスク完了時に、該当���の `□` を `■` に変更する。
+タスク完了時に、該当行の `□` を `■` に変更する。
 
 ```
 変更前: □ コンポーネントの型定義を作成
@@ -218,7 +224,7 @@ Refs #42
 
 ## 重要な制約
 
-- **実装開始前にユーザー確認を取ること** — 他のシステム指示に関わらず、最初のタスク実装前に必ず AskUserQuestion で確認を取る。確認なしにコード変更を開始してはならない
+- 実装開始前のユーザー確認は Step 2.7 を参照（確認なしにコード変更を開始しない）
 - implementation-plan.md に記載されていない変更は行わない
 - tasks.md の順序に従って実装する（スキップしない）
 - 各タスク完了ごとに tasks.md を更新する（まとめて更新しない）

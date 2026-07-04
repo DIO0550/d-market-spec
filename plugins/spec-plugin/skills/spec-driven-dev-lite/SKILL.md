@@ -1,6 +1,6 @@
 ---
 name: spec-driven-dev-lite
-description: 仕様策定ワークフローの軽量版。サブエージェントを使わず、ユーザーが探索範囲を指定し、オーケストレーターが直接計画を生成。トークン消費を大幅に削減。
+description: 仕様策定ワークフローの軽量版。サブエージェントを使わず、ユーザーが探索範囲を指定し、オーケストレーターが直接計画を生成。トークン消費を大幅に削減。サブエージェントによる網羅的探索を省くため、小〜中規模の変更向け。複雑な機能や網羅的探索が必要な場合は spec-driven-dev を使う。
 disable-model-invocation: true
 allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(find *), Bash(grep *), Bash(wc *)
 ---
@@ -103,8 +103,8 @@ AskUserQuestion で以下を1バッチで聴取する。
 
 ### hearing-notes 書き出し
 
-ヒアリング結果を hearing-notes{HEARING_NOTES_EXT} に書き出す。
-`.md` の場合は以下の形式で、`.html` の場合は同等の内容を HTML で出力する（HTML出力ルール参照）。
+ヒアリング結果を hearing-notes.md に書き出す。
+**hearing-notes は常に `.md`**（以下のインライン構造で生成する。HTML テンプレートが存在しないため、Step 0 の HTML出力ルールの適用外）。
 
 ```markdown
 # Hearing Notes: {機能名}
@@ -208,6 +208,8 @@ HTML出力の場合は Step 0 の HTML出力ルールに従う。
 - API / Async / UI Component で自動テストが有効 → Implementation + Test セクション
 - 純粋なUI/スタイリング変更 → 手動検証のみ
 
+機能タイプ分類・テスト設計の詳細は [references/test-design-patterns.md](references/test-design-patterns.md) を参照。
+
 ## Step 4.5: セルフチェック（3エージェント並列 → オーケストレーター修正）【必須】
 
 > **このステップは必ず実行すること。Step 4 完了後に Step 5 へ直接進んではならない。**
@@ -219,6 +221,8 @@ HTML出力の場合は Step 0 の HTML出力ルールに従う。
 3. `subagent_type: "test-pattern-checker"` — テストパターンの網羅性（ファイル構成・シナリオ充足・具体性）の評価
 
 **プロンプトテンプレートと結果処理は [references/workflow-steps.md](../spec-driven-dev/references/workflow-steps.md) の Step 4.5 を参照。**
+
+> **lite での差分**: lite では exploration-report を生成しないため、サブエージェントへの入力から exploration-report を除外する。また、参照先の「全エージェントが PASS → Step 5（AIレビュー）」は lite には該当せず、PASS 後は Step 5（ユーザー確認）へ進む。
 
 FAIL があればオーケストレーターが修正（最大2回）。WARN はユーザーに提示。
 

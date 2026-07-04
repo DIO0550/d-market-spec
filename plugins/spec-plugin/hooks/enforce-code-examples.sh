@@ -8,8 +8,8 @@
 
 input=$(cat)
 
-# file_path を抽出
-file_path=$(echo "$input" | grep -oE '"file_path"\s*:\s*"[^"]*"' | head -1 | sed 's/.*: *"//;s/"$//')
+# file_path を抽出（tool_input のみを対象にする）
+file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 
 # --- 対象外ファイル: N/A メッセージ表示 ---
 case "$file_path" in

@@ -12,6 +12,7 @@ hearing-notes.md と exploration-report.md を読み込み、システム図を�
 </commentary>
 </example>
 tools: Glob, Grep, LS, Read, Write, Edit, Bash
+model: sonnet
 color: orange
 ---
 
