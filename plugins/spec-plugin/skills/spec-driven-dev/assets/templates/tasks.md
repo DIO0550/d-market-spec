@@ -2,22 +2,22 @@
 
 ## Research & Planning
 
-- [ ] {調査・計画タスク1}
-- [ ] {調査・計画タスク2}
-- [ ] {調査・計画タスク3}
+- □ {調査・計画タスク1}
+- □ {調査・計画タスク2}
+- □ {調査・計画タスク3}
 
 ## Implementation
 
-- [ ] {実装タスク1}
-- [ ] {実装タスク2}
-- [ ] {実装タスク3}
-- [ ] {実装タスク4}
+- □ {実装タスク1}
+- □ {実装タスク2}
+- □ {実装タスク3}
+- □ {実装タスク4}
 
 ## Verification
 
-- [ ] {検証タスク1}
-- [ ] {検証タスク2}
-- [ ] {検証タスク3}
+- □ {検証タスク1}
+- □ {検証タスク2}
+- □ {検証タスク3}
 
 ---
 
@@ -28,22 +28,22 @@
 
 ## Research & Planning
 
-- [ ] Analyze Nico Nico ranking page DOM for User ID and Button placement
-- [ ] Explore existing codebase (content scripts, storage)
-- [ ] Create Implementation Plan
+- □ Analyze Nico Nico ranking page DOM for User ID and Button placement
+- □ Explore existing codebase (content scripts, storage)
+- □ Create Implementation Plan
 
 ## Implementation
 
-- [ ] Create/Update content script for Ranking Page
-- [ ] Implement generic "Block Button" injection logic
-- [ ] Implement logic to extract User ID from DOM
-- [ ] Connect button to Blocklist Storage
+- □ Create/Update content script for Ranking Page
+- □ Implement generic "Block Button" injection logic
+- □ Implement logic to extract User ID from DOM
+- □ Connect button to Blocklist Storage
 
 ## Verification
 
-- [ ] Verify button appears on ranking page
-- [ ] Verify clicking blocks the user
-- [ ] Verify blocked videos are hidden
+- □ Verify button appears on ranking page
+- □ Verify clicking blocks the user
+- □ Verify blocked videos are hidden
 
 ---
 
@@ -53,40 +53,40 @@
 
 ## Research & Planning
 
-- [ ] テスト環境・既存テスト構成の調査
-- [ ] テストTODOリスト作成
+- □ テスト環境・既存テスト構成の調査
+- □ テストTODOリスト作成
   - 正常系: 単品の税込価格計算
   - 正常系: 複数商品の合計計算
   - 境界値: 0円の商品
   - 異常系: 負の価格
   - エッジケース: 小数点以下の丸め
-- [ ] 既存の価格関連コードの調査
+- □ 既存の価格関連コードの調査
 
 ## Implementation (TDD サイクル)
 
 ### 単品の税込価格計算
-- [ ] RED: 単品の税込価格を計算するテストを書く
-- [ ] GREEN: テストを通す最小限の実装（仮実装）
-- [ ] REFACTOR: 不要
+- □ RED: 単品の税込価格を計算するテストを書く
+- □ GREEN: テストを通す最小限の実装（仮実装）
+- □ REFACTOR: 不要
 
 ### 複数商品の合計計算
-- [ ] RED: 複数商品の合計を計算するテストを書く
-- [ ] GREEN: テストを通す実装（三角測量で一般化）
-- [ ] REFACTOR: 計算ロジックの共通化
+- □ RED: 複数商品の合計を計算するテストを書く
+- □ GREEN: テストを通す実装（三角測量で一般化）
+- □ REFACTOR: 計算ロジックの共通化
 
 ### 境界値・異常系
-- [ ] RED: 0円の商品のテストを書く
-- [ ] GREEN: テストを通す実装
-- [ ] RED: 負の価格でエラーを返すテストを書く
-- [ ] GREEN: バリデーション実装
-- [ ] RED: 小数点以下の丸めテストを書く
-- [ ] GREEN: 丸めロジック実装
-- [ ] REFACTOR: エラーハンドリングの整理
+- □ RED: 0円の商品のテストを書く
+- □ GREEN: テストを通す実装
+- □ RED: 負の価格でエラーを返すテストを書く
+- □ GREEN: バリデーション実装
+- □ RED: 小数点以下の丸めテストを書く
+- □ GREEN: 丸めロジック実装
+- □ REFACTOR: エラーハンドリングの整理
 
 ## Verification
 
-- [ ] 全テストがパスすることを確認
-- [ ] 既存の価格表示に影響がないことを確認
+- □ 全テストがパスすることを確認
+- □ 既存の価格表示に影響がないことを確認
 
 ---
 
@@ -96,27 +96,27 @@
 
 ## Research & Planning
 
-- [ ] 既存テストインフラの確認（テストランナー、モック戦略）
-- [ ] API仕様の確認（エンドポイント、レスポンス形式）
-- [ ] テスト対象シナリオの洗い出し
+- □ 既存テストインフラの確認（テストランナー、モック戦略）
+- □ API仕様の確認（エンドポイント、レスポンス形式）
+- □ テスト対象シナリオの洗い出し
 
 ## Implementation
 
-- [ ] API クライアントの型定義
-- [ ] API クライアントの実装
-- [ ] エラーハンドリングの実装
+- □ API クライアントの型定義
+- □ API クライアントの実装
+- □ エラーハンドリングの実装
 
 ## Test
 
-- [ ] 正常系テスト: 成功レスポンスの処理
-- [ ] 異常系テスト: HTTPエラーレスポンス（4xx, 5xx）
-- [ ] 異常系テスト: ネットワークエラー・タイムアウト
-- [ ] エッジケーステスト: 空レスポンス・不正なJSON
+- □ 正常系テスト: 成功レスポンスの処理
+- □ 異常系テスト: HTTPエラーレスポンス（4xx, 5xx）
+- □ 異常系テスト: ネットワークエラー・タイムアウト
+- □ エッジケーステスト: 空レスポンス・不正なJSON
 
 ## Verification
 
-- [ ] 全テストがパスすることを確認
-- [ ] 既存APIクライアントに影響がないことを確認
+- □ 全テストがパスすることを確認
+- □ 既存APIクライアントに影響がないことを確認
 
 ---
 

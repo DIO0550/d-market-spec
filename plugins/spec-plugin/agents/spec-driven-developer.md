@@ -33,7 +33,7 @@ color: orange
 作業を開始する前に、スキルの参照ファイルを取得します：
 
 ```
-spec-driven-dev-codex:question-patterns
+spec-driven-dev:question-patterns
 ```
 
 ## ワークフロー
@@ -66,6 +66,12 @@ next_num=$(printf "%03d" $(( $(ls -1d .plugin-workspace/.specs/[0-9][0-9][0-9]-*
 mkdir -p .plugin-workspace/.specs/${next_num}-{feature-name} && touch .plugin-workspace/.specs/${next_num}-{feature-name}/PLANNING
 ```
 
+PLANNINGファイル作成の直後に、ガードファイルを作成する（`guard-planning-writes.sh` フックによる `.plugin-workspace/.specs/` 外への書き込みブロックを有効化する）:
+
+```bash
+mkdir -p .plugin-workspace/.specs/.guard && touch .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID}
+```
+
 ## Step 1: ヒアリング → hearing-notes.md 書き出し
 
 AskUserQuestion でヒアリングし、結果を `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md` に書き出す。
@@ -93,7 +99,7 @@ AskUserQuestion でヒアリングし、結果を `.plugin-workspace/.specs/{nnn
 
 ヒアリング完了後、テンプレートに沿って結果をファイルに書き出す。
 
-テンプレート: `spec-driven-dev-codex:hearing-notes`
+テンプレート: `spec-driven-dev:hearing-notes`
 出力先: `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md`
 
 ## Step 2: codebase-explorer サブエージェント起動
@@ -111,10 +117,10 @@ Task tool:
     その目的・スコープに基づいてコードベースを探索してください。
 
     ## 参照スキル
-    spec-driven-dev-codex:exploration-perspectives
+    spec-driven-dev:exploration-perspectives
 
     ## テンプレート
-    spec-driven-dev-codex:exploration-report
+    spec-driven-dev:exploration-report
 
     ## 出力先
     .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md
@@ -145,8 +151,8 @@ Task tool:
     - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report.md
 
     ## テンプレート
-    - spec-driven-dev-codex:implementation-plan
-    - spec-driven-dev-codex:tasks
+    - spec-driven-dev:implementation-plan
+    - spec-driven-dev:tasks
 
     ## 出力先
     - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.md

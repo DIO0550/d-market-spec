@@ -37,6 +37,8 @@ SKILL.md本文で宣言されたパラメータを参照して実行する。
 
 ## 出力形式解決
 
+> **html バリアントでは全ての出力拡張子は常に `.html`**（以下の解決ロジックに関わらず、各 EXT 変数は `.html` になる）。
+
 `.plugin-workspace/.specs/.config.yml` の `output-formats` セクションを読み取り、ファイルごとの拡張子を決定する。
 
 ### 解決ロジック
@@ -350,6 +352,7 @@ Agent tool:
     ## 入力
     - .plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes{HEARING_NOTES_EXT}
     - .plugin-workspace/.specs/{nnn}-{feature-name}/exploration-report{EXPLORATION_REPORT_EXT}
+    - .plugin-workspace/.specs/{nnn}-{feature-name}/requirements.html（ユースケース・要件・制約。確定済みの前提条件）
 
     ## テンプレート・出力先
     - implementation-plan: テンプレート {SKILL_NAME}:implementation-plan → 出力 .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan{IMPLEMENTATION_PLAN_EXT}
@@ -534,7 +537,7 @@ Agent tool (並列 3/3):
 
 3エージェントの評価結果を集約し、以下のフローで処理する。
 
-1. **全エージェントが PASS** → Step 5（AIレビュー）またはユーザー確認へ進む
+1. **全エージェントが PASS** → Step 5（ユーザーに提示・確認）へ進む
 2. **FAIL / WARN がある場合** → オーケストレーターが以下を実施:
    - 指摘内容を確認し、implementation-plan を直接修正する（**最大2回**）
    - 修正の優先順: コード例の不足 → テストパターンの不足 → 設計の問題

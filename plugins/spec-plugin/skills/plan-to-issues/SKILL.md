@@ -25,20 +25,20 @@ allowed-tools: Bash(gh *)
 
 ### ラベル作成
 
-リポジトリにラベルがない場合、`scripts/create-github-labels.sh`で一括作成:
+リポジトリにラベルがない場合、`${CLAUDE_PLUGIN_ROOT}/skills/plan-to-issues/scripts/create-github-labels.sh`で一括作成:
 
 ```bash
 # カレントリポジトリに作成
-./scripts/create-github-labels.sh
+${CLAUDE_PLUGIN_ROOT}/skills/plan-to-issues/scripts/create-github-labels.sh
 
 # 特定リポジトリに作成
-REPO=owner/repo ./scripts/create-github-labels.sh
+REPO=owner/repo ${CLAUDE_PLUGIN_ROOT}/skills/plan-to-issues/scripts/create-github-labels.sh
 
 # ドライラン（実行内容のみ表示）
-DRY_RUN=1 ./scripts/create-github-labels.sh
+DRY_RUN=1 ${CLAUDE_PLUGIN_ROOT}/skills/plan-to-issues/scripts/create-github-labels.sh
 
 # 既存ラベルも上書き更新
-FORCE_UPDATE=1 ./scripts/create-github-labels.sh
+FORCE_UPDATE=1 ${CLAUDE_PLUGIN_ROOT}/skills/plan-to-issues/scripts/create-github-labels.sh
 ```
 
 ### ラベル指針

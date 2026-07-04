@@ -1,6 +1,6 @@
 ---
 name: test-review
-description: テストコード品質レビュースキル。古典学派（Classical School）のテスト原則に基づいてテストコードをレビューする。specフォルダの有無に関わらず動作する。test-quality-reviewerエージェントを起動し、モック制限・振る舞いテスト・テスト価値・テストケース網羅性の4次元でレビューする。specフォルダが存在する場合は計画ドキュメントも参考にする。「テストレビュー」「test review」「テスト品質チェック」「モック使いすぎ」「テストの書き方チェック」「古典学派」「classical school」「テストコードレビュー」「test-review」「テストケース不足」などでトリガー。
+description: テストコード品質レビュースキル。テストコード単体を素早くレビューしたい場合に使用する。古典学派（Classical School）のテスト原則に基づき、test-quality-reviewerエージェントを起動してモック制限・振る舞いテスト・テスト価値・テストケース網羅性の4次元でレビューする。specフォルダの有無に関わらず動作し、存在する場合は計画ドキュメントも参考にする。実装全体を多観点で統合レビューする場合は spec-based-code-review スキルを使用すること。「テストレビュー」「test review」「テスト品質チェック」「モック使いすぎ」「テストの書き方チェック」「古典学派」「classical school」「テストコードレビュー」「test-review」「テストケース不足」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[ファイルパス or spec番号]"
 ---
@@ -93,6 +93,8 @@ options:
 - specなしモード: ファイル出力なし（エージェントの出力を直接提示）
 
 ### エージェント起動
+
+**パス解決**: 以下のプロンプト内の `{spec-based-code-review-plugin-path}` は、このプラグインのルートディレクトリ（本スキルの SKILL.md があるディレクトリから2階層上、`.../plugins/spec-based-code-review-plugin`）を指す。実際の絶対パスに置き換えてサブエージェントに渡すこと。
 
 ```
 Task tool:

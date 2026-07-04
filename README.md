@@ -6,9 +6,9 @@ Claude Code 向けの**仕様駆動開発（Spec-Driven Development）プラグ�
 
 - **構造化されたヒアリング** — 対話形式でスコープ・技術要件・品質基準を整理し `hearing-notes.md` を生成
 - **コードベース自動探索** — アーキテクチャ・関連コード・技術的制約・変更影響・テスト基盤を体系的に分析
-- **システム図の必須化** — 状態遷移図・データフロー図をフックで強制し、設計品質を担保
+- **システム図の検証** — 状態遷移図・データフロー図の有無をフックで検証・リマインドし、設計品質を担保
 - **テスト戦略の自動分類** — Pure Logic / API Integration / UI Component 等のパターンに応じて TDD 適用を判断
-- **フェーズ分離** — `PLANNING` ファイルとガードフックにより、計画フェーズ中の実装を禁止
+- **フェーズ分離** — ガードファイル（`.guard/{SESSION_ID}`）とガードフックにより、計画フェーズ中の実装（`.plugin-workspace/.specs/` 外への書き込み）をブロック。`PLANNING` ファイルはフェーズマーカーとして警告表示・アーカイブ判定に使用
 - **マルチレビュー対応** — Codex / GitHub Copilot / Claude Code によるレビューループ（最大5回）
 - **GitHub Issue 連携** — 実装計画から Epic + 子 Issue を自動生成
 
@@ -42,36 +42,59 @@ Claude Code の設定で本プラグインのパスを追加してください�
 
 ### 仕様駆動開発（ヒアリング → 計画）
 
-| スキル | レビュー方式 |
-|--------|-------------|
-| `spec-driven-dev` | レビューなし（最速） |
-| `spec-driven-dev-copilot` | GitHub Copilot CLI |
-| `spec-driven-dev-codex` | Codex CLI |
-| `spec-driven-dev-claude-code` | Claude Code CLI |
+| スキル | 説明 |
+|--------|------|
+| `spec-driven-dev` | 標準ワークフロー。ヒアリング → コード探索 → 計画生成 → オプションでAIレビュー |
+| `spec-driven-dev-lite` | 軽量版。サブエージェントを使わずオーケストレーターが直接計画を生成し、トークン消費を削減 |
+| `spec-driven-dev-html` | HTML出力版。同じ計画プロセスで生成物を HTML 形式で出力 |
+| `spec-driven-fix-review` | spec-viewer のレビューコメントを implementation-plan.md と tasks.md に反映 |
 
 ### 実装
 
-| スキル | レビュー方式 |
-|--------|-------------|
-| `spec-implement` | レビューなし |
-| `spec-implement-copilot` | GitHub Copilot CLI |
-| `spec-implement-codex` | Codex CLI |
-| `spec-implement-claude-code` | Claude Code CLI |
+| スキル | 説明 |
+|--------|------|
+| `spec-implement` | tasks.md の未完了タスクを順次実装。完了後にオプションでコードレビュー |
+| `spec-implement-auto` | 自動コンテキスト注入版。計画・進捗をシェルで強制読み込みし、タスク単位でコミット |
 
-### Issue 連携
+### セットアップ・Issue 連携
 
 | スキル | 説明 |
 |--------|------|
+| `spec-setup` | ワークスペース初期化とデフォルト設定（レビューツール・出力形式） |
 | `plan-to-issues` | 実装計画を GitHub Issues（Epic + 子Issue）に変換 |
 
+### レビューツール指定
+
+レビューツール（Codex / GitHub Copilot / Claude Code CLI）は独立したスキルではなく、ベーススキル（`spec-driven-dev`, `spec-implement`, `spec-implement-auto`）にパラメータとして統合されている:
+
+- `--review codex` — Codex CLI
+- `--review copilot` — GitHub Copilot CLI
+- `--review claude-code` — Claude Code CLI
+- (未指定) — ワークフロー内で AskUserQuestion により選択
+
 ## エージェント
+
+### スキルから起動されるサブエージェント
+
+各スキルのワークフロー内で `subagent_type` として起動される。
+
+| エージェント | 役割 |
+|-------------|------|
+| `codebase-explorer` | コードベースの体系的探索（3層アプローチ） |
+| `spec-planner` | 探索結果+ヒアリングから実装計画を生成 |
+| `plan-format-checker` | implementation-plan がテンプレート構造に沿っているか検証 |
+| `design-validity-checker` | implementation-plan の設計判断の妥当性を評価 |
+| `test-pattern-checker` | テスト戦略のパターン網羅性を評価 |
+| `test-case-designer` | 検証計画を起点にテストケースを詳細設計 |
+
+### スタンドアロン用エージェント
+
+ユーザーが直接起動して使う。
 
 | エージェント | 役割 |
 |-------------|------|
 | `spec-driven-developer` | ワークフロー全体のオーケストレーション |
 | `spec-driven-developer-lite` | 外部AIレビューなしの軽量版 |
-| `codebase-explorer` | コードベースの体系的探索（3層アプローチ） |
-| `spec-planner` | 探索結果+ヒアリングから実装計画を生成 |
 | `spec-implementer` | 計画に基づくタスク順次実装 |
 | `design-doc-writer` | 設計ドキュメント作成 |
 | `implementation-planner` | 機能レベルの実装設計 |
@@ -81,11 +104,14 @@ Claude Code の設定で本プラグインのパスを追加してください�
 
 | フック | タイミング | 説明 |
 |--------|-----------|------|
-| `guard-planning-writes.sh` | PreToolUse | 計画フェーズ中の `.plugin-workspace/.specs/` 外への書き込みをブロック |
-| `auto-allow-spec-commands.sh` | PreToolUse | spec フォルダ番号取得コマンドの自動許可 |
-| `enforce-diagrams.sh` | PostToolUse | 実装計画・設計書にシステム図が含まれているか検証 |
+| `guard-planning-writes.sh` | PreToolUse | ガードファイル（`.guard/{SESSION_ID}`）存在時に `.plugin-workspace/.specs/` 外への書き込みをブロック |
+| `guard-requirements.sh` | PreToolUse | requirements の「未解決の確認事項」が未解決のまま implementation-plan へ進むのをブロック |
+| `auto-allow-spec-commands.sh` | PreToolUse | spec 関連コマンドの自動許可（未許可コマンドはAIに通知） |
+| `enforce-diagrams.sh` | PostToolUse | 実装計画・設計書にシステム図が含まれているか検証し、不足があればリマインド |
+| `enforce-code-examples.sh` | PostToolUse | 実装計画にコードブロック（型定義・使用例等）が含まれているか検証し、不足があればリマインド |
+| `session-phase-name.sh` | UserPromptSubmit | `/spec-driven-dev`・`/spec-implement` の起動を検出しセッションタイトルを設定 |
 | PreCompact | PreCompact | 計画中のコンテキスト圧縮時に実装禁止を警告 |
-| Stop | Stop | 完了した spec を自動アーカイブ |
+| Stop | Stop | PLANNING ファイルのない spec を自動アーカイブ |
 
 ## 生成されるディレクトリ構造
 

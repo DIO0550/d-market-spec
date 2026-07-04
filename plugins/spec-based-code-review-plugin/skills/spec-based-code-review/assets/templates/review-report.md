@@ -1,9 +1,9 @@
-# 仕様整合性レビュー: {nnn}-{feature-name}
+# コードレビュー統合レポート: {nnn}-{feature-name}
 
 **レビュー日時**: {datetime}
 **レビュー回数**: {NNN}
 **レビュー対象**: {review-scope}
-**参照ドキュメント**:
+**参照ドキュメント**（spec文書がない場合は省略）:
 - hearing-notes: `{spec-dir}/hearing-notes.md`
 - exploration-report: `{spec-dir}/exploration-report.md`
 - implementation-plan: `{spec-dir}/implementation-plan.md`
@@ -36,7 +36,7 @@
 - **次元**: {担当次元名}
 - **レビューアー**: {エージェント名}
 - **対象**: `{ファイルパス}` L{行番号}
-- **仕様根拠**: {spec文書名 Section X: "引用"}
+- **根拠**: {ルール根拠（原則名） または 仕様根拠（spec文書名 Section X: "引用"）}
 - **問題**: {問題の説明}
 - **改善案**: {具体的な修正提案}
 
@@ -51,7 +51,7 @@
 - **次元**: {担当次元名}
 - **レビューアー**: {エージェント名}
 - **対象**: `{ファイルパス}` L{行番号}
-- **仕様根拠**: {spec文書名 Section X: "引用"}
+- **根拠**: {ルール根拠（原則名） または 仕様根拠（spec文書名 Section X: "引用"）}
 - **問題**: {問題の説明}
 - **改善案**: {具体的な修正提案}
 
@@ -87,3 +87,4 @@
 | design-reviewer | `spec-based-code-review/design-{NNN}.md` | {n} |
 | spec-alignment-reviewer | `spec-based-code-review/alignment-{NNN}.md` | {n} |
 | test-quality-reviewer | `spec-based-code-review/test-quality-{NNN}.md` | {n} |
+| comment-quality-reviewer | `spec-based-code-review/comment-quality-{NNN}.md` | {n} |

@@ -1,6 +1,6 @@
 {
   "name": "d-market-spec",
-  "version": "1.12.1",
+  "version": "1.13.0",
   "owner": {
     "name": "DIO0550"
   },
@@ -13,7 +13,7 @@
     {
       "name": "spec-based-code-review-plugin",
       "source": "./plugins/spec-based-code-review-plugin",
-      "description": "計画ドキュメントに基づく仕様ベースコードレビュー"
+      "description": "ユニバーサルな原則に基づくコードレビュー。計画ドキュメントがあれば仕様整合性も検証する"
     }
   ]
 }

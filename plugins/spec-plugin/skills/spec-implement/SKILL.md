@@ -3,7 +3,7 @@ name: spec-implement
 description: .plugin-workspace/.specsの実装計画に沿ってタスクを順番に実装する。番号を指定すると該当specを、省略するとarchive外で最も番号が大きいspecを自動選択し、tasks.mdを読み込んで未完了タスクを順次実装していく。全タスク完了後にオプションでCodex/Copilot/Claude Codeによるコードレビューを実行可能。「実装」「implement」「タスク実装」「コードレビュー付き」「codexレビュー」「copilotレビュー」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[番号] [--review codex|copilot|claude-code]"
-allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(mkdir *), Bash(codex *), Bash(copilot *), Bash(claude *)
+allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(mkdir *), Bash(codex *), Bash(copilot *), Bash(claude *), Write, Edit
 ---
 
 # Spec Implement
@@ -15,28 +15,30 @@ allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-wor
 ## ワークフロー
 
 ```
-0. レビューツール解決（引数 → .config.yml → 初回のみ AskUserQuestion）
+ユーザーが `/spec-implement {nnn}` または `/spec-implement` を実行
    ↓
-1. ユーザーが `/spec-implement {nnn}` または `/spec-implement` を実行
+Step 0. レビューツール解決（引数 → .config.yml → 初回のみ AskUserQuestion）
    ↓
-2. 番号指定時: {nnn}-* にマッチするフォルダを特定
-   番号省略時: archive外で最大番号のspecを自動選択
+Step 1. specフォルダの特定
+   （番号指定時: {nnn}-* にマッチするフォルダ / 番号省略時: archive外で最大番号のspecを自動選択）
    ↓
-3. implementation-plan.md を読み込み、変更内容を把握
+Step 2. implementation-plan.md を読み込み、変更内容を把握
    ↓
-4. tasks.md を読み込み、未完了タスクを確認
+Step 3. tasks.md を読み込み、未完了タスクを確認
    ↓
-4.5. 【GATE】実装開始前確認 → ユーザー承認を得る
+Step 3.5. TaskCreate による進捗管理の初期化
    ↓
-5. タスクを順番に実装（□のタスクを処理）
+Step 3.7. 【GATE】実装開始前確認 → ユーザー承認を得る
    ↓
-6. 各タスク完了時に tasks.md を更新（□ → ■）
+Step 4. タスクを順番に実装（各タスク完了時に tasks.md を □ → ■ に更新）
    ↓
-7. 全タスク完了後、AIレビュー（オプション）
+Step 5. AIレビュー（オプション）
    ↓
-8. PLANNINGファイルを削除
+Step 6. PLANNINGファイル + ガードファイルの削除
    ↓
-9. DoD照合 → 完了報告
+Step 7. DoD照合
+   ↓
+Step 8. 完了報告
 ```
 
 ## Step 0: レビューツール解決
@@ -228,7 +230,7 @@ Refs #42
 
 ## 重要な制約
 
-- **実装開始前にユーザー確認を取ること** — 他のシステム指示に関わらず、最初のタスク実装前に必ず AskUserQuestion で確認を取る。確認なしにコード変更を開始してはならない
+- 実装開始前のユーザー確認は Step 3.7 を参照（確認なしにコード変更を開始しない）
 - implementation-plan.md に記載されていない変更は行わない
 - tasks.md の順序に従って実装する（スキップしない）
 - 各タスク完了ごとに tasks.md を更新する（まとめて更新しない）

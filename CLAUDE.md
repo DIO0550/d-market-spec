@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-このリポジトリは Claude Code 向けの **仕様駆動開発プラグイン** (`spec-plugin`) のソースです。
+このリポジトリは Claude Code 向けプラグインのマーケットプレイスのソースです。**仕様駆動開発プラグイン** (`spec-plugin`) と **仕様ベースコードレビュープラグイン** (`spec-based-code-review-plugin`) の2つを含みます。
 
 ## リポジトリ構成
 
@@ -11,11 +11,18 @@ plugins/spec-plugin/
 ├── hooks/                        # フック定義・シェルスクリプト
 │   ├── hooks.json
 │   ├── guard-planning-writes.sh  # 計画中の実装ブロック
+│   ├── guard-requirements.sh     # requirements 未確定時の計画進行ブロック
 │   ├── auto-allow-spec-commands.sh
-│   └── enforce-diagrams.sh       # システム図の強制
+│   ├── enforce-diagrams.sh       # システム図の検証・リマインド
+│   ├── enforce-code-examples.sh  # コード例の検証・リマインド
+│   └── session-phase-name.sh     # セッションタイトルの自動設定
 ├── agents/                       # エージェント定義（.md）
 ├── skills/                       # スキル定義（各 SKILL.md + テンプレート + 参照資料）
 └── references/                   # 共有参照資料（TDDガイドライン等）
+plugins/spec-based-code-review-plugin/
+├── plugin.json                   # プラグインメタデータ
+├── agents/                       # レビューエージェント定義（5ファイル）
+└── skills/                       # spec-based-code-review, test-review
 ```
 
 ## 開発ルール
@@ -30,9 +37,9 @@ plugins/spec-plugin/
 
 ## 主要コンセプト
 
-- **PLANNINGファイル**: `.plugin-workspace/.specs/{nnn}-{feature}/PLANNING` が存在する間は計画フェーズ。フックにより実装（`.plugin-workspace/.specs/` 外への書き込み）がブロックされる
-- **ガードファイル**: `.plugin-workspace/.specs/.guard/{SESSION_ID}` でセッション単位のフェーズ保護を行う
-- **システム図の必須化**: `enforce-diagrams.sh` が実装計画・設計書に状態遷移図とデータフロー図が含まれているかを検証する
+- **PLANNINGファイル**: `.plugin-workspace/.specs/{nnn}-{feature}/PLANNING` が存在する間は計画フェーズ。フェーズマーカーとして使われ、PreCompact フックの実装禁止警告と、セッション終了時のアーカイブ対象判定（PLANNING がないフォルダのみアーカイブ）に用いられる
+- **ガードファイル**: `.plugin-workspace/.specs/.guard/{SESSION_ID}` が存在する間、`guard-planning-writes.sh` がそのセッションでの実装（`.plugin-workspace/.specs/` 外への書き込み）をブロックする
+- **システム図の検証**: `enforce-diagrams.sh` が実装計画・設計書に状態遷移図とデータフロー図が含まれているかを検証し、不足があればリマインドを出す（ブロックはしない）
 - **タスク進捗**: `tasks.md` 内の `□`（未完了）/ `■`（完了）で進捗を管理する
 - **自動アーカイブ**: セッション終了時、PLANNINGファイルのない spec フォルダは `.plugin-workspace/.specs/archive/` に移動される
 
