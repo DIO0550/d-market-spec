@@ -55,6 +55,8 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
    ↓
 6.5. tech-reference 生成（サブエージェント）→ tech-reference.md
    ↓
+6.7. 実装前理解度クイズ生成 → understanding-quiz-plan.html（設計意図の自己確認・advisory）
+   ↓
 7. 実装開始許可後、PLANNINGファイル削除
 ```
 
@@ -258,6 +260,19 @@ implementation-plan に登場するすべての技術（言語・フレームワ
 
 **詳細は [references/workflow-steps.md](references/workflow-steps.md) の tech-reference 生成を参照。**
 
+## Step 6.7: 実装前理解度クイズ生成
+
+plan を実装セッションに渡す直前に、**実装者（人間）の設計理解度を測るクイズ**を HTML アーティファクトとして生成する。落ちた設問は「設計がまだ自分の中で固まっていない箇所」を指すため、実装に渡す前に潰すための **advisory ゲート**。
+
+- **材料**: requirements.md（ユースケース・要件・制約）＋ implementation-plan＋ hearing-notes（どの unknowns をどう解決したかの記録）
+- **問う対象**: なぜこの設計にしたか / このデータモデル・型にした理由 / この制約が壊れると何が起きるか / 変わりやすい箇所の意図
+- **出力**: `understanding-quiz-plan.html`（解説＋クイズ。4択・YES/NO・並べ替え。クライアント側JSで即時採点。test-cases.html と同様に自己完結HTMLで、`<link>`→style.css 置換は不要）
+- **enforcement**: advisory。hook による機械的ブロックはしない（合否は自己申告のため）。
+
+出題設計の指針は [references/quiz-design.md](references/quiz-design.md) を参照。
+
+**詳細手順は [references/workflow-steps.md](references/workflow-steps.md) の Step 6.7 を参照。**
+
 ## Step 7: 実装開始（ユーザーによるガード解除）
 
 **詳細は [references/workflow-steps.md](references/workflow-steps.md) のガード解除を参照。**
@@ -281,6 +296,7 @@ implementation-plan に登場するすべての技術（言語・フレームワ
     ├── tasks{EXT}               # タスクリスト（spec-planner 生成）
     ├── test-cases.html          # テストケース詳細仕様（網羅性レビュー用、HTML・常に .html）
     ├── tech-reference{EXT}      # 技術リファレンス（初学者向け、サブエージェント生成）
+    ├── understanding-quiz-plan.html # 実装前理解度クイズ（設計意図の自己確認、HTML・常に .html）
     └── plan-review/             # AIレビュー結果（レビュー実行時のみ）
         ├── prompt-001.txt
         ├── review-001.md

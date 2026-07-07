@@ -30,13 +30,16 @@ Step 3.5. TaskCreate による進捗管理の初期化
    ↓
 Step 3.7. 【GATE】実装開始前確認 → ユーザー承認を得る
    ↓
-Step 4. タスクを順番に実装（各タスク完了時に tasks.md を □ → ■ に更新）
+Step 4. タスクを順番に実装（各タスク完了時に tasks.md を □ → ■ に更新
+        ＋ Deviations・既存依存の挙動を implementation-notes.md に随時記録）
    ↓
 Step 5. AIレビュー（オプション）
    ↓
 Step 6. PLANNINGファイル + ガードファイルの削除
    ↓
 Step 7. DoD照合
+   ↓
+Step 7.5. 実装後理解度クイズ生成 → understanding-quiz-impl.html（push 前ゲート・advisory）
    ↓
 Step 8. 完了報告
 ```
@@ -164,6 +167,20 @@ implementation-plan.md の概要（変更対象ファイル一覧、DoD一覧）
 
 **重要**: 親タスクは、すべての子タスクが `■` になった時点で `■` に更新する。
 
+### 実装中ノートの記録（implementation-notes.md）
+
+実装を進めながら、`implementation-notes.md` に「実際にやったこと」を随時記録する。これは Step 7.5 の実装後理解度クイズの出題材料になる（diff の表面に出ない挙動を問うため）。
+
+- 初回の実装着手時にテンプレート `assets/templates/implementation-notes.md` を
+  `.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-notes.md` にコピーして起こす
+- 実装中、以下が発生したらその都度追記する:
+  - **Deviations**: implementation-plan から外れた点とその理由
+  - **既存コードパスへの依存で生じた挙動**: diff の表面に出ないが既存の関数・フック・設定に依存して発生する挙動（根拠となる file:line も）
+  - **想定 vs 実際**: hearing-notes で想定した設計と実装結果が食い違った点
+  - **実装判断メモ**: 命名・分割・エラー処理など、後から「なぜこうしたか」を問われうる判断
+
+逸脱が一切なければ Deviations に「なし」と明記する。
+
 ## Step 5: AIレビュー（オプション）
 
 Step 0 で決定した `{REVIEW_TOOL}` を使用する。`none` の場合は Step 6 へスキップ。
@@ -200,6 +217,46 @@ implementation-plan.md の "Definition of Done" セクションを読み込み�
 
 **注意**: DoDセクションが存在しない場合はスキップして Step 8 へ進む。
 
+## Step 7.5: 実装後理解度クイズ生成
+
+push / merge の前に、**実装者（人間）が「実際に何が変わったか」を理解できているか**を測るクイズを HTML アーティファクトとして生成する。`tsc --noEmit` が「型の関門」なのに対し、これは「人間の理解の関門」。落ちた設問がある間はまだ merge / push すべきでない、という **advisory ゲート**。
+
+- **材料**: diff（実際の変更）＋ implementation-notes.md（実装中ノート / Deviations）＋ hearing-notes（事前の意図）
+  - hearing-notes（事前の意図）と implementation-notes（実際にやったこと）が別ファイルで分かれているため、両方を読ませると「想定した設計 vs 実際の実装」のズレをそのまま出題材料にできる
+- **問う対象**: Claude が実際に何をやったか / 途中で入った Deviations とその理由 / 既存コードパス依存で発生した挙動（diff の表面に出ない挙動を優先）
+- **出力**: `understanding-quiz-impl.html`（解説＋クイズ。4択・YES/NO・並べ替え。クライアント側JSで即時採点。自己完結HTML）
+- **enforcement**: advisory。hook による機械的ブロックはしない（合否は自己申告のため）。
+
+### 7.5-1. 材料の読み込み
+
+- 変更差分（`git diff` の結果、または本セッションで Write/Edit した内容）
+- `.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-notes.md`（Step 4 で記録したノート）
+- `.plugin-workspace/.specs/{nnn}-{feature-name}/hearing-notes.md`（事前の意図。存在すれば）
+
+### 7.5-2. 設問の作成
+
+`references/quiz-design.md` の「実装後クイズ（実際の挙動）の出題観点」に沿って、合計 5〜10 問（choice / boolean / order を混ぜる）作る。以下は必須:
+
+- **Deviations を最低1問**（implementation-notes 由来。逸脱が「なし」ならその旨を問う設問でよい）
+- **既存コードパス依存で生じた挙動**を優先的に出題（diff をざっと読むだけでは見えない挙動）
+- **想定 vs 実際**（hearing-notes と実装のズレ）。`tag` に区分を付けるとバッジ表示される
+
+### 7.5-3. HTML アーティファクト生成
+
+`test-cases.html` と同様の **DATA スクリプト差し替え方式**。CSS・レンダラ・採点ロジックは固定済み。
+
+1. テンプレート `assets/templates/understanding-quiz-impl.html` を Read する
+2. テンプレート先頭の DATA スクリプト（スキーマ説明コメント + `const QUIZ`）を実データで丸ごと置き換える
+3. それ以外（`<style>`・レンダラの2スクリプト・HTMLシェル）は1文字も変更しない（自己完結HTML）
+4. `<title>` の `{機能名}` を実際の機能名に置換する
+5. `.plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-impl.html` に Write する（プレースホルダ `{...}` を残さない）
+
+### 7.5-4. ユーザーへの提示
+
+- `understanding-quiz-impl.html` のファイルパス
+- 「実装後の理解度クイズを生成しました。push / merge する前に、ブラウザで開いて変更の実際の挙動を確認してください（例: `open .plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-impl.html`）。」
+- 「これは advisory ゲートです。落ちた設問がある＝変更を理解できていない箇所なので、その箇所の diff と implementation-notes を読み直してから push することをおすすめします。」
+
 ## Step 8: 完了報告
 
 実装完了後、ユーザーに以下を報告する：
@@ -210,6 +267,7 @@ implementation-plan.md の "Definition of Done" セクションを読み込み�
 4. AIレビューの結果サマリー（レビュー実行時）
 5. PLANNINGファイルの削除状態
 6. DoD充足状況（DoDがある場合）
+7. 実装後理解度クイズ（`understanding-quiz-impl.html`）のパスと、push 前に確認するよう案内
 
 ## コミットメッセージのフォーマット
 
