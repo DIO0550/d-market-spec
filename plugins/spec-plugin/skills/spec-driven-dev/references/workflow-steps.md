@@ -18,6 +18,7 @@ SKILL.md本文で宣言されたパラメータを参照して実行する。
 - [Step 4.8: テストケース網羅性検証（test-cases 検証）](#step-48-テストケース網羅性検証test-cases-検証必須)
 - [ユーザー確認](#ユーザー確認)
 - [tech-reference 生成](#tech-reference-生成サブエージェントに委譲)
+- [Step 6.7: 実装前理解度クイズ生成](#step-67-実装前理解度クイズ生成)
 - [ガード解除 / PLANNINGファイル削除](#ガード解除use_guard--true-の場合)
 
 **パラメータ一覧**（SKILL.md本文で宣言）:
@@ -779,6 +780,63 @@ tech-reference 生成完了後、ユーザーに以下を追加提示する:
 
 - `tech-reference{TECH_REFERENCE_EXT}` のファイルパス
 - 「技術リファレンスを生成しました。implementation-plan と合わせてご参照ください。」
+
+---
+
+## Step 6.7: 実装前理解度クイズ生成
+
+plan を実装セッションに渡す直前（ガード解除の前）に、**実装者（人間）の設計理解度を測るクイズ**を
+HTML アーティファクトとして生成する。これは「設計がまだ自分の中で固まっているか」を確認し、
+unknowns を炙り出す **advisory ゲート**。落ちた設問は実装に渡す前に潰す。
+
+**生成の有無は config で決まる**: `.plugin-workspace/.specs/.config.yml` の `skip-files` に
+`understanding-quiz` が含まれていればこのステップをスキップする（`/spec-setup` で設定）。
+含まれていなければ生成する。
+
+出題設計の共通指針は `references/quiz-design.md` を参照。
+
+### 6.7-1. 材料の読み込み
+
+以下を材料として読み込む（既存資産を再利用するだけで、新規に材料を用意する必要はない）:
+
+- `requirements.md` — 確定したユースケース・要件・制約（設計判断の前提）
+- `implementation-plan{IMPLEMENTATION_PLAN_EXT}` — 設計・データモデル・変更案
+- `hearing-notes{HEARING_NOTES_EXT}` — どの unknowns をどう解決したかの記録
+  （「なぜこの設計にしたか」の答えの根拠がここにある）
+
+### 6.7-2. 設問の作成
+
+`references/quiz-design.md` の「実装前クイズ（設計意図）の出題観点」に沿って、
+以下を問う設問を **合計 5〜10 問**（choice / boolean / order を混ぜる）作る:
+
+- なぜこの設計にしたか（設計判断の理由）
+- このデータモデル / 型インターフェースにした理由
+- この制約が満たされないと何が壊れるか
+- 変更されやすい箇所（data model / 型 / UX フロー）の意図
+
+材料に照らして正解が一意に決まる設問だけを作る。誤答は「ざっと読むと選びそうな別解釈・別設計」にする。
+
+### 6.7-3. HTML アーティファクト生成
+
+`test-cases.html` と同様の **DATA スクリプト差し替え方式**。CSS・レンダラ・採点ロジックは固定済み。
+
+1. テンプレート `assets/templates/understanding-quiz-plan.html` を Read する
+2. テンプレート先頭の DATA スクリプト（スキーマ説明コメント + `const QUIZ`）を実データで丸ごと置き換える
+3. それ以外（`<style>`・レンダラの2スクリプト・HTMLシェル）は1文字も変更しない。
+   **test-cases.html と同じく自己完結HTMLのため、`<link>`→style.css 置換は不要。**
+4. `<title>` の `{機能名}` を実際の機能名に置換する
+5. `.plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-plan.html` に Write する
+   （プレースホルダ `{...}` を残さない）
+
+> **config の `output-formats` に関わらず常に `.html`**（本質的にインタラクティブなレビューUIのため）。
+
+### 6.7-4. ユーザーへの提示
+
+- `understanding-quiz-plan.html` のファイルパス
+- 「実装前の理解度クイズを生成しました。実装を始める前に、ブラウザで開いて設計意図を確認してください
+  （例: `open .plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-plan.html`）。」
+- 「これは advisory ゲートです。落ちた設問がある＝設計がまだ固まっていない箇所なので、
+  その論点を計画・要件で詰め直してから実装に進むことをおすすめします。」
 
 ---
 
