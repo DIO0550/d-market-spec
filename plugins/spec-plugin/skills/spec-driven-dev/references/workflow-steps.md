@@ -789,6 +789,10 @@ plan を実装セッションに渡す直前（ガード解除の前）に、**�
 HTML アーティファクトとして生成する。これは「設計がまだ自分の中で固まっているか」を確認し、
 unknowns を炙り出す **advisory ゲート**。落ちた設問は実装に渡す前に潰す。
 
+**生成の有無は config で決まる**: `.plugin-workspace/.specs/.config.yml` の `skip-files` に
+`understanding-quiz` が含まれていればこのステップをスキップする（`/spec-setup` で設定）。
+含まれていなければ生成する。
+
 出題設計の共通指針は `references/quiz-design.md` を参照。
 
 ### 6.7-1. 材料の読み込み
@@ -833,8 +837,6 @@ unknowns を炙り出す **advisory ゲート**。落ちた設問は実装に渡
   （例: `open .plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-plan.html`）。」
 - 「これは advisory ゲートです。落ちた設問がある＝設計がまだ固まっていない箇所なので、
   その論点を計画・要件で詰め直してから実装に進むことをおすすめします。」
-
-`skip-files` に `understanding-quiz-plan`（または `understanding-quiz`）が含まれている場合はスキップ可。
 
 ---
 

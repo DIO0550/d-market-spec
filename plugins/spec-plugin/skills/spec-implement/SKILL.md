@@ -169,6 +169,8 @@ implementation-plan.md の概要（変更対象ファイル一覧、DoD一覧）
 
 ### 実装中ノートの記録（implementation-notes.md）
 
+> **このノートは実装後クイズ（Step 7.5）の出題材料。`.config.yml` の `skip-files` に `understanding-quiz` が含まれていて Step 7.5 をスキップする場合は、この記録も省略してよい。**
+
 実装を進めながら、`implementation-notes.md` に「実際にやったこと」を随時記録する。これは Step 7.5 の実装後理解度クイズの出題材料になる（diff の表面に出ない挙動を問うため）。
 
 - 初回の実装着手時にテンプレート `assets/templates/implementation-notes.md` を
@@ -221,9 +223,11 @@ implementation-plan.md の "Definition of Done" セクションを読み込み�
 
 push / merge の前に、**実装者（人間）が「実際に何が変わったか」を理解できているか**を測るクイズを HTML アーティファクトとして生成する。`tsc --noEmit` が「型の関門」なのに対し、これは「人間の理解の関門」。落ちた設問がある間はまだ merge / push すべきでない、という **advisory ゲート**。
 
+**生成の有無は `.plugin-workspace/.specs/.config.yml` の `skip-files` で決まる**（`/spec-setup` で設定）。`skip-files` に `understanding-quiz` が含まれている場合はこのステップをスキップして Step 8 へ進む。含まれていなければ生成する。
+
 - **材料**: diff（実際の変更）＋ implementation-notes.md（実装中ノート / Deviations）＋ hearing-notes（事前の意図）
   - hearing-notes（事前の意図）と implementation-notes（実際にやったこと）が別ファイルで分かれているため、両方を読ませると「想定した設計 vs 実際の実装」のズレをそのまま出題材料にできる
-- **問う対象**: Claude が実際に何をやったか / 途中で入った Deviations とその理由 / 既存コードパス依存で発生した挙動（diff の表面に出ない挙動を優先）
+- **問う対象**: 実装で実際に何が行われたか / 途中で入った Deviations とその理由 / 既存コードパス依存で発生した挙動（diff の表面に出ない挙動を優先）
 - **出力**: `understanding-quiz-impl.html`（解説＋クイズ。4択・YES/NO・並べ替え。クライアント側JSで即時採点。自己完結HTML）
 - **enforcement**: advisory。hook による機械的ブロックはしない（合否は自己申告のため）。
 

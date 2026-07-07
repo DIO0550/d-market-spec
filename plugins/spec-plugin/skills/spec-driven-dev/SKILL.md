@@ -264,6 +264,8 @@ implementation-plan に登場するすべての技術（言語・フレームワ
 
 plan を実装セッションに渡す直前に、**実装者（人間）の設計理解度を測るクイズ**を HTML アーティファクトとして生成する。落ちた設問は「設計がまだ自分の中で固まっていない箇所」を指すため、実装に渡す前に潰すための **advisory ゲート**。
 
+**生成の有無は `.plugin-workspace/.specs/.config.yml` の `skip-files` で決まる**（`/spec-setup` で設定）。`skip-files` に `understanding-quiz` が含まれている場合はこのステップをスキップする。含まれていなければ生成する。
+
 - **材料**: requirements.md（ユースケース・要件・制約）＋ implementation-plan＋ hearing-notes（どの unknowns をどう解決したかの記録）
 - **問う対象**: なぜこの設計にしたか / このデータモデル・型にした理由 / この制約が壊れると何が起きるか / 変わりやすい箇所の意図
 - **出力**: `understanding-quiz-plan.html`（解説＋クイズ。4択・YES/NO・並べ替え。クライアント側JSで即時採点。test-cases.html と同様に自己完結HTMLで、`<link>`→style.css 置換は不要）

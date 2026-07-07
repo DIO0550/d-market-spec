@@ -25,7 +25,7 @@ spec-plugin のワークスペース初期化と設定を行うスキル。
 | `output-formats.implementation-plan` | `md` / `html` | implementation-plan の出力形式 |
 | `output-formats.tasks` | `md` / `html` | tasks の出力形式 |
 | `output-formats.tech-reference` | `md` / `html` | tech-reference の出力形式 |
-| `skip-files` | リスト | 生成をスキップするファイル（例: `[tech-reference, test-cases]`）。`test-cases` は spec-driven-dev / spec-driven-dev-html で有効 |
+| `skip-files` | リスト | 生成をスキップするファイル（例: `[tech-reference, test-cases, understanding-quiz]`）。`test-cases` は spec-driven-dev / spec-driven-dev-html で有効。`understanding-quiz` は spec-driven-dev（実装前クイズ）と spec-implement（実装後クイズ）で有効 |
 
 ## ワークフロー
 
@@ -91,11 +91,14 @@ options:
     description: "技術リファレンス（初学者向け解説）を生成しない"
   - label: "test-cases"
     description: "テストケース詳細仕様（test-cases.html）を生成しない。spec-driven-dev / spec-driven-dev-html で有効"
+  - label: "understanding-quiz"
+    description: "理解度クイズ（実装前 understanding-quiz-plan.html / 実装後 understanding-quiz-impl.html）を生成しない"
 ```
 
 選択結果から `skip-files` リストを構築する。何も選択されなかった場合は `skip-files` キーを出力しない。
 
 `test-cases` は `spec-driven-dev` / `spec-driven-dev-html` で意味を持つ（test-cases.html を生成するスキル。他のスキルでは無視される）。
+`understanding-quiz` は `spec-driven-dev`（実装前クイズ）と `spec-implement`（実装後クイズ）で意味を持つ。
 
 ### Step 4: 設定ファイルの書き出し
 
@@ -117,9 +120,11 @@ output-formats:
 
 # 生成をスキップするファイル（Step 3.5 で選択された場合のみ出力）
 # test-cases は spec-driven-dev / spec-driven-dev-html で有効
+# understanding-quiz は spec-driven-dev（実装前）/ spec-implement（実装後）で有効
 skip-files:
   - tech-reference
   - test-cases
+  - understanding-quiz
 ```
 
 ### Step 5: 完了報告
