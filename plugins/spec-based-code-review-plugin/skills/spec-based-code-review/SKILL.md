@@ -236,7 +236,8 @@ Task tool: (並列起動)
 
      ## 重要
      - すべての指摘に「根拠」を含めること（ルール根拠 or 仕様根拠）
-     - ユニバーサル原則（SRP, DIP, KISS, 凝集度）はルール根拠のみで指摘可能
+     - ユニバーサル原則（SRP, DIP, KISS, 凝集度, 不要な防御的コードの排除）はルール根拠のみで指摘可能
+     - 不要なフォールバック・防御的コード（次元16）の判定では、仕様が要求する劣化提供かを次元5と併せて確認すること
 
 3. spec-alignment-reviewer:（specフォルダがある場合のみ起動）
    description: "spec-alignment-reviewer: {feature-name}"
