@@ -793,6 +793,11 @@ unknowns を炙り出す **advisory ゲート**。落ちた設問は実装に渡
 `understanding-quiz` が含まれていればこのステップをスキップする（`/spec-setup` で設定）。
 含まれていなければ生成する。
 
+**出力先も config で決まる**: `.config.yml` の `quiz-output.plan` が `artifact` なら Artifact ツールで公開、
+`file` または未設定なら specフォルダ内の HTML ファイルとして出力する（**デフォルト: `file`**）。
+決定した値を以降 `{QUIZ_OUTPUT}` として参照する。`artifact` でも実行環境に Artifact ツールが
+存在しない場合（CLI 等）は `file` にフォールバックする。
+
 出題設計の共通指針は `references/quiz-design.md` を参照。
 
 ### 6.7-1. 材料の読み込み
@@ -816,7 +821,7 @@ unknowns を炙り出す **advisory ゲート**。落ちた設問は実装に渡
 
 材料に照らして正解が一意に決まる設問だけを作る。誤答は「ざっと読むと選びそうな別解釈・別設計」にする。
 
-### 6.7-3. HTML アーティファクト生成
+### 6.7-3. クイズ生成
 
 `test-cases.html` と同様の **DATA スクリプト差し替え方式**。CSS・レンダラ・採点ロジックは固定済み。
 
@@ -825,16 +830,21 @@ unknowns を炙り出す **advisory ゲート**。落ちた設問は実装に渡
 3. それ以外（`<style>`・レンダラの2スクリプト・HTMLシェル）は1文字も変更しない。
    **test-cases.html と同じく自己完結HTMLのため、`<link>`→style.css 置換は不要。**
 4. `<title>` の `{機能名}` を実際の機能名に置換する
-5. `.plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-plan.html` に Write する
-   （プレースホルダ `{...}` を残さない）
+5. `{QUIZ_OUTPUT}` に応じて出力する（プレースホルダ `{...}` を残さない）:
+   - **`file` の場合（デフォルト）**: `.plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-plan.html` に Write する
+   - **`artifact` の場合**: 外側のシェルタグ（`<!doctype html>` `<html>` `<head>` `</head>` `<body>` `</body>` `</html>`）を取り除き、
+     `<title>`・`<style>`・body 内容・スクリプトを残した形で
+     `.plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-plan.html` に Write し、
+     Artifact ツールで公開する（Artifact 側がシェルを付与するため。favicon は `📝`）
 
 > **config の `output-formats` に関わらず常に `.html`**（本質的にインタラクティブなレビューUIのため）。
 
 ### 6.7-4. ユーザーへの提示
 
-- `understanding-quiz-plan.html` のファイルパス
-- 「実装前の理解度クイズを生成しました。実装を始める前に、ブラウザで開いて設計意図を確認してください
-  （例: `open .plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-plan.html`）。」
+- `{QUIZ_OUTPUT}` が `file` の場合: `understanding-quiz-plan.html` のファイルパス
+  （例: `open .plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-plan.html`）
+- `{QUIZ_OUTPUT}` が `artifact` の場合: Artifact の URL
+- 「実装前の理解度クイズを生成しました。実装を始める前に、開いて設計意図を確認してください。」
 - 「これは advisory ゲートです。落ちた設問がある＝設計がまだ固まっていない箇所なので、
   その論点を計画・要件で詰め直してから実装に進むことをおすすめします。」
 
