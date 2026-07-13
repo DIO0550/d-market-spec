@@ -39,7 +39,7 @@ Step 6. PLANNINGファイル + ガードファイルの削除
    ↓
 Step 7. DoD照合
    ↓
-Step 7.5. 実装後理解度クイズ生成 → understanding-quiz-impl.html（push 前ゲート・advisory）
+Step 7.5. 実装後理解度クイズ生成 → Artifact（デフォルト）or understanding-quiz-impl.html（push 前ゲート・advisory）
    ↓
 Step 8. 完了報告
 ```
@@ -221,14 +221,16 @@ implementation-plan.md の "Definition of Done" セクションを読み込み�
 
 ## Step 7.5: 実装後理解度クイズ生成
 
-push / merge の前に、**実装者（人間）が「実際に何が変わったか」を理解できているか**を測るクイズを HTML アーティファクトとして生成する。`tsc --noEmit` が「型の関門」なのに対し、これは「人間の理解の関門」。落ちた設問がある間はまだ merge / push すべきでない、という **advisory ゲート**。
+push / merge の前に、**実装者（人間）が「実際に何が変わったか」を理解できているか**を測るクイズを生成する。`tsc --noEmit` が「型の関門」なのに対し、これは「人間の理解の関門」。落ちた設問がある間はまだ merge / push すべきでない、という **advisory ゲート**。
 
 **生成の有無は `.plugin-workspace/.specs/.config.yml` の `skip-files` で決まる**（`/spec-setup` で設定）。`skip-files` に `understanding-quiz` が含まれている場合はこのステップをスキップして Step 8 へ進む。含まれていなければ生成する。
+
+**出力先は `.config.yml` の `quiz-output.impl` で決まる**: `artifact`（Artifact ツールで公開）または `file`（specフォルダ内の HTML ファイル）。**未設定時のデフォルトは `artifact`**。決定した値を以降 `{QUIZ_OUTPUT}` として参照する。ただし `artifact` でも実行環境に Artifact ツールが存在しない場合（CLI 等）は `file` にフォールバックする。
 
 - **材料**: diff（実際の変更）＋ implementation-notes.md（実装中ノート / Deviations）＋ hearing-notes（事前の意図）
   - hearing-notes（事前の意図）と implementation-notes（実際にやったこと）が別ファイルで分かれているため、両方を読ませると「想定した設計 vs 実際の実装」のズレをそのまま出題材料にできる
 - **問う対象**: 実装で実際に何が行われたか / 途中で入った Deviations とその理由 / 既存コードパス依存で発生した挙動（diff の表面に出ない挙動を優先）
-- **出力**: `understanding-quiz-impl.html`（解説＋クイズ。4択・YES/NO・並べ替え。クライアント側JSで即時採点。自己完結HTML）
+- **出力**: 解説＋クイズ（4択・YES/NO・並べ替え。クライアント側JSで即時採点。自己完結HTML）。`{QUIZ_OUTPUT}` に応じて Artifact 公開（デフォルト）または `understanding-quiz-impl.html` ファイル
 - **enforcement**: advisory。hook による機械的ブロックはしない（合否は自己申告のため）。
 
 ### 7.5-1. 材料の読み込み
@@ -245,7 +247,7 @@ push / merge の前に、**実装者（人間）が「実際に何が変わっ�
 - **既存コードパス依存で生じた挙動**を優先的に出題（diff をざっと読むだけでは見えない挙動）
 - **想定 vs 実際**（hearing-notes と実装のズレ）。`tag` に区分を付けるとバッジ表示される
 
-### 7.5-3. HTML アーティファクト生成
+### 7.5-3. クイズ生成
 
 `test-cases.html` と同様の **DATA スクリプト差し替え方式**。CSS・レンダラ・採点ロジックは固定済み。
 
@@ -253,12 +255,14 @@ push / merge の前に、**実装者（人間）が「実際に何が変わっ�
 2. テンプレート先頭の DATA スクリプト（スキーマ説明コメント + `const QUIZ`）を実データで丸ごと置き換える
 3. それ以外（`<style>`・レンダラの2スクリプト・HTMLシェル）は1文字も変更しない（自己完結HTML）
 4. `<title>` の `{機能名}` を実際の機能名に置換する
-5. `.plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-impl.html` に Write する（プレースホルダ `{...}` を残さない）
+5. `{QUIZ_OUTPUT}` に応じて出力する（プレースホルダ `{...}` を残さない）:
+   - **`file` の場合**: `.plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-impl.html` に Write する
+   - **`artifact` の場合**: 外側のシェルタグ（`<!doctype html>` `<html>` `<head>` `</head>` `<body>` `</body>` `</html>`）を取り除き、`<title>`・`<style>`・body 内容・スクリプトを残した形で `.plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-impl.html` に Write し、Artifact ツールで公開する（Artifact 側がシェルを付与するため。favicon は `📝`）
 
 ### 7.5-4. ユーザーへの提示
 
-- `understanding-quiz-impl.html` のファイルパス
-- 「実装後の理解度クイズを生成しました。push / merge する前に、ブラウザで開いて変更の実際の挙動を確認してください（例: `open .plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-impl.html`）。」
+- `{QUIZ_OUTPUT}` が `artifact` の場合: Artifact の URL を提示し、「実装後の理解度クイズをアーティファクトとして生成しました。push / merge する前に開いて、変更の実際の挙動を確認してください。」と案内する
+- `{QUIZ_OUTPUT}` が `file` の場合: `understanding-quiz-impl.html` のファイルパスを提示し、「実装後の理解度クイズを生成しました。push / merge する前に、ブラウザで開いて変更の実際の挙動を確認してください（例: `open .plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-impl.html`）。」と案内する
 - 「これは advisory ゲートです。落ちた設問がある＝変更を理解できていない箇所なので、その箇所の diff と implementation-notes を読み直してから push することをおすすめします。」
 
 ## Step 8: 完了報告
@@ -271,7 +275,7 @@ push / merge の前に、**実装者（人間）が「実際に何が変わっ�
 4. AIレビューの結果サマリー（レビュー実行時）
 5. PLANNINGファイルの削除状態
 6. DoD充足状況（DoDがある場合）
-7. 実装後理解度クイズ（`understanding-quiz-impl.html`）のパスと、push 前に確認するよう案内
+7. 実装後理解度クイズ（Artifact の URL または `understanding-quiz-impl.html` のパス）と、push 前に確認するよう案内
 
 ## コミットメッセージのフォーマット
 
