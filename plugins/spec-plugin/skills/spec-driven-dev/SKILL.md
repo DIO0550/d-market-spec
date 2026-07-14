@@ -270,7 +270,7 @@ plan を実装セッションに渡す直前に、**実装者（人間）の設�
 
 - **材料**: requirements.md（ユースケース・要件・制約）＋ implementation-plan＋ hearing-notes（どの unknowns をどう解決したかの記録）
 - **問う対象**: なぜこの設計にしたか / このデータモデル・型にした理由 / この制約が壊れると何が起きるか / 変わりやすい箇所の意図
-- **出力**: 解説＋クイズ（4択・YES/NO・並べ替え。クライアント側JSで即時採点。test-cases.html と同様に自己完結HTMLで、`<link>`→style.css 置換は不要）。`quiz-output.plan` に応じて `understanding-quiz-plan.html` ファイル（デフォルト）または Artifact 公開
+- **出力**: 解説＋クイズ（4択・YES/NO・並べ替え。回答した時点で1問ずつ正誤と解説を表示する即時フィードバック方式。初回回答でロックされ答えは変更不可。test-cases.html と同様に自己完結HTMLで、`<link>`→style.css 置換は不要）。`quiz-output.plan` に応じて `understanding-quiz-plan.html` ファイル（デフォルト）または Artifact 公開
 - **enforcement**: advisory。hook による機械的ブロックはしない（合否は自己申告のため）。
 
 出題設計の指針は [references/quiz-design.md](references/quiz-design.md) を参照。
