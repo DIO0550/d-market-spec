@@ -26,8 +26,8 @@ spec-plugin のワークスペース初期化と設定を行うスキル。
 | `output-formats.tasks` | `md` / `html` | tasks の出力形式 |
 | `output-formats.tech-reference` | `md` / `html` | tech-reference の出力形式 |
 | `skip-files` | リスト | 生成をスキップするファイル（例: `[tech-reference, test-cases, understanding-quiz]`）。`test-cases` は spec-driven-dev / spec-driven-dev-html で有効。`understanding-quiz` は spec-driven-dev（実装前クイズ）と spec-implement（実装後クイズ）で有効 |
-| `quiz-output.plan` | `file` / `artifact` | 実装前クイズ（understanding-quiz-plan）の出力先。`file` = specフォルダにHTMLファイル、`artifact` = Artifact ツールで公開。**未設定時のデフォルト: `file`** |
-| `quiz-output.impl` | `file` / `artifact` | 実装後クイズ（understanding-quiz-impl）の出力先。**未設定時のデフォルト: `artifact`** |
+| `quiz-output.plan` | `file` / `artifact` / `interactive` | 実装前クイズ（understanding-quiz-plan）の出力先。`file` = specフォルダにHTMLファイル、`artifact` = Artifact ツールで公開、`interactive` = HTMLを生成せずセッション内で AskUserQuestion により1問ずつ対話出題。**未設定時のデフォルト: `file`** |
+| `quiz-output.impl` | `file` / `artifact` / `interactive` | 実装後クイズ（understanding-quiz-impl）の出力先。値の意味は plan と同じ。**未設定時のデフォルト: `artifact`** |
 
 ## ワークフロー
 
@@ -106,25 +106,38 @@ options:
 
 **Step 3.5 で `understanding-quiz` がスキップ対象に選ばれた場合はこのステップを省略する**（クイズを生成しないため）。
 
-AskUserQuestion（multiSelect）で、**アーティファクト（Artifact ツール）として出力するクイズ**を選択させる。
-選択されなかったクイズは specフォルダ内の HTML ファイルとして出力される。
+AskUserQuestion（1回の呼び出しに2問）で、実装前クイズ・実装後クイズそれぞれの出力先を選択させる。
 
 既存の `.config.yml` に `quiz-output` が設定済みの場合は、現在の設定を表示してから質問する。
 
 ```
-question: "アーティファクトとして出力するクイズを選んでください（未選択のクイズは specフォルダ内の HTML ファイルとして出力されます）"
-header: "クイズ出力"
-multiSelect: true
+質問1:
+question: "実装前クイズ（understanding-quiz-plan）の出力先を選んでください"
+header: "実装前クイズ"
+multiSelect: false
 options:
-  - label: "実装後クイズ (Recommended)"
-    description: "understanding-quiz-impl をアーティファクトで公開する（未設定時のデフォルトも artifact）"
-  - label: "実装前クイズ"
-    description: "understanding-quiz-plan をアーティファクトで公開する（未設定時のデフォルトは file）"
+  - label: "ファイル (Recommended)"
+    description: "specフォルダ内の自己完結HTMLとして出力する（未設定時のデフォルト）"
+  - label: "アーティファクト"
+    description: "Artifact ツールで公開する"
+  - label: "対話モード"
+    description: "HTMLを生成せず、セッション内で AskUserQuestion により1問ずつ出題する（回答ごとに正誤と解説を提示）"
+
+質問2:
+question: "実装後クイズ（understanding-quiz-impl）の出力先を選んでください"
+header: "実装後クイズ"
+multiSelect: false
+options:
+  - label: "アーティファクト (Recommended)"
+    description: "Artifact ツールで公開する（未設定時のデフォルト）"
+  - label: "ファイル"
+    description: "specフォルダ内の自己完結HTMLとして出力する"
+  - label: "対話モード"
+    description: "HTMLを生成せず、セッション内で AskUserQuestion により1問ずつ出題する（回答ごとに正誤と解説を提示）"
 ```
 
 選択結果から `quiz-output` マップを構築する:
-- 選択されたクイズ → `artifact`
-- 選択されなかったクイズ → `file`
+- 「ファイル」 → `file` / 「アーティファクト」 → `artifact` / 「対話モード」 → `interactive`
 
 ### Step 4: 設定ファイルの書き出し
 
@@ -144,11 +157,12 @@ output-formats:
   tasks: {md or html}
   tech-reference: {md or html}
 
-# 理解度クイズの出力先（file = specフォルダ内HTML / artifact = Artifactツールで公開）
+# 理解度クイズの出力先
+# file = specフォルダ内HTML / artifact = Artifactツールで公開 / interactive = セッション内で対話出題
 # 未設定時のデフォルト: plan は file、impl は artifact
 quiz-output:
-  plan: {file or artifact}
-  impl: {file or artifact}
+  plan: {file / artifact / interactive}
+  impl: {file / artifact / interactive}
 
 # 生成をスキップするファイル（Step 3.5 で選択された場合のみ出力）
 # test-cases は spec-driven-dev / spec-driven-dev-html で有効
