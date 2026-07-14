@@ -39,7 +39,7 @@ Step 6. PLANNINGファイル + ガードファイルの削除
    ↓
 Step 7. DoD照合
    ↓
-Step 7.5. 実装後理解度クイズ生成 → Artifact（デフォルト）or understanding-quiz-impl.html（push 前ゲート・advisory）
+Step 7.5. 実装後理解度クイズ生成 → Artifact（デフォルト）/ understanding-quiz-impl.html / 対話出題（push 前ゲート・advisory）
    ↓
 Step 8. 完了報告
 ```
@@ -225,12 +225,12 @@ push / merge の前に、**実装者（人間）が「実際に何が変わっ�
 
 **生成の有無は `.plugin-workspace/.specs/.config.yml` の `skip-files` で決まる**（`/spec-setup` で設定）。`skip-files` に `understanding-quiz` が含まれている場合はこのステップをスキップして Step 8 へ進む。含まれていなければ生成する。
 
-**出力先は `.config.yml` の `quiz-output.impl` で決まる**: `artifact`（Artifact ツールで公開）または `file`（specフォルダ内の HTML ファイル）。**未設定時のデフォルトは `artifact`**。決定した値を以降 `{QUIZ_OUTPUT}` として参照する。ただし `artifact` でも実行環境に Artifact ツールが存在しない場合（CLI 等）は `file` にフォールバックする。
+**出力先は `.config.yml` の `quiz-output.impl` で決まる**: `artifact`（Artifact ツールで公開）、`file`（specフォルダ内の HTML ファイル）、または `interactive`（HTML を生成せず、セッション内で AskUserQuestion により1問ずつ対話出題）。**未設定時のデフォルトは `artifact`**。決定した値を以降 `{QUIZ_OUTPUT}` として参照する。ただし `artifact` でも実行環境に Artifact ツールが存在しない場合（CLI 等）は `file` にフォールバックする。`interactive` でも対話できない実行環境（非対話実行）では `file` にフォールバックする。
 
 - **材料**: diff（実際の変更）＋ implementation-notes.md（実装中ノート / Deviations）＋ hearing-notes（事前の意図）
   - hearing-notes（事前の意図）と implementation-notes（実際にやったこと）が別ファイルで分かれているため、両方を読ませると「想定した設計 vs 実際の実装」のズレをそのまま出題材料にできる
 - **問う対象**: 実装で実際に何が行われたか / 途中で入った Deviations とその理由 / 既存コードパス依存で発生した挙動（diff の表面に出ない挙動を優先）
-- **出力**: 解説＋クイズ（4択・YES/NO・並べ替え。回答した時点で1問ずつ正誤と解説を表示する即時フィードバック方式。初回回答でロックされ答えは変更不可。自己完結HTML）。`{QUIZ_OUTPUT}` に応じて Artifact 公開（デフォルト）または `understanding-quiz-impl.html` ファイル
+- **出力**: 解説＋クイズ（4択・YES/NO・並べ替え。回答した時点で1問ずつ正誤と解説を表示する即時フィードバック方式。初回回答でロックされ答えは変更不可。自己完結HTML）。`{QUIZ_OUTPUT}` に応じて Artifact 公開（デフォルト）/ `understanding-quiz-impl.html` ファイル / セッション内対話出題（`interactive`。HTML を生成せず AskUserQuestion で1問ずつ）
 - **enforcement**: advisory。hook による機械的ブロックはしない（合否は自己申告のため）。
 
 ### 7.5-1. 材料の読み込み
@@ -249,7 +249,11 @@ push / merge の前に、**実装者（人間）が「実際に何が変わっ�
 
 クイズは回答した時点で1問ずつ正誤と解説が表示される（即時フィードバック）ため、ある設問の解説・選択肢が別の設問の答えを含まないよう設問間を独立させる（quiz-design.md 参照）。
 
+作成後、`references/quiz-design.md` の「設問セルフレビュー」チェックリストで設問を1問ずつ検査し、該当する設問は修正するか捨てる（観点ごとに多めにドラフトして削るのが推奨フロー）。
+
 ### 7.5-3. クイズ生成
+
+**`{QUIZ_OUTPUT}` が `interactive` の場合はこの節をスキップし、7.5-3b に進む。**
 
 `test-cases.html` と同様の **DATA スクリプト差し替え方式**。CSS・レンダラ・採点ロジックは固定済み。
 
@@ -261,10 +265,20 @@ push / merge の前に、**実装者（人間）が「実際に何が変わっ�
    - **`file` の場合**: `.plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-impl.html` に Write する
    - **`artifact` の場合**: 外側のシェルタグ（`<!doctype html>` `<html>` `<head>` `</head>` `<body>` `</body>` `</html>`）を取り除き、`<title>`・`<style>`・body 内容・スクリプトを残した形で `.plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-impl.html` に Write し、Artifact ツールで公開する（Artifact 側がシェルを付与するため。favicon は `📝`）
 
+### 7.5-3b. 対話出題（`{QUIZ_OUTPUT}` が `interactive` の場合）
+
+HTML を生成せず、`references/quiz-design.md` の「対話モード（quiz-output: interactive）の実施方法」に従い、7.5-2 で作成した設問を AskUserQuestion で1問ずつ出題する:
+
+1. 出題前に「push / merge の前に、実装後の理解度クイズを{N}問、1問ずつ出題します」と伝える
+2. 1問ずつ AskUserQuestion で出題（選択肢はシャッフル。order 設問は「正しい順序はどれか」の choice に変換）
+3. 回答直後に正誤と解説（diff / implementation-notes の根拠箇所つき）を伝えてから次の設問へ。初回の回答で正誤を確定し、出し直さない
+4. 全問終了後、スコアと passLine による合否、間違えた設問ごとに読み直すべき diff・ノートの該当箇所を提示する
+
 ### 7.5-4. ユーザーへの提示
 
 - `{QUIZ_OUTPUT}` が `artifact` の場合: Artifact の URL を提示し、「実装後の理解度クイズをアーティファクトとして生成しました。push / merge する前に開いて、変更の実際の挙動を確認してください。」と案内する
 - `{QUIZ_OUTPUT}` が `file` の場合: `understanding-quiz-impl.html` のファイルパスを提示し、「実装後の理解度クイズを生成しました。push / merge する前に、ブラウザで開いて変更の実際の挙動を確認してください（例: `open .plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-impl.html`）。」と案内する
+- `{QUIZ_OUTPUT}` が `interactive` の場合: 7.5-3b の結果（スコア・合否・読み直し箇所）を提示済みのため、ファイル・URL の案内は不要
 - 「これは advisory ゲートです。落ちた設問がある＝変更を理解できていない箇所なので、その箇所の diff と implementation-notes を読み直してから push することをおすすめします。」
 
 ## Step 8: 完了報告

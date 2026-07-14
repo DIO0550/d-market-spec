@@ -794,9 +794,11 @@ unknowns を炙り出す **advisory ゲート**。落ちた設問は実装に渡
 含まれていなければ生成する。
 
 **出力先も config で決まる**: `.config.yml` の `quiz-output.plan` が `artifact` なら Artifact ツールで公開、
+`interactive` なら HTML を生成せずセッション内で AskUserQuestion により1問ずつ対話出題、
 `file` または未設定なら specフォルダ内の HTML ファイルとして出力する（**デフォルト: `file`**）。
 決定した値を以降 `{QUIZ_OUTPUT}` として参照する。`artifact` でも実行環境に Artifact ツールが
-存在しない場合（CLI 等）は `file` にフォールバックする。
+存在しない場合（CLI 等）は `file` にフォールバックする。`interactive` でも対話できない
+実行環境（非対話実行）では `file` にフォールバックする。
 
 出題設計の共通指針は `references/quiz-design.md` を参照。
 
@@ -823,7 +825,12 @@ unknowns を炙り出す **advisory ゲート**。落ちた設問は実装に渡
 クイズは回答した時点で1問ずつ正誤と解説が表示される（即時フィードバック）ため、
 ある設問の解説・選択肢が別の設問の答えを含まないよう、設問間を独立させる（quiz-design.md 参照）。
 
+作成後、`references/quiz-design.md` の「設問セルフレビュー」チェックリストで設問を1問ずつ検査し、
+該当する設問は修正するか捨てる（観点ごとに多めにドラフトして削るのが推奨フロー）。
+
 ### 6.7-3. クイズ生成
+
+**`{QUIZ_OUTPUT}` が `interactive` の場合はこの節をスキップし、6.7-3b に進む。**
 
 `test-cases.html` と同様の **DATA スクリプト差し替え方式**。CSS・レンダラ・採点ロジックは固定済み。
 
@@ -841,12 +848,24 @@ unknowns を炙り出す **advisory ゲート**。落ちた設問は実装に渡
 
 > **config の `output-formats` に関わらず常に `.html`**（本質的にインタラクティブなレビューUIのため）。
 
+### 6.7-3b. 対話出題（`{QUIZ_OUTPUT}` が `interactive` の場合）
+
+HTML を生成せず、`references/quiz-design.md` の「対話モード（quiz-output: interactive）の実施方法」に
+従い、6.7-2 で作成した設問を AskUserQuestion で1問ずつ出題する:
+
+1. 出題前に「これから実装前の理解度クイズを{N}問、1問ずつ出題します」と伝える
+2. 1問ずつ AskUserQuestion で出題（選択肢はシャッフル。order 設問は「正しい順序はどれか」の choice に変換）
+3. 回答直後に正誤と解説（材料の根拠箇所つき）を伝えてから次の設問へ。初回の回答で正誤を確定し、出し直さない
+4. 全問終了後、スコアと passLine による合否、間違えた設問ごとに読み直すべき材料の該当箇所を提示する
+
 ### 6.7-4. ユーザーへの提示
 
 - `{QUIZ_OUTPUT}` が `file` の場合: `understanding-quiz-plan.html` のファイルパス
   （例: `open .plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-plan.html`）
 - `{QUIZ_OUTPUT}` が `artifact` の場合: Artifact の URL
-- 「実装前の理解度クイズを生成しました。実装を始める前に、開いて設計意図を確認してください。」
+- `{QUIZ_OUTPUT}` が `interactive` の場合: 6.7-3b の結果（スコア・合否・読み直し箇所）を提示済みのため、
+  ファイル・URL の案内は不要
+- 「実装前の理解度クイズを生成しました。実装を始める前に、開いて設計意図を確認してください。」（file / artifact の場合）
 - 「これは advisory ゲートです。落ちた設問がある＝設計がまだ固まっていない箇所なので、
   その論点を計画・要件で詰め直してから実装に進むことをおすすめします。」
 
