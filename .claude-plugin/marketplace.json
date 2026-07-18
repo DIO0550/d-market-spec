@@ -1,19 +1,28 @@
 {
   "name": "d-market-spec",
-  "version": "1.18.0",
   "owner": {
     "name": "DIO0550"
+  },
+  "metadata": {
+    "description": "仕様駆動開発（Spec-Driven Development）と仕様ベースコードレビューのプラグインを提供する Marketplace",
+    "version": "2.0.0"
   },
   "plugins": [
     {
       "name": "spec-plugin",
       "source": "./plugins/spec-plugin",
-      "description": "仕様策定・実装計画・Issue作成支援プラグイン"
+      "description": "仕様策定・実装計画・Issue作成支援プラグイン",
+      "version": "2.0.0",
+      "category": "development",
+      "tags": ["spec-driven-development", "planning", "tdd", "github-issues", "hooks"]
     },
     {
       "name": "spec-based-code-review-plugin",
       "source": "./plugins/spec-based-code-review-plugin",
-      "description": "ユニバーサルな原則に基づくコードレビュー。計画ドキュメントがあれば仕様整合性も検証する"
+      "description": "ユニバーサルな原則に基づくコードレビュー。計画ドキュメントがあれば仕様整合性も検証する",
+      "version": "1.8.1",
+      "category": "development",
+      "tags": ["code-review", "test-review", "spec-alignment"]
     }
   ]
 }

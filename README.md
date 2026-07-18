@@ -22,13 +22,12 @@ Claude Code 向けの**仕様駆動開発（Spec-Driven Development）プラグ�
 
 ## インストール
 
-Claude Code の設定で本プラグインのパスを追加してください。
+Claude Code でこのリポジトリを Marketplace として追加し、プラグインをインストールします。
 
-```jsonc
-// .claude/settings.json
-{
-  "plugins": ["path/to/d-market-spec/plugins/spec-plugin"]
-}
+```
+/plugin marketplace add DIO0550/d-market-spec
+/plugin install spec-plugin@d-market-spec
+/plugin install spec-based-code-review-plugin@d-market-spec
 ```
 
 ## スキル一覧
@@ -46,7 +45,6 @@ Claude Code の設定で本プラグインのパスを追加してください�
 |--------|------|
 | `spec-driven-dev` | 標準ワークフロー。ヒアリング → コード探索 → 計画生成 → オプションでAIレビュー |
 | `spec-driven-dev-lite` | 軽量版。サブエージェントを使わずオーケストレーターが直接計画を生成し、トークン消費を削減 |
-| `spec-driven-dev-html` | HTML出力版。同じ計画プロセスで生成物を HTML 形式で出力 |
 | `spec-driven-fix-review` | spec-viewer のレビューコメントを implementation-plan.md と tasks.md に反映 |
 
 ### 実装

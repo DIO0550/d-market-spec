@@ -52,7 +52,7 @@ Read: references/test-design-patterns.md
 
 ## 生成手順
 
-1. **プロンプトで指定されたテンプレート**（`spec-driven-dev-html:test-cases` または `spec-driven-dev:test-cases`）を Read してテンプレートを取得する
+1. **プロンプトで指定されたテンプレート**（`spec-driven-dev:test-cases`）を Read してテンプレートを取得する
 2. テンプレート先頭の DATA スクリプト（`/* ... */` のスキーマ説明 + `const FILES = [...]` + `const PLAN = {...}`）を、実データで**丸ごと置き換える**
 3. それ以外（`<style>`・ヘルパー・レンダラの 2 スクリプト・HTMLシェル）は**1文字も変更しない**
 4. `<title>` の `{機能名}` を実際の機能名に置換する
