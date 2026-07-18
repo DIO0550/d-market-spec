@@ -1,0 +1,12 @@
+{
+  "name": "spec-plugin",
+  "version": "2.0.0",
+  "description": "仕様策定・実装計画・Issue作成支援プラグイン",
+  "author": {
+    "name": "DIO0550"
+  },
+  "repository": "https://github.com/DIO0550/d-market-spec",
+  "license": "MIT",
+  "skills": "./skills",
+  "hooks": "./hooks/hooks.json"
+}

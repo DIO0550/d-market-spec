@@ -7,7 +7,7 @@
 ```
 .claude-plugin/marketplace.json   # マーケットプレイス登録情報
 plugins/spec-plugin/
-├── plugin.json                   # プラグインメタデータ
+├── .claude-plugin/plugin.json    # プラグインメタデータ
 ├── hooks/                        # フック定義・シェルスクリプト
 │   ├── hooks.json
 │   ├── guard-planning-writes.sh  # 計画中の実装ブロック
@@ -20,7 +20,7 @@ plugins/spec-plugin/
 ├── skills/                       # スキル定義（各 SKILL.md + テンプレート + 参照資料）
 └── references/                   # 共有参照資料（TDDガイドライン等）
 plugins/spec-based-code-review-plugin/
-├── plugin.json                   # プラグインメタデータ
+├── .claude-plugin/plugin.json    # プラグインメタデータ
 ├── agents/                       # レビューエージェント定義（5ファイル）
 └── skills/                       # spec-based-code-review, test-review
 ```
@@ -32,8 +32,9 @@ plugins/spec-based-code-review-plugin/
 - スキルごとに `assets/templates/` と `references/` のサブディレクトリを持つ
 - テンプレートや参照資料はスキル単位で独立管理（コピーであっても各スキルに配置）
 - フックスクリプトは `plugins/spec-plugin/hooks/` に配置し、`hooks.json` で登録する
-- プラグインの内容（スキル・エージェント・フック等）を追加・変更した場合は該当プラグインの `plugin.json` の `version` を更新する
-- 変更をプッシュする際は `.claude-plugin/marketplace.json` の `version` も合わせて上げる
+- プラグインメタデータは各プラグイン直下の `.claude-plugin/plugin.json` に配置する（プラグイン直下に直接置くと Claude Code がマニフェストとして認識しない）
+- プラグインの内容（スキル・エージェント・フック等）を追加・変更した場合は該当プラグインの `.claude-plugin/plugin.json` の `version` と、`.claude-plugin/marketplace.json` 内の該当プラグインエントリの `version` を更新する
+- 変更をプッシュする際は `.claude-plugin/marketplace.json` の `metadata.version` も合わせて上げる
 
 ## 主要コンセプト
 
@@ -54,7 +55,7 @@ plugins/spec-based-code-review-plugin/
 
 対象スキル: `spec-driven-dev`, `spec-implement`, `spec-implement-auto`
 
-構造的に異なるバリアント（`-lite`, `-html`）は独立スキルとして維持。
+構造的に異なるバリアント（`-lite`）は独立スキルとして維持。HTML 出力は `spec-setup` の `output-formats` 設定でベーススキルが対応する（独立した `-html` スキルは廃止済み）。
 
 ## コマンド
 
