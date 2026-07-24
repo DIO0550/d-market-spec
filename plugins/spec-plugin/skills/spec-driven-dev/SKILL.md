@@ -120,7 +120,7 @@ output-formats:
 
 ## Step 1: specsフォルダ + PLANNINGファイル作成
 
-ヒアリング開始前に、specディレクトリ・PLANNINGファイル・ガードファイルを作成する。
+ヒアリング開始前に、specディレクトリ・PLANNINGファイルを作成する。ガードファイルはスキル発火時にフック（`guard-skill-init.sh`）が自動作成するため、手動作成は不要。
 
 **詳細手順は [references/workflow-steps.md](references/workflow-steps.md) の Step 1 を参照。**
 

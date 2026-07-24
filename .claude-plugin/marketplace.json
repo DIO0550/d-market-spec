@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "仕様駆動開発（Spec-Driven Development）と仕様ベースコードレビューのプラグインを提供する Marketplace",
-    "version": "2.0.0"
+    "version": "2.1.0"
   },
   "plugins": [
     {
       "name": "spec-plugin",
       "source": "./plugins/spec-plugin",
       "description": "仕様策定・実装計画・Issue作成支援プラグイン",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "category": "development",
       "tags": ["spec-driven-development", "planning", "tdd", "github-issues", "hooks"]
     },

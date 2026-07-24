@@ -39,7 +39,7 @@ plugins/spec-based-code-review-plugin/
 ## 主要コンセプト
 
 - **PLANNINGファイル**: `.plugin-workspace/.specs/{nnn}-{feature}/PLANNING` が存在する間は計画フェーズ。フェーズマーカーとして使われ、PreCompact フックの実装禁止警告と、セッション終了時のアーカイブ対象判定（PLANNING がないフォルダのみアーカイブ）に用いられる
-- **ガードファイル**: `.plugin-workspace/.specs/.guard/{SESSION_ID}` が存在する間、`guard-planning-writes.sh` がそのセッションでの実装（`.plugin-workspace/.specs/` 外への書き込み）をブロックする
+- **ガードファイル**: `.plugin-workspace/.specs/.guard/{SESSION_ID}` はdevスキル発火時に `guard-skill-init.sh` フックが自動作成する。存在する間、`guard-planning-writes.sh` がそのセッションでの実装（`.plugin-workspace/.specs/` 外への書き込み）をブロックする。worktree内で起動した場合は worktree 外への書き込みもブロックする
 - **システム図の検証**: `enforce-diagrams.sh` が実装計画・設計書に状態遷移図とデータフロー図が含まれているかを検証し、不足があればリマインドを出す（ブロックはしない）
 - **タスク進捗**: `tasks.md` 内の `□`（未完了）/ `■`（完了）で進捗を管理する
 - **自動アーカイブ**: セッション終了時、PLANNINGファイルのない spec フォルダは `.plugin-workspace/.specs/archive/` に移動される
