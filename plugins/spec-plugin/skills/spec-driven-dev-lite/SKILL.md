@@ -81,11 +81,9 @@ mkdir -p .plugin-workspace/.specs/${next_num}-{feature-name}
 echo "${CLAUDE_SESSION_ID}" > .plugin-workspace/.specs/${next_num}-{feature-name}/PLANNING
 ```
 
-### 1-c. ガードファイル作成
+### 1-c. ガードファイル
 
-```bash
-mkdir -p .plugin-workspace/.specs/.guard && touch .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID}
-```
+ガードファイルはスキル発火時にフック（`guard-skill-init.sh`）が自動作成するため、手動作成は不要。
 
 ## Step 2: 簡易ヒアリング → hearing-notes
 

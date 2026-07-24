@@ -66,11 +66,7 @@ next_num=$(printf "%03d" $(( $(ls -1d .plugin-workspace/.specs/[0-9][0-9][0-9]-*
 mkdir -p .plugin-workspace/.specs/${next_num}-{feature-name} && touch .plugin-workspace/.specs/${next_num}-{feature-name}/PLANNING
 ```
 
-PLANNINGファイル作成の直後に、ガードファイルを作成する（`guard-planning-writes.sh` フックによる `.plugin-workspace/.specs/` 外への書き込みブロックを有効化する）:
-
-```bash
-mkdir -p .plugin-workspace/.specs/.guard && touch .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID}
-```
+ガードファイル（`.plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID}`）はスキル発火時にフック（`guard-skill-init.sh`）が自動作成するため、手動作成は不要。
 
 ## Step 1: ヒアリング → hearing-notes.md 書き出し
 

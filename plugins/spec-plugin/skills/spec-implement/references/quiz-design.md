@@ -11,7 +11,7 @@
 | 組み込み先 | Plan スキル（spec-driven-dev） | 実装スキル（spec-implement） |
 | 生成タイミング | plan 承認直前 | 実装完了後 |
 | 材料 | requirements + plan + hearing-notes | diff + implementation-notes + hearing-notes |
-| 問う対象 | 設計の意図・理由 | 実際にやった挙動・Deviations |
+| 問う対象 | 設計の意図・理由 | 実際にやった挙動（Deviations は解説として記載） |
 | ゲート位置 | plan → impl | push 前 |
 | 落ちたら | 設計を固め直す | merge / push しない |
 
@@ -113,10 +113,11 @@
 ## 実装後クイズ（実際の挙動）の出題観点
 
 - 実装で実際に何が行われたか
-- 途中で入った Deviations とその理由（implementation-notes 由来。**最低1問は必須**）
 - 既存コードパスへの依存で発生した挙動（**diff の表面に出ない挙動を優先**）
 - 想定 vs 実際: hearing-notes（事前の意図）と実装結果のズレ
 - 狙い: 実際の作業結果の理解確認
+
+**Deviations（計画からの逸脱）はクイズにしない。** implementation-notes の Deviations セクションの内容は、セクションの `brief`（解説テキスト）として記載し、「何が変わり、なぜ変えたか」を読んで把握できるようにする。クイズで問うのは逸脱の有無ではなく、逸脱の結果として生じた挙動や影響。
 
 **「どう実装したか」ではなく「その結果どう動くか」を問う。**
 手段・手順の再現（「どの関数を追加したか」「どういう順で書き換えたか」）は diff を眺めれば

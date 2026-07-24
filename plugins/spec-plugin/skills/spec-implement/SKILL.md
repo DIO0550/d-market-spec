@@ -229,7 +229,7 @@ push / merge の前に、**実装者（人間）が「実際に何が変わっ�
 
 - **材料**: diff（実際の変更）＋ implementation-notes.md（実装中ノート / Deviations）＋ hearing-notes（事前の意図）
   - hearing-notes（事前の意図）と implementation-notes（実際にやったこと）が別ファイルで分かれているため、両方を読ませると「想定した設計 vs 実際の実装」のズレをそのまま出題材料にできる
-- **問う対象**: 実装で実際に何が行われたか / 途中で入った Deviations とその理由 / 既存コードパス依存で発生した挙動（diff の表面に出ない挙動を優先）
+- **問う対象**: 実装で実際に何が行われたか / 既存コードパス依存で発生した挙動（diff の表面に出ない挙動を優先）。Deviations（計画からの逸脱）はクイズにせず、セクションの解説テキスト（brief）として記載する
 - **出力**: 解説＋クイズ（4択・YES/NO・並べ替え。回答した時点で1問ずつ正誤と解説を表示する即時フィードバック方式。初回回答でロックされ答えは変更不可。自己完結HTML）。`{QUIZ_OUTPUT}` に応じて Artifact 公開（デフォルト）/ `understanding-quiz-impl.html` ファイル / セッション内対話出題（`interactive`。HTML を生成せず AskUserQuestion で1問ずつ）
 - **enforcement**: advisory。hook による機械的ブロックはしない（合否は自己申告のため）。
 
@@ -243,7 +243,7 @@ push / merge の前に、**実装者（人間）が「実際に何が変わっ�
 
 `references/quiz-design.md` の「実装後クイズ（実際の挙動）の出題観点」に沿って、合計 5〜10 問（choice / boolean / order を混ぜる）作る。以下は必須:
 
-- **Deviations を最低1問**（implementation-notes 由来。逸脱が「なし」ならその旨を問う設問でよい）
+- **Deviations はクイズにしない** — implementation-notes の Deviations はセクションの `brief`（解説テキスト）として記載し、読んで把握できる形にする。クイズで問うのは逸脱の結果として生じた挙動や影響
 - **既存コードパス依存で生じた挙動**を優先的に出題（diff をざっと読むだけでは見えない挙動）
 - **想定 vs 実際**（hearing-notes と実装のズレ）。`tag` に区分を付けるとバッジ表示される
 

@@ -91,16 +91,14 @@ mkdir -p .plugin-workspace/.specs/${next_num}-{feature-name}
 echo "{PLANNING_CONTENT}" > .plugin-workspace/.specs/${next_num}-{feature-name}/PLANNING
 ```
 
-### 1-c. ガードファイル作成 [USE_GUARD = true の場合のみ]
+### 1-c. ガードファイル [USE_GUARD = true の場合]
 
-```bash
-mkdir -p .plugin-workspace/.specs/.guard && touch .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID}
-```
+ガードファイル（`.plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID}`）は **devスキル発火時に `guard-skill-init.sh` フックが自動作成する**。手動での作成は不要。
 
 作成されるディレクトリは例: `.plugin-workspace/.specs/003-user-auth`。
 
 **重要**: PLANNINGファイルが存在する間は計画フェーズであり、コードの実装は禁止。
-**ガード** (USE_GUARD = true): `.plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID}` が存在する間、このセッションでは `.plugin-workspace/.specs/` 以外への書き込みがhookによりブロックされる。
+**ガード** (USE_GUARD = true): `.plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID}` が存在する間、このセッションでは `.plugin-workspace/.specs/` 以外への書き込みがhookによりブロックされる。worktree内で起動した場合は worktree 外への書き込みもブロックされる。
 
 ---
 
