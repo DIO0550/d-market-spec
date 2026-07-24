@@ -7,6 +7,9 @@ INPUT=$(cat)
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty')
 [ -z "$PROMPT" ] && exit 0
 
+# 複数行入力を1行に正規化（2行扱い対策）
+PROMPT=$(printf '%s' "$PROMPT" | tr '\n' ' ' | sed 's/  */ /g; s/^ //; s/ $//')
+
 # プラグイン名前空間プレフィックスを取り除いた形で判定する
 CMD=$(echo "$PROMPT" | sed -E 's|^/[a-z0-9_-]+:|/|')
 
