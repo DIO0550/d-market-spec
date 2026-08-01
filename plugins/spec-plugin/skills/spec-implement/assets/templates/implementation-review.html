@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>実装後レビュー — {機能名}</title>
+<style>
+:root {
+  --bg: oklch(0.985 0.003 255);
+  --surface: #ffffff;
+  --surface-2: oklch(0.978 0.004 255);
+  --surface-3: oklch(0.965 0.005 255);
+  --border: oklch(0.925 0.005 255);
+  --border-strong: oklch(0.875 0.007 255);
+  --text: oklch(0.28 0.012 262);
+  --text-15: oklch(0.3 0.012 262);
+  --text-2: oklch(0.52 0.012 262);
+  --text-25: oklch(0.45 0.012 262);
+  --text-3: oklch(0.65 0.011 262);
+  --text-4: oklch(0.75 0.011 262);
+  --accent: oklch(0.55 0.16 264);
+  --accent-2: oklch(0.5 0.16 264);
+  --accent-3: oklch(0.48 0.16 264);
+  --accent-soft: oklch(0.955 0.025 264);
+  --accent-soft-2: oklch(0.93 0.04 264);
+  --accent-border: oklch(0.86 0.06 264);
+  --green: oklch(0.5 0.11 156);
+  --green-text: oklch(0.32 0.05 156);
+  --green-soft: oklch(0.955 0.04 156);
+  --green-border: oklch(0.85 0.07 156);
+  --rose: oklch(0.54 0.16 22);
+  --rose-text: oklch(0.4 0.07 22);
+  --rose-soft: oklch(0.957 0.03 22);
+  --rose-border: oklch(0.87 0.06 22);
+  --amber: oklch(0.52 0.1 72);
+  --amber-soft: oklch(0.955 0.05 82);
+  --amber-border: oklch(0.85 0.08 82);
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Noto Sans JP", system-ui, sans-serif;
+  background: var(--bg); color: var(--text);
+  font-size: 14.5px; line-height: 1.7; -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1440px; margin: 0 auto; padding: 32px 32px 120px; }
+button { font-family: inherit; }
+
+/* ---- Header ---- */
+.top { display: flex; flex-direction: column; gap: 14px; padding: 0 0 26px; border-bottom: 1px solid var(--border); }
+.top-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.kind {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent-2); background: var(--accent-soft);
+  border: 1px solid var(--accent-border); padding: 4px 11px; border-radius: 20px;
+}
+.kind::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.top-sub { font-family: var(--mono); font-size: 11.5px; color: var(--text-3); }
+.tabs { margin-left: auto; display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; }
+.tab {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 13.5px; font-weight: 600; padding: 7px 18px; border-radius: 7px; cursor: pointer;
+  background: transparent; border: 1px solid transparent; color: var(--text-2);
+  transition: background .12s, color .12s;
+}
+.tab.active { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent-2); }
+.tab .badge { font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 20px; background: var(--surface-3); border: 1px solid var(--border); }
+.top h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; }
+.pane { display: none; padding-top: 26px; }
+.pane.active { display: block; }
+
+/* ---- 解説 ---- */
+.explain-grid { display: grid; grid-template-columns: 196px minmax(0, 1fr); gap: 48px; align-items: start; }
+@media (max-width: 900px) { .explain-grid { grid-template-columns: 1fr; } .toc { display: none; } }
+.toc { position: sticky; top: 28px; display: flex; flex-direction: column; gap: 2px; }
+.toc .toc-head { font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-3); padding: 0 0 10px 12px; }
+.toc a {
+  display: flex; gap: 10px; align-items: baseline; font-size: 13px; line-height: 1.5;
+  color: var(--text-2); padding: 7px 12px; border-left: 2px solid var(--border); text-decoration: none;
+}
+.toc a:hover { color: var(--accent-2); border-left-color: var(--accent); background: var(--surface-2); }
+.toc a .tn { font-family: var(--mono); font-size: 11px; color: var(--text-3); }
+.explain-main { display: flex; flex-direction: column; gap: 52px; min-width: 0; }
+.sections { display: flex; flex-direction: column; gap: 32px; }
+.sec { display: grid; grid-template-columns: 44px 1fr; gap: 20px; scroll-margin-top: 96px; }
+.sec .rail { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.sec .rail .num {
+  width: 44px; height: 44px; border-radius: 11px; background: var(--accent-soft);
+  border: 1px solid var(--accent-border); color: var(--accent-2);
+  font-family: var(--mono); font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.sec .rail .line { flex: 1; width: 1px; background: var(--border); }
+.sec .body { display: flex; flex-direction: column; gap: 14px; padding-bottom: 8px; min-width: 0; }
+.sec h2 { font-size: 21px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.4; }
+.sec .lead { font-size: 16px; line-height: 1.75; font-weight: 500; color: var(--text); text-wrap: pretty; }
+.sec .paras { display: flex; flex-direction: column; gap: 12px; }
+.sec .paras p { font-size: 14.5px; line-height: 1.95; color: var(--text-25); text-wrap: pretty; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 9px; }
+.card .card-head { font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent-2); }
+.point { display: flex; gap: 11px; align-items: flex-start; font-size: 13.5px; line-height: 1.75; color: var(--text-25); }
+.point::before { content: ""; flex: 0 0 auto; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); margin-top: 9px; }
+.flow { gap: 2px; }
+.flow .card-head { margin-bottom: 8px; }
+.flow-step { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; }
+.flow-step .fs-rail { display: flex; flex-direction: column; align-items: center; align-self: stretch; }
+.flow-step .fs-n {
+  width: 22px; height: 22px; border-radius: 50%; background: var(--accent-soft);
+  border: 1px solid var(--accent-border); color: var(--accent-2);
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex: 0 0 auto;
+}
+.flow-step .fs-line { flex: 1; width: 1px; background: var(--border); min-height: 6px; }
+.flow-step .fs-text { font-size: 13.5px; line-height: 1.75; color: oklch(0.4 0.012 262); padding-bottom: 12px; }
+.flow-step:last-child .fs-line { display: none; }
+
+/* diff figure */
+.diff { margin: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 11px; overflow: hidden; }
+.diff figcaption { display: flex; align-items: center; gap: 9px; padding: 9px 14px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+.diff .df-file { font-family: var(--mono); font-size: 11.5px; font-weight: 700; color: var(--text-25); }
+.diff .df-tag { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); margin-left: auto; }
+.diff .df-body { padding: 10px 0; background: var(--surface); }
+.diff .df-line { display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-family: var(--mono); font-size: 12.5px; line-height: 1.85; padding: 1px 14px; white-space: pre-wrap; word-break: break-word; color: var(--text-2); }
+.diff .df-line .sign { text-align: center; font-weight: 700; color: var(--text-4); }
+.diff .df-line.add { background: var(--green-soft); color: var(--green-text); }
+.diff .df-line.add .sign { color: var(--green); }
+.diff .df-line.del { background: var(--rose-soft); color: var(--rose-text); }
+.diff .df-line.del .sign { color: var(--rose); }
+.diff .df-caption { padding: 10px 14px; border-top: 1px solid var(--border); background: var(--surface); font-size: 12.5px; line-height: 1.75; color: var(--text-2); }
+
+/* refs */
+.refs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.refs .rf-label { font-size: 11px; color: var(--text-3); }
+.ref { font-family: var(--mono); font-size: 11.5px; color: var(--text-25); background: var(--surface-3); border: 1px solid var(--border); padding: 2px 8px; border-radius: 5px; }
+
+/* decisions */
+.decisions { display: flex; flex-direction: column; gap: 11px; margin-top: 4px; }
+.decisions .dc-head { display: flex; align-items: center; gap: 9px; }
+.decisions .dc-head .dc-label { font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-3); }
+.decisions .dc-head .dc-rule { flex: 1; height: 1px; background: var(--border); }
+.decision { border: 1px solid var(--border); border-radius: 3px 12px 12px 3px; padding: 16px 18px; display: flex; flex-direction: column; gap: 13px; }
+.decision.changed { border-left: 3px solid var(--amber); background: var(--surface); }
+.decision.skipped { border-left: 3px solid var(--text-2); background: var(--bg); }
+.decision .d-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.decision .d-kind { font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.07em; padding: 2px 9px; border-radius: 20px; }
+.decision.changed .d-kind { color: var(--amber); background: var(--amber-soft); border: 1px solid var(--amber-border); }
+.decision.skipped .d-kind { color: var(--text-2); background: var(--surface-3); border: 1px solid var(--border-strong); }
+.decision .d-title { font-size: 15px; font-weight: 700; line-height: 1.5; }
+.decision .d-rows { display: flex; flex-direction: column; gap: 11px; }
+.decision .d-row { display: grid; grid-template-columns: 88px 1fr; gap: 14px; align-items: baseline; }
+.decision .d-row .d-label { font-size: 11.5px; font-weight: 700; color: var(--text-3); line-height: 1.7; }
+.decision .d-row .d-val { font-size: 13.5px; line-height: 1.8; color: var(--text-2); }
+.decision .d-row.taken .d-val { font-size: 14px; color: var(--text-15); font-weight: 500; }
+.decision.changed .d-row.taken .d-label { color: var(--amber); }
+.decision.skipped .d-row.taken .d-label { color: var(--text-2); }
+.decision .d-row.why .d-val { color: var(--text-25); line-height: 1.85; }
+.decision .refs { margin-top: 0; }
+
+/* CTA */
+.cta { display: flex; align-items: center; justify-content: space-between; gap: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 20px 24px; }
+.cta .cta-title { font-size: 15px; font-weight: 700; }
+.cta .cta-sub { font-size: 13px; color: var(--text-2); line-height: 1.7; }
+.cta button { flex: 0 0 auto; font-size: 14px; font-weight: 600; background: var(--accent); border: 1px solid var(--accent); color: #fff; padding: 11px 20px; border-radius: 8px; cursor: pointer; }
+.cta button:hover { background: var(--accent-3); }
+
+/* ---- クイズ ---- */
+.quiz-wrap { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 34px; }
+.q-section { display: flex; flex-direction: column; gap: 13px; }
+.q-section .qs-head { display: flex; align-items: baseline; gap: 11px; }
+.q-section .qs-n { font-family: var(--mono); font-size: 11.5px; font-weight: 700; color: var(--accent-2); }
+.q-section h2 { font-size: 19px; font-weight: 700; letter-spacing: -0.015em; }
+.q-section .qs-from {
+  margin-left: auto; font-size: 11.5px; font-weight: 600; color: var(--accent-2);
+  background: var(--accent-soft); border: 1px solid var(--accent-border);
+  padding: 3px 10px; border-radius: 20px; cursor: pointer;
+}
+.q-section .qs-from:hover { background: var(--accent-soft-2); }
+.q-section .qs-brief { border-left: 3px solid var(--accent-border); background: var(--surface); border-radius: 0 10px 10px 0; padding: 13px 17px; font-size: 13.5px; line-height: 1.8; color: var(--text-25); }
+.q { background: var(--surface); border-radius: 13px; padding: 20px 22px; border: 1px solid var(--border); box-shadow: 0 1px 2px oklch(0.4 0.02 262 / 0.05); }
+.q.correct { border-color: var(--green-border); }
+.q.wrong { border-color: var(--rose-border); }
+.q .q-head { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+.q .q-id { font-family: var(--mono); font-size: 11.5px; font-weight: 700; color: var(--text-3); }
+.q .q-type { font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; padding: 2px 9px; border-radius: 20px; color: var(--accent-2); background: var(--accent-soft); border: 1px solid var(--accent-border); }
+.q .q-tag { font-size: 10.5px; font-weight: 700; padding: 2px 9px; border-radius: 20px; color: var(--amber); background: var(--amber-soft); border: 1px solid var(--amber-border); }
+.q .q-mark { margin-left: auto; font-size: 11.5px; font-weight: 700; }
+.q .q-mark.ok { color: var(--green); }
+.q .q-mark.ng { color: var(--rose); }
+.q .q-prompt { font-size: 15.5px; font-weight: 600; line-height: 1.65; margin-top: 9px; }
+.q .q-intent { font-size: 12px; color: var(--text-3); margin-top: 5px; }
+.q .q-intent::before { content: "◎ 意図: "; }
+.q .rows { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.row { display: flex; align-items: center; gap: 11px; border-radius: 9px; padding: 12px 14px; font-size: 14px; border: 1px solid var(--border-strong); background: var(--surface); }
+.row .rw-badge { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11.5px; font-weight: 700; background: var(--surface-3); border: 1px solid var(--border); color: var(--text-2); }
+.row .rw-text { flex: 1; line-height: 1.6; }
+.row .rw-grip { flex: 0 0 auto; color: var(--text-4); font-size: 13px; letter-spacing: -1px; cursor: grab; }
+.row .rw-mark { flex: 0 0 auto; font-size: 12px; font-weight: 700; display: none; }
+.row .rw-move { display: flex; gap: 4px; flex: 0 0 auto; }
+.row .rw-move button { border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-2); width: 26px; height: 26px; border-radius: 6px; cursor: pointer; }
+.row.pickable { cursor: pointer; }
+.q:not(.done) .row.pickable:hover { background: var(--surface-2); }
+.row.bool .rw-text { font-weight: 700; }
+.row.is-answer { border-color: var(--green-border); background: var(--green-soft); }
+.row.is-answer .rw-mark { display: inline; color: var(--green); }
+.row.is-picked-wrong { border-color: var(--rose-border); background: var(--rose-soft); }
+.row.is-picked-wrong .rw-mark { display: inline; color: var(--rose); }
+.q.done .row:not(.is-answer):not(.is-picked-wrong):not(.correct-pos):not(.wrong-pos) { opacity: 0.5; }
+.row.order { cursor: grab; user-select: none; }
+.row.order.drag-over { outline: 2px solid var(--accent); outline-offset: -1px; }
+.row.order.drag-src { opacity: 0.45; }
+.row.correct-pos { border-color: var(--green-border); background: var(--green-soft); }
+.row.wrong-pos { border-color: var(--rose-border); background: var(--rose-soft); }
+.order-confirm-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.order-confirm-row .oc-hint { font-size: 11.5px; color: var(--text-3); }
+.order-confirm-row .oc-sp { flex: 1; }
+.order-confirm-row button { font-size: 13.5px; font-weight: 600; border: 1px solid var(--border-strong); background: var(--surface); padding: 9px 16px; border-radius: 7px; cursor: pointer; }
+.order-ref { margin-top: 11px; background: var(--green-soft); border: 1px solid var(--green-border); border-radius: 9px; padding: 12px 15px; display: flex; flex-direction: column; gap: 4px; }
+.order-ref .or-head { font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green); }
+.order-ref .or-item { display: flex; gap: 11px; font-size: 13.5px; line-height: 1.7; color: oklch(0.35 0.012 262); }
+.order-ref .or-item .or-n { flex: 0 0 auto; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--green); width: 16px; }
+.q .explain { display: none; margin-top: 14px; border-top: 1px dashed var(--border-strong); padding-top: 13px; flex-direction: column; gap: 5px; }
+.q.done .explain { display: flex; }
+.q .explain .el { font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-2); }
+.q .explain .et { font-size: 13.5px; line-height: 1.85; color: var(--text-25); }
+
+/* verdict / actions */
+.verdict { display: none; border-radius: 11px; padding: 16px 19px; font-size: 14px; line-height: 1.75; }
+.verdict.show { display: block; }
+.verdict.pass { background: var(--green-soft); border: 1px solid var(--green-border); }
+.verdict.fail { background: var(--rose-soft); border: 1px solid var(--rose-border); }
+.actions { position: sticky; bottom: 14px; display: flex; align-items: center; gap: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 13px; box-shadow: 0 6px 22px oklch(0.4 0.02 262 / 0.1); padding: 15px 20px; }
+.actions .progress-lbl { font-size: 13px; color: var(--text-2); }
+.actions .reset { font-size: 13.5px; font-weight: 600; border: 1px solid var(--border-strong); background: var(--surface); padding: 9px 16px; border-radius: 7px; cursor: pointer; }
+.actions .score { margin-left: auto; text-align: right; }
+.actions .score .num { font-family: var(--mono); font-size: 22px; font-weight: 700; line-height: 1.1; }
+.actions .score .num.pass { color: var(--green); }
+.actions .score .num.fail { color: var(--rose); }
+.actions .score .lbl { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="top-row">
+      <span class="kind">実装後レビュー · push 前ゲート</span>
+      <span class="top-sub">advisory / 自己申告</span>
+      <div class="tabs">
+        <button class="tab active" id="tab-explain">解説</button>
+        <button class="tab" id="tab-quiz">クイズ <span class="badge" id="quiz-badge"></span></button>
+      </div>
+    </div>
+    <h1 id="page-title"></h1>
+  </header>
+
+  <div class="pane active" id="pane-explain">
+    <div class="explain-grid">
+      <nav class="toc"><div class="toc-head">目次</div><div id="toc"></div></nav>
+      <div class="explain-main">
+        <div class="sections" id="sections"></div>
+        <div class="cta">
+          <div>
+            <div class="cta-title">読み終えたら、理解できているか確かめる</div>
+            <div class="cta-sub">各設問は回答した時点で正誤と解説が出て、答えは変更できません。落ちた設問がある間は push しないでください。</div>
+          </div>
+          <button id="cta-quiz">クイズへ進む</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pane" id="pane-quiz">
+    <div class="quiz-wrap">
+      <div id="quiz-sections"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="actions">
+        <div class="progress-lbl" id="progress-lbl">未回答</div>
+        <button class="reset" id="reset">リセット</button>
+        <div class="score"><div class="num" id="score-num">—</div><div class="lbl">スコア</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     DATA — このスクリプトだけをエージェントが実データで置き換える
+     ============================================================ -->
+<script>
+/*
+ * ============================================================================
+ *  spec-implement のレビュー生成へ: この DATA だけを実データで置き換えること。
+ *  CSS・レンダラは触らない。文字列はプレーンテキスト（HTMLタグ不可）。
+ *
+ *  DATA.meta      : {title, passLine?(0〜1。既定 0.8)}
+ *  DATA.explain.sections[] : {title, lead(1文の要約), paras[](散文), points[],
+ *                             refs[]("file:line"), flow[](どういう処理にしたかの手順),
+ *                             code?: {file, caption?, lines[]}, decisions[]}
+ *    code.lines[] は行頭 "+"(追加) / "-"(削除) / " "(文脈) の diff 行。実際の diff から
+ *    要点になる数行だけを抜き出して載せる（全文は貼らない）。
+ *  decisions[]: その変更についての判断。{kind:"変更"|"見送り", title,
+ *    ideal(本来/検討した案), taken(実際にどうしたか), why(その理由), refs[], code?}
+ *    implementation-notes の Deviations・実装判断メモをここに書く。なければ []
+ *  DATA.quiz.sections[]    : {title, from(対応する解説 section の番号 1始まり), brief, questions[]}
+ *    クイズは解説から作る。まず解説を書き、その節ごとに「読めば答えられるが、読まないと
+ *    間違える」設問を起こす。from で対応する解説節を指す。
+ *    question: {id, type:"choice"|"boolean"|"order", prompt, intent, tag?, explain,
+ *               options[]+answer(index) / answer(bool) / items[](正解順・自動シャッフル)}
+ *
+ *  出題方針（quiz-design.md 準拠）: diff の表面に出ない既存コードパス依存の挙動を優先。
+ *  判断そのものは各 section の decisions に書き、クイズではその判断の結果として生じた
+ *  挙動を問う。誤答は「diff をざっと読むと選びそうな」もっともらしい誤りにする。
+ * ============================================================================
+ */
+const DATA = {
+  meta: { title: "{機能名}", passLine: 0.8 },
+  explain: {
+    sections: [
+      {
+        title: "{解説ブロック1: 実際に行われた変更}",
+        lead: "{この変更を一文で言うと何か}",
+        paras: ["{何が起きたかの散文。1段落1論点で書く}", "{補足の段落}"],
+        flow: [
+          "{どういう処理にしたか 手順1: 入口となる処理}",
+          "{手順2: 実際に走る処理}",
+          "{手順3: 結果として何が返る／保存されるか}",
+        ],
+        points: ["{要点1}", "{要点2}"],
+        refs: ["{path/to/file.ts:120}"],
+        code: {
+          file: "{path/to/file.ts}",
+          caption: "{この差分が示していること}",
+          lines: [
+            "  {変更前後で共通の文脈行}",
+            "- {削除した行}",
+            "+ {追加した行}",
+          ],
+        },
+        decisions: [
+          { kind: "変更", title: "{判断1: 何についての判断か}", ideal: "{本来こうすべきだった／当初こうする計画だった}", taken: "{実際にこうした}", why: "{こういう理由でこうした}", refs: ["{path/to/file.ts:88}"],
+            code: { file: "{path/to/file.ts}", caption: "{その判断が実際のコードでどう表れているか}", lines: ["  {文脈行}", "- {計画どおりならこう書いていた行}", "+ {実際に書いた行}"] } },
+          { kind: "見送り", title: "{判断2: 採用しなかった案}", ideal: "{検討した案}", taken: "{今回は採用せず、こうしている}", why: "{採用しなかった理由・いつなら採るか}", refs: [] },
+        ],
+      },
+      {
+        title: "{解説ブロック2: 既存コードパス依存の挙動}",
+        lead: "{diff の表面に出ない挙動を一文で}",
+        paras: ["{既存コードパスと組み合わさって何が起きるか}"],
+        points: [],
+        refs: [],
+        decisions: [],
+      },
+    ],
+  },
+  quiz: {
+    sections: [
+      {
+        title: "{実際の変更のテーマ1}",
+        from: 1,
+        brief: "{このブロックの短い前提}",
+        questions: [
+          { id: "Q1", type: "choice", tag: "既存依存", prompt: "{既存コードパス依存で生じた挙動を問う設問}", intent: "{確認したい理解}", options: ["{diffをざっと読むと選びそうな誤答}", "{正解}", "{別の誤答}", "{別の誤答}"], answer: 1, explain: "{実際の挙動とその根拠}" },
+          { id: "Q2", type: "boolean", tag: "見送り", prompt: "{その実装判断の結果として生じた挙動を問う設問}", intent: "{確認したい理解}", answer: true, explain: "{根拠}" },
+        ],
+      },
+      {
+        title: "実装判断の影響",
+        from: 2,
+        brief: "{その判断の結果、実際にどう動くようになったか}",
+        questions: [
+          { id: "Q3", type: "order", tag: "実装判断", prompt: "{処理が起きる順に並べ替えてください}", intent: "{確認したい理解}", items: ["{1番目}", "{2番目}", "{3番目}"], explain: "{なぜこの順になるか}" },
+        ],
+      },
+    ],
+  },
+};
+</script>
+
+<!-- ===== 以下 レンダラ / 採点ロジックは固定。編集しない ===== -->
+<script>
+(function () {
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const TYPE_LABEL = { choice: "4択", boolean: "YES / NO", order: "並べ替え" };
+  const passLine = DATA.meta.passLine == null ? 0.8 : DATA.meta.passLine;
+
+  const Q = [];
+  DATA.quiz.sections.forEach((sec) => sec.questions.forEach((q) => Q.push(q)));
+
+  // 状態: 初回回答で確定・ロック。orders は order 設問の表示順（src インデックス列）
+  let results = {};
+  let picks = {};
+  let orders = {};
+  let drag = null;
+
+  function shuffle(n) {
+    const a = Array.from({ length: n }, (_, i) => i);
+    if (n < 2) return a;
+    do {
+      for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    } while (a.every((v, i) => v === i));
+    return a;
+  }
+  function initOrders() {
+    orders = {};
+    Q.forEach((q) => { if (q.type === "order") orders[q.id] = shuffle(q.items.length); });
+  }
+
+  // ---- tabs ----
+  const tabs = { explain: document.getElementById("tab-explain"), quiz: document.getElementById("tab-quiz") };
+  const panes = { explain: document.getElementById("pane-explain"), quiz: document.getElementById("pane-quiz") };
+  function switchTab(name) {
+    for (const k of Object.keys(tabs)) {
+      tabs[k].classList.toggle("active", k === name);
+      panes[k].classList.toggle("active", k === name);
+    }
+  }
+  tabs.explain.addEventListener("click", () => switchTab("explain"));
+  tabs.quiz.addEventListener("click", () => switchTab("quiz"));
+  document.getElementById("cta-quiz").addEventListener("click", () => switchTab("quiz"));
+
+  function goExplainSection(n) {
+    switchTab("explain");
+    requestAnimationFrame(() => {
+      const el = document.getElementById("sec-" + n);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  // ---- 解説 ----
+  function renderDiff(code) {
+    if (!code || !code.lines || !code.lines.length) return "";
+    const lines = code.lines.map((raw) => {
+      const sign = raw.charAt(0);
+      const cls = sign === "+" ? "add" : sign === "-" ? "del" : "";
+      const text = raw.slice(1).replace(/^\s/, "");
+      return `<div class="df-line ${cls}"><span class="sign">${sign === " " ? "" : esc(sign)}</span><span>${esc(text)}</span></div>`;
+    }).join("");
+    return `<figure class="diff">
+      <figcaption><span class="df-file">${esc(code.file || "")}</span><span class="df-tag">diff</span></figcaption>
+      <div class="df-body">${lines}</div>
+      ${code.caption ? `<div class="df-caption">${esc(code.caption)}</div>` : ""}
+    </figure>`;
+  }
+  function renderRefs(refs, withLabel) {
+    if (!refs || !refs.length) return "";
+    return `<div class="refs">${withLabel ? `<span class="rf-label">根拠</span>` : ""}${refs.map((r) => `<span class="ref">${esc(r)}</span>`).join("")}</div>`;
+  }
+  function renderDecision(d) {
+    const skipped = d.kind === "見送り";
+    return `<div class="decision ${skipped ? "skipped" : "changed"}">
+      <div class="d-top"><span class="d-kind">${esc(d.kind || "変更")}</span><div class="d-title">${esc(d.title)}</div></div>
+      <div class="d-rows">
+        <div class="d-row"><div class="d-label">${skipped ? "検討した案" : "本来の案"}</div><div class="d-val">${esc(d.ideal)}</div></div>
+        <div class="d-row taken"><div class="d-label">${skipped ? "実際は" : "実装"}</div><div class="d-val">${esc(d.taken)}</div></div>
+        <div class="d-row why"><div class="d-label">理由</div><div class="d-val">${esc(d.why)}</div></div>
+      </div>
+      ${renderDiff(d.code)}
+      ${renderRefs(d.refs, false)}
+    </div>`;
+  }
+  function renderExplain() {
+    const secs = DATA.explain.sections || [];
+    document.getElementById("toc").innerHTML = secs.map((s, i) =>
+      `<a href="#sec-${i + 1}"><span class="tn">${String(i + 1).padStart(2, "0")}</span><span>${esc(s.title)}</span></a>`).join("");
+    document.getElementById("sections").innerHTML = secs.map((s, i) => `
+      <article class="sec" id="sec-${i + 1}">
+        <div class="rail"><div class="num">${String(i + 1).padStart(2, "0")}</div><div class="line"></div></div>
+        <div class="body">
+          <h2>${esc(s.title)}</h2>
+          <p class="lead">${esc(s.lead)}</p>
+          ${s.paras && s.paras.length ? `<div class="paras">${s.paras.map((p) => `<p>${esc(p)}</p>`).join("")}</div>` : ""}
+          ${s.points && s.points.length ? `<div class="card"><div class="card-head">要点</div>${s.points.map((pt) => `<div class="point"><span>${esc(pt)}</span></div>`).join("")}</div>` : ""}
+          ${s.flow && s.flow.length ? `<div class="card flow"><div class="card-head">どういう処理にしたか</div>${s.flow.map((f, k) =>
+            `<div class="flow-step"><div class="fs-rail"><span class="fs-n">${k + 1}</span><span class="fs-line"></span></div><div class="fs-text">${esc(f)}</div></div>`).join("")}</div>` : ""}
+          ${renderDiff(s.code)}
+          ${renderRefs(s.refs, true)}
+          ${s.decisions && s.decisions.length ? `<div class="decisions">
+            <div class="dc-head"><span class="dc-label">実装判断</span><span class="dc-rule"></span></div>
+            ${s.decisions.map(renderDecision).join("")}
+          </div>` : ""}
+        </div>
+      </article>`).join("");
+  }
+
+  // ---- クイズ ----
+  function renderQuiz() {
+    const secs = DATA.quiz.sections || [];
+    const expSecs = DATA.explain.sections || [];
+    document.getElementById("quiz-sections").innerHTML = secs.map((sec, si) => {
+      const from = sec.from && expSecs[sec.from - 1]
+        ? `<button class="qs-from" data-from="${sec.from}">解説 ${String(sec.from).padStart(2, "0")} — ${esc(expSecs[sec.from - 1].title)}</button>` : "";
+      return `<section class="q-section">
+        <div class="qs-head"><span class="qs-n">SECTION ${si + 1}</span><h2>${esc(sec.title)}</h2>${from}</div>
+        ${sec.brief ? `<div class="qs-brief">${esc(sec.brief)}</div>` : ""}
+        ${sec.questions.map(renderQ).join("")}
+      </section>`;
+    }).join("");
+    wire();
+    updateProgress();
+  }
+
+  function renderQ(q) {
+    const done = q.id in results;
+    const ok = results[q.id];
+    let rows = "";
+    let tail = "";
+    if (q.type === "choice") {
+      rows = q.options.map((o, i) => {
+        const isAns = done && i === q.answer;
+        const wrong = done && !ok && picks[q.id] === i;
+        return `<div class="row pickable ${isAns ? "is-answer" : ""} ${wrong ? "is-picked-wrong" : ""}" data-qid="${q.id}" data-i="${i}">
+          <span class="rw-badge">${"ABCDE"[i] || i + 1}</span><span class="rw-text">${esc(o)}</span>
+          <span class="rw-mark">${isAns ? "✓ 正解" : "✕"}</span>
+        </div>`;
+      }).join("");
+    } else if (q.type === "boolean") {
+      rows = [true, false].map((v) => {
+        const isAns = done && v === q.answer;
+        const wrong = done && !ok && picks[q.id] === v;
+        return `<div class="row pickable bool ${isAns ? "is-answer" : ""} ${wrong ? "is-picked-wrong" : ""}" data-qid="${q.id}" data-v="${v}">
+          <span class="rw-badge">${v ? "Y" : "N"}</span><span class="rw-text">${v ? "YES" : "NO"}</span>
+          <span class="rw-mark">${isAns ? "✓ 正解" : "✕"}</span>
+        </div>`;
+      }).join("");
+    } else if (q.type === "order") {
+      const ord = orders[q.id] || q.items.map((_, i) => i);
+      rows = ord.map((src, pos) => {
+        const cls = done ? (src === pos ? "correct-pos" : "wrong-pos") : "order";
+        return `<div class="row ${cls}" data-qid="${q.id}" data-pos="${pos}" ${done ? "" : 'draggable="true"'}>
+          ${done ? "" : `<span class="rw-grip">⠿</span>`}
+          <span class="rw-badge">${pos + 1}</span><span class="rw-text">${esc(q.items[src])}</span>
+          ${done ? "" : `<span class="rw-move"><button class="mv-up" title="上へ">▲</button><button class="mv-down" title="下へ">▼</button></span>`}
+        </div>`;
+      }).join("");
+      if (!done) {
+        tail += `<div class="order-confirm-row"><span class="oc-hint">ドラッグ、または ▲▼ で並べ替え</span><span class="oc-sp"></span><button class="order-confirm" data-qid="${q.id}">この順で回答する</button></div>`;
+      } else if (!ok) {
+        tail += `<div class="order-ref"><div class="or-head">✓ 正解の順序</div>${q.items.map((t, i) =>
+          `<div class="or-item"><span class="or-n">${i + 1}</span><span>${esc(t)}</span></div>`).join("")}</div>`;
+      }
+    }
+    return `<div class="q ${done ? "done " + (ok ? "correct" : "wrong") : ""}" id="q-${q.id}">
+      <div class="q-head">
+        <span class="q-id">${esc(q.id)}</span>
+        <span class="q-type">${TYPE_LABEL[q.type]}</span>
+        ${q.tag ? `<span class="q-tag">${esc(q.tag)}</span>` : ""}
+        <span class="q-mark ${done ? (ok ? "ok" : "ng") : ""}">${done ? (ok ? "正解" : "不正解") : ""}</span>
+      </div>
+      <div class="q-prompt">${esc(q.prompt)}</div>
+      ${q.intent ? `<div class="q-intent">${esc(q.intent)}</div>` : ""}
+      <div class="rows">${rows}</div>
+      ${tail}
+      <div class="explain"><div class="el">解説</div><div class="et">${esc(q.explain)}</div></div>
+    </div>`;
+  }
+
+  function answer(q, ok) {
+    if (q.id in results) return;
+    results[q.id] = ok;
+    renderQuiz();
+    if (Object.keys(results).length === Q.length) showVerdict();
+  }
+
+  function wire() {
+    document.querySelectorAll(".qs-from").forEach((b) => {
+      b.addEventListener("click", () => goExplainSection(+b.dataset.from));
+    });
+    document.querySelectorAll(".row.pickable").forEach((r) => {
+      const q = Q.find((x) => x.id === r.dataset.qid);
+      if (!q || q.id in results) return;
+      r.addEventListener("click", () => {
+        if (q.type === "choice") { picks[q.id] = +r.dataset.i; answer(q, +r.dataset.i === q.answer); }
+        else { const v = r.dataset.v === "true"; picks[q.id] = v; answer(q, v === q.answer); }
+      });
+    });
+    document.querySelectorAll(".order-confirm").forEach((b) => {
+      b.addEventListener("click", () => {
+        const q = Q.find((x) => x.id === b.dataset.qid);
+        if (q) answer(q, (orders[q.id] || []).every((v, i) => v === i));
+      });
+    });
+    document.querySelectorAll(".row.order").forEach((r) => {
+      const qid = r.dataset.qid, pos = +r.dataset.pos;
+      r.querySelector(".mv-up").addEventListener("click", (e) => { e.stopPropagation(); moveOrder(qid, pos, -1); });
+      r.querySelector(".mv-down").addEventListener("click", (e) => { e.stopPropagation(); moveOrder(qid, pos, 1); });
+      r.addEventListener("dragstart", (e) => { if (e.dataTransfer) e.dataTransfer.effectAllowed = "move"; drag = { qid, from: pos }; r.classList.add("drag-src"); });
+      r.addEventListener("dragover", (e) => {
+        if (!drag || drag.qid !== qid) return;
+        e.preventDefault();
+        document.querySelectorAll(`.row.order[data-qid="${qid}"]`).forEach((el) => el.classList.remove("drag-over"));
+        if (+r.dataset.pos !== drag.from) r.classList.add("drag-over");
+      });
+      r.addEventListener("drop", (e) => {
+        e.preventDefault();
+        if (drag && drag.qid === qid) moveOrderTo(qid, drag.from, pos);
+        drag = null;
+      });
+      r.addEventListener("dragend", () => {
+        drag = null;
+        document.querySelectorAll(".row.order").forEach((el) => el.classList.remove("drag-over", "drag-src"));
+      });
+    });
+  }
+
+  function moveOrder(qid, pos, dir) {
+    const cur = (orders[qid] || []).slice();
+    const to = pos + dir;
+    if (to < 0 || to >= cur.length) return;
+    [cur[pos], cur[to]] = [cur[to], cur[pos]];
+    orders[qid] = cur;
+    renderQuiz();
+  }
+  function moveOrderTo(qid, from, to) {
+    const cur = (orders[qid] || []).slice();
+    if (from === to || from < 0 || to < 0 || from >= cur.length || to >= cur.length) return;
+    const [x] = cur.splice(from, 1);
+    cur.splice(to, 0, x);
+    orders[qid] = cur;
+    renderQuiz();
+  }
+
+  function updateProgress() {
+    const answered = Object.keys(results).length;
+    const correct = Object.values(results).filter(Boolean).length;
+    document.getElementById("quiz-badge").textContent = `${answered}/${Q.length}`;
+    document.getElementById("score-num").textContent = answered ? `${correct}/${Q.length}` : "—";
+    document.getElementById("progress-lbl").textContent =
+      answered === 0 ? `全 ${Q.length} 問 / 未回答` : (answered === Q.length ? "全問回答済み" : `残り ${Q.length - answered} 問`);
+  }
+
+  function showVerdict() {
+    const total = Q.length;
+    const correct = Object.values(results).filter(Boolean).length;
+    const ratio = total ? correct / total : 0;
+    const pass = ratio >= passLine;
+    const numEl = document.getElementById("score-num");
+    numEl.className = "num " + (pass ? "pass" : "fail");
+    const v = document.getElementById("verdict");
+    v.className = "verdict show " + (pass ? "pass" : "fail");
+    v.innerHTML = pass
+      ? `<b>合格 (${Math.round(ratio * 100)}%)</b> — 変更の実際の挙動を理解できています。push / merge に進んでよいでしょう。`
+      : `<b>不合格 (${Math.round(ratio * 100)}% / 合格ライン ${Math.round(passLine * 100)}%)</b> — 赤い設問は理解できていない変更です。push する前に、その箇所の diff と解説・implementation-notes を読み直してください。`;
+    v.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  // リセットは解説を読んだ後の再学習用。合否は初回の通し回答で判断する
+  document.getElementById("reset").addEventListener("click", () => {
+    results = {}; picks = {}; initOrders();
+    document.getElementById("verdict").className = "verdict";
+    const numEl = document.getElementById("score-num");
+    numEl.className = "num";
+    renderQuiz();
+  });
+
+  document.getElementById("page-title").textContent = DATA.meta.title;
+  document.title = "実装後レビュー — " + DATA.meta.title;
+  initOrders();
+  renderExplain();
+  renderQuiz();
+})();
+</script>
+</body>
+</html>
