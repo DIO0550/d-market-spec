@@ -3,7 +3,7 @@ name: spec-implement
 description: .plugin-workspace/.specsの実装計画に沿ってタスクを順番に実装する。番号を指定すると該当specを、省略するとarchive外で最も番号が大きいspecを自動選択し、tasks.mdを読み込んで未完了タスクを順次実装していく。全タスク完了後にオプションでCodex/Copilot/Claude Codeによるコードレビューを実行可能。「実装」「implement」「タスク実装」「コードレビュー付き」「codexレビュー」「copilotレビュー」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[番号] [--review codex|copilot|claude-code]"
-allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(mkdir *), Bash(codex *), Bash(copilot *), Bash(claude *), Write, Edit
+allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(mkdir *), Bash(cp *), Bash(sed *), Bash(codex *), Bash(copilot *), Bash(claude *), Write, Edit
 ---
 
 # Spec Implement
@@ -255,15 +255,15 @@ push / merge の前に、**実装者（人間）が「実際に何が変わっ�
 
 **`{QUIZ_OUTPUT}` が `interactive` の場合はこの節をスキップし、7.5-3b に進む。**
 
-`test-cases.html` と同様の **DATA スクリプト差し替え方式**。CSS・レンダラ・採点ロジックは固定済み。
+**DATA スクリプト差し替え方式**。CSS・レンダラ・採点ロジックは固定済みのため、テンプレート全体を Read / Write しない（DATA 部分だけ扱う）。
 
-1. テンプレート `assets/templates/implementation-review.html` を Read する
-2. テンプレート先頭の DATA スクリプト（スキーマ説明コメント + `const DATA`）を実データで丸ごと置き換える（解説 `explain` — 各 section の `decisions` に Deviations・実装判断 — とクイズ `quiz` の両方。スキーマはテンプレート先頭のコメント参照）
-3. それ以外（`<style>`・レンダラの2スクリプト・HTMLシェル）は1文字も変更しない（自己完結HTML）
-4. `<title>` の `{機能名}` を実際の機能名に置換する
-5. `{QUIZ_OUTPUT}` に応じて出力する（プレースホルダ `{...}` を残さない）:
-   - **`file` の場合**: `.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-review.html` に Write する
-   - **`artifact` の場合**: 外側のシェルタグ（`<!doctype html>` `<html>` `<head>` `</head>` `<body>` `</body>` `</html>`）を取り除き、`<title>`・`<style>`・body 内容・スクリプトを残した形で `.plugin-workspace/.specs/{nnn}-{feature-name}/implementation-review.html` に Write し、Artifact ツールで公開する（Artifact 側がシェルを付与するため。favicon は `📝`）
+1. テンプレートを出力先にコピーする:
+   `cp "${CLAUDE_PLUGIN_ROOT}/skills/spec-implement/assets/templates/implementation-review.html" ".plugin-workspace/.specs/{nnn}-{feature-name}/implementation-review.html"`
+2. **`artifact` の場合のみ**、外側のシェルタグを sed で削除する（各タグは独立行。Artifact 側がシェルを付与するため）:
+   `sed -i -e '/^<!DOCTYPE html>$/d' -e '/^<html lang="ja">$/d' -e '/^<head>$/d' -e '/^<meta /d' -e '/^<\/head>$/d' -e '/^<body>$/d' -e '/^<\/body>$/d' -e '/^<\/html>$/d' {出力先}`
+3. コピー先の先頭部分（`<title>` 〜 DATA スクリプトの終わり。レンダラ以降は読まない）を Read（offset/limit 指定）する
+4. Edit で `<title>` の `{機能名}` と、DATA スクリプト（スキーマ説明コメント + `const DATA`）を実データに置き換える（解説 `explain` — 各 section の `decisions` に Deviations・実装判断 — とクイズ `quiz` の両方。スキーマはテンプレート先頭のコメント参照。プレースホルダ `{...}` を残さない）
+5. **`artifact` の場合**、Artifact ツールに出力先のファイルパスを渡して公開する（favicon は `📝`）
 
 ### 7.5-3b. 対話出題（`{QUIZ_OUTPUT}` が `interactive` の場合）
 

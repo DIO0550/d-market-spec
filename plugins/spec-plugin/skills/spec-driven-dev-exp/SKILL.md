@@ -2,7 +2,7 @@
 name: spec-driven-dev-exp
 description: "軽量な仕様駆動開発ワークフロー。ヒアリング→探索→requirements→実装計画→解説+クイズのタブHTML生成。「exp」「軽量スペック」「トークン節約で計画」などでトリガー。"
 disable-model-invocation: true
-allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(rm .plugin-workspace/.specs/*/PLANNING)
+allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(cp *), Bash(rm .plugin-workspace/.specs/*/PLANNING)
 ---
 
 # Spec-Driven Dev Exp
@@ -89,13 +89,15 @@ specフォルダパス・生成ファイル一覧・implementation-plan のサ�
 
 ## Step 7: 解説+クイズのタブHTML生成
 
-テンプレート `assets/templates/understanding-quiz-tabbed.html` を使い、`{dir}/understanding-quiz-plan.html` を生成する。**解説タブとクイズタブを切り替えられる自己完結HTML**。
+`{dir}/understanding-quiz-plan.html` を生成する。**解説タブとクイズタブを切り替えられる自己完結HTML**。CSS・レンダラは固定済みのため、テンプレート全体を Read / Write しない（DATA 部分だけ扱う）。
 
-1. テンプレートを Read し、先頭の DATA スクリプト（`const PAGE`）だけを実データで置き換える。CSS・レンダラは1文字も変更しない
-2. `<title>` の `{機能名}` を置換し、プレースホルダを残さない
-3. **解説タブ（`PAGE.explain`）**: 計画の要点を読み物として解説する — 設計判断とその理由・データフロー・変わりやすい箇所・requirements で確定した分岐。実装フェーズで計画と実装がズレた場合の追記欄（`changes` セクション）は空配列で用意しておく
-4. **クイズタブ（`PAGE.quiz`）**: 5〜8問（choice / boolean / order）。「なぜこの設計にしたか」「この制約が壊れると何が起きるか」を問う。誤答はもっともらしい別設計にする。ある設問の解説が別の設問の答えを含まないようにする
-5. 出力後、パスを提示し「push 前に開いて設計理解を確認してください（advisory ゲート。落ちた設問＝設計が固まっていない箇所）」と案内する
+1. テンプレートを出力先にコピーする:
+   `cp "${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/assets/templates/understanding-quiz-tabbed.html" "{dir}/understanding-quiz-plan.html"`
+2. コピー先の先頭部分（`<title>` 〜 `const PAGE` の終わり。レンダラ以降は読まない）を Read（offset/limit 指定）する
+3. Edit で `<title>` の `{機能名}` と DATA スクリプト（`const PAGE`）を実データに置き換える。プレースホルダを残さない
+4. **解説タブ（`PAGE.explain`）**: 計画の要点を読み物として解説する — 設計判断とその理由・データフロー・変わりやすい箇所・requirements で確定した分岐。実装フェーズで計画と実装がズレた場合の追記欄（`changes` セクション）は空配列で用意しておく
+5. **クイズタブ（`PAGE.quiz`）**: 5〜8問（choice / boolean / order）。「なぜこの設計にしたか」「この制約が壊れると何が起きるか」を問う。誤答はもっともらしい別設計にする。ある設問の解説が別の設問の答えを含まないようにする
+6. 出力後、パスを提示し「push 前に開いて設計理解を確認してください（advisory ゲート。落ちた設問＝設計が固まっていない箇所）」と案内する
 
 ## Step 8: 実装開始（ガード解除案内）
 
