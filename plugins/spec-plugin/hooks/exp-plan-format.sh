@@ -54,12 +54,13 @@ case "$file_path" in
     done
 
     # [NEW] / [MODIFY] エントリの直後（次の見出しまで）にコードブロックがあるか
+    # ##### は before / after 用のサブ見出しなのでエントリの区切りとして扱わない
     entries_without_code=$(echo "$content" | awk '
       /^#### \[(NEW|MODIFY)\]/ {
         if (entry != "" && !has_code) print entry
         entry = $0; has_code = 0; next
       }
-      /^#/ {
+      /^#/ && !/^#####/ {
         if (entry != "" && !has_code) print entry
         entry = ""
       }

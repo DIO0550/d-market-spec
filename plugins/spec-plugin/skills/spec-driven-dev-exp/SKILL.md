@@ -81,7 +81,7 @@ AskUserQuestion **1バッチ（最大4問）** で聴取し、テンプレート
 
 守ること:
 - 冒頭の **概要 / 背景 / 設計判断（ADR）** は重要セクション。設計判断には採用した理由と、検討して不採用にした案の理由を書く
-- 変更対象は `#### [NEW]` / `#### [MODIFY]` / `#### [DELETE]` + コードブロック（型・シグネチャ・before/after）
+- 変更対象は `#### [NEW]` / `#### [MODIFY]` / `#### [DELETE]` + コードブロック。[MODIFY] は `##### before` / `##### after` の見出しでコードブロックを分ける
 - 検証計画はテスト戦略と実行コマンドまで（詳細なテストケース設計はしない）
 - tasks.md は Research & Planning → Implementation → Verification の3セクション、行頭 `□`
 

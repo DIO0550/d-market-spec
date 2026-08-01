@@ -91,13 +91,15 @@ UI Update
 - {変更点1}
 - {変更点2}
 
+##### before
+
 ```{lang}
-// before:
 {変更前の該当箇所}
 ```
 
+##### after
+
 ```{lang}
-// after:
 {変更後の該当箇所}
 ```
 
@@ -296,8 +298,9 @@ function injectBlockButtons(userElements: NodeListOf<Element>): void {
 - content_scriptsにranking.tsを追加
 - matchesに `*://www.nicovideo.jp/ranking/*` を追加
 
+##### before
+
 ```json
-// before:
 "content_scripts": [
   {
     "matches": ["*://www.nicovideo.jp/watch/*"],
@@ -306,8 +309,9 @@ function injectBlockButtons(userElements: NodeListOf<Element>): void {
 ]
 ```
 
+##### after
+
 ```json
-// after:
 "content_scripts": [
   {
     "matches": ["*://www.nicovideo.jp/watch/*"],
