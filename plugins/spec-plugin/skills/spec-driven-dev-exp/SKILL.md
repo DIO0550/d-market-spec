@@ -7,18 +7,14 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 
 # Spec-Driven Development (Experimental)
 
-`spec-driven-dev` の実験バリアント。設計思想:
-
-1. **指示を減らす** — サブエージェントによるフォーマットチェック（plan-format-checker / design-validity-checker / test-pattern-checker / test-case-designer）は起動しない。探索・計画生成もオーケストレーター自身が行う
-2. **機械検証はフックに委譲** — セクション構成・プレースホルダ残留・コードブロック有無は `exp-plan-format.sh` が書き込みのたびに検証してリマインドする（図表は `enforce-diagrams.sh`、コード例は `enforce-code-examples.sh`、requirements 未確定は `guard-requirements.sh` が既存のまま作動）
-3. **無駄なことはしない** — AIレビュー・tech-reference・test-cases.html・再探索・セルフチェックは本スキルに含めない。必要なら安定版 `/spec-driven-dev` を使う
+`spec-driven-dev` の実験バリアント。チェッカー系サブエージェントは使わず、フォーマット検証はフックが行う。
 
 ## 絶対厳守事項
 
 1. 最初に Step 1（フォルダ + PLANNING + EXPERIMENT 作成）を実行してから質問・探索に進む
-2. PLANNINGファイルがある間はコード実装禁止（`.plugin-workspace/.specs/` 外への書き込みは hook がブロック）
-3. ヒアリング（AskUserQuestion）と requirements の `□` 解消はスキップ禁止。`□` が残ると `guard-requirements.sh` が implementation-plan への進行をブロックする
-4. フックのリマインド（図表不足・セクション不足・プレースホルダ残留など）が出たら、次のステップに進む前に該当ファイルを修正する
+2. PLANNINGファイルがある間はコード実装禁止
+3. ヒアリング（AskUserQuestion）と requirements の `□` 解消はスキップ禁止
+4. フックのリマインド（セクション不足・図表不足・プレースホルダ残留など）が出たら、次のステップに進む前に該当ファイルを修正する
 
 ## ワークフロー
 
@@ -81,17 +77,10 @@ AskUserQuestion **1バッチ（最大4問）** で聴取し、テンプレート
 
 ## Step 5: 実装計画生成
 
-テンプレート `assets/templates/implementation-plan.md` / `assets/templates/tasks.md` を埋めて、オーケストレーター自身が `{dir}/implementation-plan.md` と `{dir}/tasks.md` を生成する。
+テンプレート `assets/templates/implementation-plan.md` / `assets/templates/tasks.md` を埋めて、オーケストレーター自身が `{dir}/implementation-plan.md` と `{dir}/tasks.md` を生成する。形式はフックが機械検証する（リマインドが出たら修正）。
 
-書き込み後にフックが機械検証する（不足があればリマインドが出るので修正する）:
-
-| 検証 | フック |
-|------|--------|
-| 必須セクション・プレースホルダ残留・[NEW]/[MODIFY] のコードブロック・tasks の `□` | `exp-plan-format.sh` |
-| 状態マシン図・データフロー図 | `enforce-diagrams.sh` |
-| コード例の実質性 | `enforce-code-examples.sh` |
-
-最低限守ること:
+守ること:
+- 冒頭の **概要 / 背景 / 設計判断（ADR）** は重要セクション。設計判断には採用した理由と、検討して不採用にした案の理由を書く
 - 変更対象は `#### [NEW]` / `#### [MODIFY]` / `#### [DELETE]` + コードブロック（型・シグネチャ・before/after）
 - 検証計画はテスト戦略と実行コマンドまで（詳細なテストケース設計はしない）
 - tasks.md は Research & Planning → Implementation → Verification の3セクション、行頭 `□`

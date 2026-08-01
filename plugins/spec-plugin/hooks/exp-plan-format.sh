@@ -10,7 +10,7 @@
 #
 # 検証項目:
 #   implementation-plan*.md:
-#     - 必須セクション（概要 / システム図 / 変更案 / 検証計画 / Definition of Done）
+#     - 必須セクション（概要 / 背景 / 設計判断 / システム図 / 変更案 / 検証計画 / Definition of Done）
 #     - テンプレートプレースホルダ（{日本語…}）の残留
 #     - [NEW] / [MODIFY] エントリ直後のコードブロック有無
 #   tasks*.md:
@@ -47,7 +47,7 @@ fi
 case "$file_path" in
   *implementation-plan*.md)
     # 必須セクション
-    for sec in "概要" "システム図" "変更案" "検証計画" "Definition of Done"; do
+    for sec in "概要" "背景" "設計判断" "システム図" "変更案" "検証計画" "Definition of Done"; do
       if ! echo "$content" | grep -qE "^#{1,4} .*${sec}"; then
         missing+=("必須セクション「## ${sec}」がありません")
       fi
