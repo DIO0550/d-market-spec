@@ -174,96 +174,7 @@ UI Update
 ---
 
 <!--
-使用例:
-
-# Ranking Page にブロックボタンを実装
-
-## 概要
-
-ニコニコのランキングページに、動画投稿者をワンクリックでブロックするボタンを追加します。
-
-## 背景
-
-現状はブロックしたい投稿者のユーザーページまで遷移する必要があり、ランキング閲覧中の操作が煩雑。破壊的変更のない新規機能です。
-
-## 設計判断（ADR）
-
-### 採用: content script によるDOM注入
-
-- **理由**: 既存のブロックリスト機構（storage）をそのまま再利用でき、ページ側の改修が不要
-
-### 不採用: ポップアップUIからの一括ブロック
-
-- **理由**: ランキング閲覧のコンテキストから離れてしまい、ワンクリックで完結しない
-
-## システム図
-
-### 状態マシン / フロー図
-
-```
-                    ページ読み込み
-                         │
-                         ▼
-                 ┌───────────────┐
-                 │     IDLE      │
-                 └───────────────┘
-                         │
-              MutationObserver検出
-                         │
-                         ▼
-                 ┌───────────────┐
-                 │  DETECTING    │◀─────────────┐
-                 │ (ユーザー要素) │               │
-                 └───────────────┘               │
-                         │                       │
-            ┌────────────┴────────────┐          │
-            ▼                         ▼          │
-    ユーザー要素あり           要素なし          │
-            │                         │          │
-            ▼                         └──────────┘
-    ┌───────────────┐                 (継続監視)
-    │ BUTTON_INJECT │
-    │ (ボタン注入)   │
-    └───────────────┘
-            │
-     ボタンクリック
-            │
-            ▼
-    ┌───────────────┐
-    │   BLOCKING    │
-    │ (Storage更新) │
-    └───────────────┘
-            │
-            ▼
-    ┌───────────────┐
-    │   BLOCKED     │
-    │ (UI非表示化)  │
-    └───────────────┘
-```
-
-### データフロー
-
-```
-DOM (ランキングページ)
-    ↓
-MutationObserver
-    ↓
-ranking.ts (コンテンツスクリプト)
-    ↓
-├─ BlockButton コンポーネント生成
-│      ↓
-│  ユーザークリック
-│      ↓
-└─ storage.ts
-    ↓
-chrome.storage.local (ブロックリスト)
-    ↓
-UI更新 (動画非表示)
-```
-
-## 変更案
-
-### Content Scripts
+変更案エントリの記入例:
 
 #### [NEW] `src/content/ranking.ts`
 
@@ -271,26 +182,13 @@ UI更新 (動画非表示)
 
 - **理由**: 既存の watch.ts はページ構造が異なり流用できないため、ランキング専用に新設
 - **ロジック**: DOM監視でユーザー要素を検出し、ブロックボタンを注入
-- **依存**: `src/storage.ts` のブロックリスト操作
 
 ```ts
-// src/content/ranking.ts
-
-import { getBlockList, addToBlockList } from "../storage";
-import { createBlockButton } from "../components/BlockButton";
-
-const RANKING_USER_SELECTOR = ".RankingVideo-userName";
-
 export function initRankingBlocker(): void {
-  const observer = new MutationObserver((mutations) => {
-    // ユーザー要素を検出し、ブロックボタンを注入
+  const observer = new MutationObserver(() => {
+    injectBlockButtons(document.querySelectorAll(".RankingVideo-userName"));
   });
-
   observer.observe(document.body, { childList: true, subtree: true });
-}
-
-function injectBlockButtons(userElements: NodeListOf<Element>): void {
-  // 各ユーザー要素にブロックボタンを追加
 }
 ```
 
@@ -299,17 +197,12 @@ function injectBlockButtons(userElements: NodeListOf<Element>): void {
 コンテンツスクリプトの登録を追加。
 
 - **理由**: 新設した ranking.ts をランキングページで読み込ませるため
-- content_scriptsにranking.tsを追加
-- matchesに `*://www.nicovideo.jp/ranking/*` を追加
 
 ##### before
 
 ```json
 "content_scripts": [
-  {
-    "matches": ["*://www.nicovideo.jp/watch/*"],
-    "js": ["src/content/watch.js"]
-  }
+  { "matches": ["*://www.nicovideo.jp/watch/*"], "js": ["src/content/watch.js"] }
 ]
 ```
 
@@ -317,61 +210,8 @@ function injectBlockButtons(userElements: NodeListOf<Element>): void {
 
 ```json
 "content_scripts": [
-  {
-    "matches": ["*://www.nicovideo.jp/watch/*"],
-    "js": ["src/content/watch.js"]
-  },
-  {
-    "matches": ["*://www.nicovideo.jp/ranking/*"],
-    "js": ["src/content/ranking.js"]
-  }
+  { "matches": ["*://www.nicovideo.jp/watch/*"], "js": ["src/content/watch.js"] },
+  { "matches": ["*://www.nicovideo.jp/ranking/*"], "js": ["src/content/ranking.js"] }
 ]
 ```
-
-### UI
-
-#### [NEW] `src/components/BlockButton.ts`
-
-汎用ブロックボタンコンポーネント。
-
-- **理由**: 今後 watch ページにも同じボタンを置く想定のため、ページ非依存の部品に切り出す
-- **Props**: userId: string, onBlock: () => void
-- **スタイリング**: 既存のニコニコUIに合わせたグレーボタン
-
-```ts
-// src/components/BlockButton.ts
-
-export interface BlockButtonProps {
-  userId: string;
-  onBlock: (userId: string) => void;
-}
-
-export function createBlockButton({ userId, onBlock }: BlockButtonProps): HTMLButtonElement {
-  const button = document.createElement("button");
-  button.className = "block-button";
-  button.textContent = "ブロック";
-  button.addEventListener("click", () => onBlock(userId));
-  return button;
-}
-```
-
-## 検証計画
-
-### 手動検証
-
-1. ランキングページ https://www.nicovideo.jp/ranking を開く
-2. 各ユーザー名の横にブロックボタンが表示されることを確認
-3. ボタンをクリックしてユーザーがブロックされることを確認
-4. ページリロード後、ブロックしたユーザーの動画が非表示になることを確認
-
-## Definition of Done
-
-以下をすべて満たした時点で本機能の実装完了とする。
-
-- [ ] すべてのタスク（tasks.md）が ■ になっている
-- [ ] ランキングページで各ユーザー名の横にブロックボタンが表示される
-- [ ] ブロックボタンクリックでユーザーがブロックリストに追加される
-- [ ] ブロック済みユーザーの動画がランキングから非表示になる
-- [ ] ページリロード後もブロック状態が維持される
-- [ ] 既存のコンテンツスクリプトにリグレッションがない
 -->
