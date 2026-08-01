@@ -39,7 +39,7 @@ Step 6. PLANNINGファイル + ガードファイルの削除
    ↓
 Step 7. DoD照合
    ↓
-Step 7.5. 実装後理解度クイズ生成 → Artifact（デフォルト）/ understanding-quiz-impl.html / 対話出題（push 前ゲート・advisory）
+Step 7.5. 実装後の解説+クイズ生成（タブ切替）→ Artifact（デフォルト）/ understanding-quiz-impl.html / 対話出題（push 前ゲート・advisory）
    ↓
 Step 8. 完了報告
 ```
@@ -229,8 +229,8 @@ push / merge の前に、**実装者（人間）が「実際に何が変わっ�
 
 - **材料**: diff（実際の変更）＋ implementation-notes.md（実装中ノート / Deviations）＋ hearing-notes（事前の意図）
   - hearing-notes（事前の意図）と implementation-notes（実際にやったこと）が別ファイルで分かれているため、両方を読ませると「想定した設計 vs 実際の実装」のズレをそのまま出題材料にできる
-- **問う対象**: 実装で実際に何が行われたか / 既存コードパス依存で発生した挙動（diff の表面に出ない挙動を優先）。Deviations（計画からの逸脱）はクイズにせず、セクションの解説テキスト（brief）として記載する
-- **出力**: 解説＋クイズ（4択・YES/NO・並べ替え。回答した時点で1問ずつ正誤と解説を表示する即時フィードバック方式。初回回答でロックされ答えは変更不可。自己完結HTML）。`{QUIZ_OUTPUT}` に応じて Artifact 公開（デフォルト）/ `understanding-quiz-impl.html` ファイル / セッション内対話出題（`interactive`。HTML を生成せず AskUserQuestion で1問ずつ）
+- **問う対象**: 実装で実際に何が行われたか / 既存コードパス依存で発生した挙動（diff の表面に出ない挙動を優先）。Deviations（計画からの逸脱）はクイズにせず、解説タブの「計画からの変更点」（`changes`）として記載する
+- **出力**: **解説タブとクイズタブを切り替えられる自己完結HTML**。解説タブには実際に行われた変更の解説と「計画からの変更点」（Deviations）、クイズタブには 4択・YES/NO・並べ替え（回答した時点で1問ずつ正誤と解説を表示する即時フィードバック方式。初回回答でロックされ答えは変更不可）。`{QUIZ_OUTPUT}` に応じて Artifact 公開（デフォルト）/ `understanding-quiz-impl.html` ファイル / セッション内対話出題（`interactive`。HTML を生成せず AskUserQuestion で1問ずつ）
 - **enforcement**: advisory。hook による機械的ブロックはしない（合否は自己申告のため）。
 
 ### 7.5-1. 材料の読み込み
@@ -243,7 +243,7 @@ push / merge の前に、**実装者（人間）が「実際に何が変わっ�
 
 `references/quiz-design.md` の「実装後クイズ（実際の挙動）の出題観点」に沿って、合計 5〜10 問（choice / boolean / order を混ぜる）作る。以下は必須:
 
-- **Deviations はクイズにしない** — implementation-notes の Deviations はセクションの `brief`（解説テキスト）として記載し、読んで把握できる形にする。クイズで問うのは逸脱の結果として生じた挙動や影響
+- **Deviations はクイズにしない** — implementation-notes の Deviations は解説タブの「計画からの変更点」（`PAGE.explain.changes`）に「何が変わり、なぜ変えたか」を記載し、読んで把握できる形にする（対話出題時はセクション導入の解説として伝える）。クイズで問うのは逸脱の結果として生じた挙動や影響
 - **既存コードパス依存で生じた挙動**を優先的に出題（diff をざっと読むだけでは見えない挙動）
 - **想定 vs 実際**（hearing-notes と実装のズレ）。`tag` に区分を付けるとバッジ表示される
 
@@ -258,7 +258,7 @@ push / merge の前に、**実装者（人間）が「実際に何が変わっ�
 `test-cases.html` と同様の **DATA スクリプト差し替え方式**。CSS・レンダラ・採点ロジックは固定済み。
 
 1. テンプレート `assets/templates/understanding-quiz-impl.html` を Read する
-2. テンプレート先頭の DATA スクリプト（スキーマ説明コメント + `const QUIZ`）を実データで丸ごと置き換える
+2. テンプレート先頭の DATA スクリプト（スキーマ説明コメント + `const PAGE`）を実データで丸ごと置き換える（解説タブ `explain` — `changes` に Deviations — とクイズタブ `quiz` の両方）
 3. それ以外（`<style>`・レンダラの2スクリプト・HTMLシェル）は1文字も変更しない（自己完結HTML）
 4. `<title>` の `{機能名}` を実際の機能名に置換する
 5. `{QUIZ_OUTPUT}` に応じて出力する（プレースホルダ `{...}` を残さない）:
