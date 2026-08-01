@@ -1,6 +1,6 @@
 {
   "name": "spec-plugin",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "仕様策定・実装計画・Issue作成支援プラグイン",
   "author": {
     "name": "DIO0550"
