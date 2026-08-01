@@ -2,7 +2,7 @@
 name: spec-driven-dev
 description: 新機能の仕様策定から実装計画まで一気通貫で進めるワークフロー。ヒアリング→コード探索→計画生成→オプションでAIレビュー。Codex/Copilot/Claude Code CLIでのレビューオプション付き。「仕様策定」「spec」「実装計画」「レビュー付き」「codexでレビュー」「copilotでレビュー」「claude codeでレビュー」「レビュー省略」などでトリガー。
 disable-model-invocation: true
-allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(codex *), Bash(copilot *), Bash(claude *)
+allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(cp *), Bash(sed *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(codex *), Bash(copilot *), Bash(claude *)
 ---
 
 # Spec-Driven Development
@@ -55,7 +55,7 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
    ↓
 6.5. tech-reference 生成（サブエージェント）→ tech-reference.md
    ↓
-6.7. 実装前理解度クイズ生成 → understanding-quiz-plan.html / Artifact / 対話出題（設計意図の自己確認・advisory）
+6.7. 実装前レビュー生成（解説+クイズのタブ切替）→ implementation-review.html / Artifact / 対話出題（設計意図の自己確認・advisory）
    ↓
 7. 実装開始許可後、PLANNINGファイル削除
 ```
@@ -260,9 +260,9 @@ implementation-plan に登場するすべての技術（言語・フレームワ
 
 **詳細は [references/workflow-steps.md](references/workflow-steps.md) の tech-reference 生成を参照。**
 
-## Step 6.7: 実装前理解度クイズ生成
+## Step 6.7: 実装前レビュー生成（解説+クイズ）
 
-plan を実装セッションに渡す直前に、**実装者（人間）の設計理解度を測るクイズ**を HTML アーティファクトとして生成する。落ちた設問は「設計がまだ自分の中で固まっていない箇所」を指すため、実装に渡す前に潰すための **advisory ゲート**。
+plan を実装セッションに渡す直前に、**実装前レビュー**（解説タブ+クイズタブを切り替えられる自己完結HTML）を生成する。解説タブで設計判断を読み、クイズタブで理解を測る。落ちた設問は「設計がまだ自分の中で固まっていない箇所」を指すため、実装に渡す前に潰すための **advisory ゲート**。実装フェーズ（spec-implement）が同じファイルを実データで再生成する。
 
 **生成の有無は `.plugin-workspace/.specs/.config.yml` の `skip-files` で決まる**（`/spec-setup` で設定）。`skip-files` に `understanding-quiz` が含まれている場合はこのステップをスキップする。含まれていなければ生成する。
 
@@ -270,7 +270,7 @@ plan を実装セッションに渡す直前に、**実装者（人間）の設�
 
 - **材料**: requirements.md（ユースケース・要件・制約）＋ implementation-plan＋ hearing-notes（どの unknowns をどう解決したかの記録）
 - **問う対象**: なぜこの設計にしたか / このデータモデル・型にした理由 / この制約が壊れると何が起きるか / 変わりやすい箇所の意図
-- **出力**: 解説＋クイズ（4択・YES/NO・並べ替え。回答した時点で1問ずつ正誤と解説を表示する即時フィードバック方式。初回回答でロックされ答えは変更不可。test-cases.html と同様に自己完結HTMLで、`<link>`→style.css 置換は不要）。`quiz-output.plan` に応じて `understanding-quiz-plan.html` ファイル（デフォルト）/ Artifact 公開 / セッション内対話出題（`interactive`。HTML を生成せず AskUserQuestion で1問ずつ）
+- **出力**: 解説タブ（目次・設計判断・データフロー・ADR カード）＋クイズタブ（4択・YES/NO・並べ替え。回答した時点で1問ずつ正誤と解説を表示する即時フィードバック方式。初回回答でロックされ答えは変更不可）の自己完結HTML。`quiz-output.plan` に応じて `implementation-review.html` ファイル（デフォルト）/ Artifact 公開 / セッション内対話出題（`interactive`。HTML を生成せず AskUserQuestion で1問ずつ）
 - **enforcement**: advisory。hook による機械的ブロックはしない（合否は自己申告のため）。
 
 出題設計の指針は [references/quiz-design.md](references/quiz-design.md) を参照。作成した設問は出題前に同ファイルの「設問セルフレビュー」で検査し、基準を満たさない設問は捨てる。
@@ -300,7 +300,7 @@ plan を実装セッションに渡す直前に、**実装者（人間）の設�
     ├── tasks{EXT}               # タスクリスト（spec-planner 生成）
     ├── test-cases.html          # テストケース詳細仕様（網羅性レビュー用、HTML・常に .html）
     ├── tech-reference{EXT}      # 技術リファレンス（初学者向け、サブエージェント生成）
-    ├── understanding-quiz-plan.html # 実装前理解度クイズ（設計意図の自己確認、HTML・常に .html。quiz-output.plan: artifact の場合は Artifact 公開、interactive の場合はファイルを作らず対話出題）
+    ├── implementation-review.html # 実装前レビュー（解説+クイズ、HTML・常に .html。実装フェーズが再生成。quiz-output.plan: artifact の場合は Artifact 公開、interactive の場合はファイルを作らず対話出題）
     └── plan-review/             # AIレビュー結果（レビュー実行時のみ）
         ├── prompt-001.txt
         ├── review-001.md

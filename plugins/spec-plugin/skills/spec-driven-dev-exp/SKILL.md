@@ -1,6 +1,6 @@
 ---
 name: spec-driven-dev-exp
-description: "軽量な仕様駆動開発ワークフロー。ヒアリング→探索→requirements→実装計画→解説+クイズのタブHTML生成。「exp」「軽量スペック」「トークン節約で計画」などでトリガー。"
+description: "軽量な仕様駆動開発ワークフロー。ヒアリング→探索→requirements→実装計画→実装前レビュー（解説+クイズ）生成。「exp」「軽量スペック」「トークン節約で計画」などでトリガー。"
 disable-model-invocation: true
 allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(cp *), Bash(rm .plugin-workspace/.specs/*/PLANNING)
 ---
@@ -23,7 +23,7 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 4. requirements.md 確定（□ を AskUserQuestion で解消 — hook が縛る）
 5. implementation-plan.md + tasks.md をオーケストレーターが生成（hook が形式を検証）
 6. ユーザー確認 → 修正
-7. 解説+クイズのタブHTML生成（understanding-quiz-plan.html）
+7. 実装前レビュー生成（implementation-review.html — 解説+クイズのタブ切替）
 8. ガード解除案内
 ```
 
@@ -87,17 +87,17 @@ AskUserQuestion **1バッチ（最大4問）** で聴取し、テンプレート
 
 specフォルダパス・生成ファイル一覧・implementation-plan のサマリー・tasks 一覧を提示し、「修正が必要な場合はお知らせください」と案内する。修正要求があれば Step 5 に戻る。
 
-## Step 7: 解説+クイズのタブHTML生成
+## Step 7: 実装前レビュー生成（解説+クイズ）
 
-`{dir}/understanding-quiz-plan.html` を生成する。**解説タブとクイズタブを切り替えられる自己完結HTML**。CSS・レンダラは固定済みのため、テンプレート全体を Read / Write しない（DATA 部分だけ扱う）。
+`{dir}/implementation-review.html` を生成する。**解説タブとクイズタブを切り替えられる自己完結HTML**。実装フェーズ（spec-implement）が同じファイルを実データで再生成する。CSS・レンダラは固定済みのため、テンプレート全体を Read / Write しない（DATA 部分だけ扱う）。
 
 1. テンプレートを出力先にコピーする:
-   `cp "${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/assets/templates/understanding-quiz-tabbed.html" "{dir}/understanding-quiz-plan.html"`
-2. コピー先の先頭部分（`<title>` 〜 `const PAGE` の終わり。レンダラ以降は読まない）を Read（offset/limit 指定）する
-3. Edit で `<title>` の `{機能名}` と DATA スクリプト（`const PAGE`）を実データに置き換える。プレースホルダを残さない
-4. **解説タブ（`PAGE.explain`）**: 計画の要点を読み物として解説する — 設計判断とその理由・データフロー・変わりやすい箇所・requirements で確定した分岐。実装フェーズで計画と実装がズレた場合の追記欄（`changes` セクション）は空配列で用意しておく
-5. **クイズタブ（`PAGE.quiz`）**: 5〜8問（choice / boolean / order）。「なぜこの設計にしたか」「この制約が壊れると何が起きるか」を問う。誤答はもっともらしい別設計にする。ある設問の解説が別の設問の答えを含まないようにする
-6. 出力後、パスを提示し「push 前に開いて設計理解を確認してください（advisory ゲート。落ちた設問＝設計が固まっていない箇所）」と案内する
+   `cp "${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/assets/templates/implementation-review.html" "{dir}/implementation-review.html"`
+2. コピー先の先頭部分（`<title>` 〜 `const DATA` の終わり。レンダラ以降は読まない）を Read（offset/limit 指定）する
+3. Edit で `<title>` の `{機能名}` と DATA スクリプトを実データに置き換える（スキーマはテンプレート先頭のコメント参照）。**`meta.mode` は `"plan"`**。プレースホルダを残さない
+4. **解説（`DATA.explain`）**: 計画の要点を読み物として解説する — 設計判断とその理由・データフロー・変わりやすい箇所・requirements で確定した分岐。ADR は各 section の `decisions`（kind: `採用` / `見送り`）に理由付きで書く
+5. **クイズ（`DATA.quiz`）**: 5〜8問（choice / boolean / order）。クイズは解説から作る（読めば答えられるが、読まないと間違える設問。`from` で対応する解説節を指す）。「なぜこの設計にしたか」「この制約が壊れると何が起きるか」を問う。誤答はもっともらしい別設計にする。ある設問の解説が別の設問の答えを含まないようにする
+6. 出力後、パスを提示し「実装を始める前に開いて設計理解を確認してください（advisory ゲート。落ちた設問＝設計が固まっていない箇所）」と案内する
 
 ## Step 8: 実装開始（ガード解除案内）
 
@@ -119,5 +119,5 @@ rm .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID} .plugin-workspace/.specs
 ├── requirements.md
 ├── implementation-plan.md
 ├── tasks.md
-└── understanding-quiz-plan.html # 解説+クイズ（タブ切替）
+└── implementation-review.html   # 解説+クイズ（タブ切替。実装フェーズが再生成）
 ```
