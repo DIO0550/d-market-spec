@@ -13,6 +13,8 @@
 #     - 必須セクション（概要 / 背景 / 設計判断 / システム図 / 変更案 / 検証計画 / Definition of Done）
 #     - テンプレートプレースホルダ（{日本語…}）の残留
 #     - [NEW] / [MODIFY] エントリ直後のコードブロック有無
+#     - [NEW] / [MODIFY] / [DELETE] エントリの **理由**: の有無
+#     - コードブロック内の実装省略コメント（... / 省略 / TODO 等）
 #   tasks*.md:
 #     - 未完了タスク（行頭 □）の存在
 #     - テンプレートプレースホルダの残留
@@ -72,6 +74,42 @@ case "$file_path" in
       while IFS= read -r line; do
         missing+=("    ${line}")
       done <<< "$entries_without_code"
+    fi
+
+    # [NEW] / [MODIFY] / [DELETE] エントリに **理由**: があるか
+    entries_without_reason=$(echo "$content" | awk '
+      /^#### \[(NEW|MODIFY|DELETE)\]/ {
+        if (entry != "" && !has_reason) print entry
+        entry = $0; has_reason = 0; next
+      }
+      /^#/ && !/^#####/ {
+        if (entry != "" && !has_reason) print entry
+        entry = ""
+      }
+      /\*\*理由\*\*/ { if (entry != "") has_reason = 1 }
+      END { if (entry != "" && !has_reason) print entry }
+    ')
+    if [ -n "$entries_without_reason" ]; then
+      missing+=("**理由**: （なぜこの変更をするか）のない変更案エントリ:")
+      while IFS= read -r line; do
+        missing+=("    ${line}")
+      done <<< "$entries_without_reason"
+    fi
+
+    # コードブロック内の実装省略コメント（... だけの行、省略/中略/TODO 等）
+    elided=$(echo "$content" | awk '
+      /^```/ { in_block = !in_block; next }
+      in_block {
+        if ($0 ~ /^[[:space:]]*(\/\/|#|\/\*|\*|--)?[[:space:]]*(\.\.\.|…)[[:space:]]*(\*\/)?[[:space:]]*$/ ||
+            $0 ~ /(\/\/|#|\/\*|\*|--).*(省略|中略|以下略|割愛|TODO|FIXME)/)
+          print "L" NR ": " $0
+      }
+    ' | head -5)
+    if [ -n "$elided" ]; then
+      missing+=("コードブロック内で実装がコメントで省略されています（実装骨格を書く）:")
+      while IFS= read -r line; do
+        missing+=("    ${line}")
+      done <<< "$elided"
     fi
     ;;
   *tasks*.md)

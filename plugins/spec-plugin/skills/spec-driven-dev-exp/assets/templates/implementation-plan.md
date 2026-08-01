@@ -72,6 +72,7 @@ UI Update
 
 {このファイルで何をするか}
 
+- **理由**: {なぜこのファイル・この形にするか}
 - **Props**: {該当する場合}
 - **スタイリング**: {該当する場合}
 - **ロジック**: {該当する場合}
@@ -88,6 +89,7 @@ UI Update
 
 {変更内容}
 
+- **理由**: {なぜこの変更が必要か}
 - {変更点1}
 - {変更点2}
 
@@ -105,7 +107,7 @@ UI Update
 
 #### [DELETE] `{ファイルパス}`
 
-{削除理由}
+- **理由**: {なぜ削除するか}
 
 ### {カテゴリ2}
 
@@ -267,6 +269,7 @@ UI更新 (動画非表示)
 
 ランキングページ用のコンテンツスクリプト。
 
+- **理由**: 既存の watch.ts はページ構造が異なり流用できないため、ランキング専用に新設
 - **ロジック**: DOM監視でユーザー要素を検出し、ブロックボタンを注入
 - **依存**: `src/storage.ts` のブロックリスト操作
 
@@ -295,6 +298,7 @@ function injectBlockButtons(userElements: NodeListOf<Element>): void {
 
 コンテンツスクリプトの登録を追加。
 
+- **理由**: 新設した ranking.ts をランキングページで読み込ませるため
 - content_scriptsにranking.tsを追加
 - matchesに `*://www.nicovideo.jp/ranking/*` を追加
 
@@ -330,6 +334,7 @@ function injectBlockButtons(userElements: NodeListOf<Element>): void {
 
 汎用ブロックボタンコンポーネント。
 
+- **理由**: 今後 watch ページにも同じボタンを置く想定のため、ページ非依存の部品に切り出す
 - **Props**: userId: string, onBlock: () => void
 - **スタイリング**: 既存のニコニコUIに合わせたグレーボタン
 
