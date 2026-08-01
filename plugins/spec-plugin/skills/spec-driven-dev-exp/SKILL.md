@@ -1,13 +1,11 @@
 ---
 name: spec-driven-dev-exp
-description: "【実験】トークン消費を抑えた仕様駆動開発ワークフロー。チェッカー系サブエージェントを廃止し、フォーマット検証をフックに委譲。計画生成はオーケストレーター自身が行い、最後に解説+クイズのタブ切替HTMLを生成する。「実験スキル」「exp」「軽量スペック」「トークン節約で計画」などでトリガー。"
+description: "軽量な仕様駆動開発ワークフロー。ヒアリング→探索→requirements→実装計画→解説+クイズのタブHTML生成。「exp」「軽量スペック」「トークン節約で計画」などでトリガー。"
 disable-model-invocation: true
 allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(rm .plugin-workspace/.specs/*/PLANNING)
 ---
 
-# Spec-Driven Development (Experimental)
-
-`spec-driven-dev` の実験バリアント。チェッカー系サブエージェントは使わず、フォーマット検証はフックが行う。
+# Spec-Driven Dev Exp
 
 ## 絶対厳守事項
 
@@ -41,8 +39,6 @@ touch "$dir/EXPERIMENT"
 ```
 
 - `{feature-name}` はケバブケース
-- `EXPERIMENT` はフック（`exp-plan-format.sh`）の作動マーカー。安定版スキルの spec には干渉しない
-- ガードファイルはスキル発火時に `guard-skill-init.sh` が自動作成する
 
 ## Step 2: ヒアリング
 
@@ -106,14 +102,14 @@ specフォルダパス・生成ファイル一覧・implementation-plan のサ�
 rm .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID} .plugin-workspace/.specs/{nnn}-{feature-name}/PLANNING
 ```
 
-`EXPERIMENT` ファイルは残す（実装フェーズでも plan 形式フックの対象であることを示すため）。
+`EXPERIMENT` ファイルは残す。
 
 ## 出力ディレクトリ
 
 ```
 .plugin-workspace/.specs/{nnn}-{feature-name}/
 ├── PLANNING                     # 計画中のみ存在
-├── EXPERIMENT                   # 実験スキルのマーカー（フック作動条件）
+├── EXPERIMENT                   # フック作動マーカー
 ├── hearing-notes.md
 ├── exploration-report.md
 ├── requirements.md
