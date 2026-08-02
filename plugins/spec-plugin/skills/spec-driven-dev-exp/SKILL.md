@@ -14,19 +14,6 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 3. ヒアリング（AskUserQuestion）と requirements の `□` 解消はスキップ禁止
 4. フックのリマインド（セクション不足・図表不足・プレースホルダ残留など）が出たら、次のステップに進む前に該当ファイルを修正する
 
-## ワークフロー
-
-```
-1. specフォルダ + PLANNING + EXPERIMENT 作成
-2. ヒアリング（AskUserQuestion 1バッチ）→ hearing-notes.md
-3. コードベース探索（Explore サブエージェント1回）→ exploration-report.md
-4. requirements.md 確定（□ を AskUserQuestion で解消 — hook が縛る）
-5. implementation-plan.md + tasks.md をオーケストレーターが生成（hook が形式を検証）
-6. ユーザー確認 → 修正
-7. 解説+クイズのタブHTML生成（understanding-quiz-plan.html）
-8. ガード解除案内
-```
-
 ## Step 1: specフォルダ作成
 
 ```bash

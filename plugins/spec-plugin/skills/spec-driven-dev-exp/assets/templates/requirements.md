@@ -1,9 +1,5 @@
 # Requirements: {機能名}
 
-> research（exploration-report）と plan（implementation-plan）の間で、
-> 「誰が・何のために・どう使うか」と要件・制約を確定する中間ドキュメント。
-> ユースケースを起点に、技術計画に進む前の前提を固める。
-
 ## ユースケース
 
 ### UC-1: {ユースケースのタイトル}
