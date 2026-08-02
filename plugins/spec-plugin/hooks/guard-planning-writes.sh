@@ -9,6 +9,8 @@ set -euo pipefail
 # exit 0 = 許可, exit 2 = ブロック
 
 SPEC_BASE=".plugin-workspace/.specs"
+# 書き込み系コマンドの検出パターン（コマンド名は行頭/区切り文字の直後のみマッチ）
+WRITE_PAT='((^|[;&|[:space:]])(rm|cp|mv|mkdir|tee|touch|install)[[:space:]]|>>|>[[:space:]]|>$|sed[[:space:]]+-i)'
 
 INPUT=$(cat)
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty')
@@ -89,7 +91,7 @@ if [ "$TOOL" = "Bash" ]; then
   CMD=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 
   # worktree外への絶対パス操作をブロック（書き込み系コマンドの場合）
-  if [ -n "$WORKTREE_ROOT" ] && echo "$CMD" | grep -qE '>\s|>$|>>|tee\s|sed\s+-i|cp\s|mv\s|mkdir\s|rm\s|install\s'; then
+  if [ -n "$WORKTREE_ROOT" ] && echo "$CMD" | grep -qE "$WRITE_PAT"; then
     suspect_path=""
     while IFS= read -r _p; do
       [ -z "$_p" ] && continue
@@ -113,10 +115,20 @@ EOF
   fi
 
   # .plugin-workspace/.specs/ への操作は許可
-  echo "$CMD" | grep -qE '\.plugin-workspace/\.specs/' && exit 0
+  # （コメント等での迂回を防ぐため、書き込み系の各コマンドセグメントが
+  #   すべて .specs/ を対象にしている場合のみ許可する）
+  if echo "$CMD" | grep -q '\.plugin-workspace/\.specs/'; then
+    outside_write=0
+    while IFS= read -r seg; do
+      [ -z "$seg" ] && continue
+      echo "$seg" | grep -qE "$WRITE_PAT" || continue
+      echo "$seg" | grep -qE "$WRITE_PAT[^;|&#]*\.plugin-workspace/\.specs/" || { outside_write=1; break; }
+    done < <(echo "$CMD" | tr ';&|' '\n')
+    [ "$outside_write" -eq 0 ] && exit 0
+  fi
 
   # 書き込み系パターンの検出
-  if echo "$CMD" | grep -qE '>\s|>$|>>|tee\s|sed\s+-i|cp\s|mv\s|mkdir\s|rm\s|install\s'; then
+  if echo "$CMD" | grep -qE "$WRITE_PAT"; then
     cat >&2 <<EOF
 【計画モード】ファイル変更コマンドがブロックされました: ${CMD}
 .plugin-workspace/.specs/ 以外への変更は禁止されています。

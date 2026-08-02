@@ -52,7 +52,8 @@ case "$file_path" in
 esac
 
 # テンプレートプレースホルダの残留（{…} 内に日本語を含むもの）
-placeholders=$(echo "$scan_content" | grep -noE '\{[^{}]*[ぁ-んァ-ヶ一-龠][^{}]*\}' | head -5)
+# 引用符を含む波括弧は実コード（オブジェクトリテラル等）の可能性が高いため除外
+placeholders=$(echo "$scan_content" | grep -noE "\\{[^{}\"']*[ぁ-んァ-ヶ一-龠][^{}\"']*\\}" | head -5)
 if [ -n "$placeholders" ]; then
   missing+=("テンプレートプレースホルダが残っています:")
   while IFS= read -r line; do
