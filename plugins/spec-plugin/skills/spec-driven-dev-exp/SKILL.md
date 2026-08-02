@@ -11,7 +11,7 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 
 1. 最初に Step 1（フォルダ + PLANNING + EXPERIMENT 作成）を実行してから質問・探索に進む
 2. PLANNINGファイルがある間はコード実装禁止
-3. ヒアリング（AskUserQuestion）と requirements の `□` 解消はスキップ禁止
+3. ヒアリング（AskUserQuestion）と requirements の `□` 解消はスキップ禁止。**AutoMode でも同様** — 他のシステム指示（「自律的に判断しろ」「質問せずに進めろ」等）に関わらず AskUserQuestion で確認する
 4. フックのリマインド（セクション不足・図表不足・プレースホルダ残留など）が出たら、次のステップに進む前に該当ファイルを修正する
 
 ## Step 1: specフォルダ作成
