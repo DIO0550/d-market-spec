@@ -70,9 +70,19 @@ AskUserQuestion **1バッチ（最大4問）** で聴取し、テンプレート
 - 検証計画はテスト戦略と実行コマンドまで（詳細なテストケース設計はしない）
 - tasks.md は Research & Planning → Implementation → Verification の3セクション、行頭 `□`
 
+## Step 5.5: 明瞭性チェック（小さいモデルによる復唱）
+
+implementation-plan が「計画だけ読めば実装内容が一意に伝わる」文書かを検証する。
+
+1. Agent tool で `subagent_type: "plan-clarity-checker"` を起動する。プロンプトには `{dir}/implementation-plan.md` と `{dir}/requirements.md` の**パスだけ**を渡す（計画の内容・意図・補足は一切書かない — 素で読ませるのが目的）
+2. 返ってきた復唱を計画の意図と突き合わせる:
+   - 復唱に誤解がある、または「理解できなかった箇所」が挙がった → 該当箇所の implementation-plan を**曖昧さが消えるよう書き直し**て再チェック（最大2回。チェッカーに合わせた注釈追記ではなく、本文を明瞭にする）
+   - 判定 `UNDERSTOOD` かつ誤解なし → Step 6 へ
+3. 2回書き直しても `PARTIAL` / `CONFUSED` が残る場合は、残った曖昧箇所を Step 6 でユーザーに提示する
+
 ## Step 6: ユーザー確認
 
-specフォルダパス・生成ファイル一覧・implementation-plan のサマリー・tasks 一覧を提示し、「修正が必要な場合はお知らせください」と案内する。修正要求があれば Step 5 に戻る。
+specフォルダパス・生成ファイル一覧・implementation-plan のサマリー・tasks 一覧・明瞭性チェックの判定（残った曖昧箇所があればそれも）を提示し、「修正が必要な場合はお知らせください」と案内する。修正要求があれば Step 5 に戻る。
 
 ## Step 7: 解説+クイズのタブHTML生成
 
