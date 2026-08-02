@@ -53,22 +53,16 @@ if echo "$content" | grep -qE '^#{1,4}.*データフロー'; then
   fi
 fi
 
-# 結果判定
+# 結果判定（exit 2 + stderr でモデルにフィードバックする）
 if [ ${#missing[@]} -gt 0 ]; then
-  echo ""
-  echo "=== 図表が不足しています ==="
-  echo ""
-  echo "不足項目:"
-  for item in "${missing[@]}"; do
-    echo "  - $item"
-  done
-  echo ""
-  echo "このファイルには以下の図表が必要です:"
-  echo "  1. 「## 状態マシン図」見出し + ASCII罫線による図（優先）or mermaid"
-  echo "  2. 「## データフロー図」見出し + ASCII罫線による図（優先）or mermaid"
-  echo ""
-  echo "図表を追加してファイルを更新してください。"
-  echo "==="
+  {
+    echo "=== 図表が不足しています: ${file_path##*/} ==="
+    for item in "${missing[@]}"; do
+      echo "  - $item"
+    done
+    echo "「## 状態マシン図」「## データフロー図」の見出し + ASCII罫線図（優先）or mermaid を追加してください。"
+  } >&2
+  exit 2
 fi
 
 exit 0

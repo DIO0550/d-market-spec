@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>テストケース — {機能名}</title>
+<style>
+:root {
+  --bg: oklch(0.985 0.003 255);
+  --surface: #ffffff;
+  --surface-2: oklch(0.978 0.004 255);
+  --surface-3: oklch(0.965 0.005 255);
+  --border: oklch(0.925 0.005 255);
+  --border-strong: oklch(0.875 0.007 255);
+  --text: oklch(0.28 0.012 262);
+  --text-2: oklch(0.52 0.012 262);
+  --text-25: oklch(0.45 0.012 262);
+  --text-3: oklch(0.65 0.011 262);
+  --accent: oklch(0.55 0.16 264);
+  --accent-2: oklch(0.5 0.16 264);
+  --accent-soft: oklch(0.955 0.025 264);
+  --accent-border: oklch(0.86 0.06 264);
+  --green: oklch(0.5 0.11 156);
+  --green-soft: oklch(0.955 0.04 156);
+  --green-border: oklch(0.85 0.07 156);
+  --rose: oklch(0.54 0.16 22);
+  --rose-soft: oklch(0.957 0.03 22);
+  --rose-border: oklch(0.87 0.06 22);
+  --amber: oklch(0.52 0.1 72);
+  --amber-soft: oklch(0.955 0.05 82);
+  --amber-border: oklch(0.85 0.08 82);
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Noto Sans JP", system-ui, sans-serif;
+  background: var(--bg); color: var(--text);
+  font-size: 14px; line-height: 1.7; -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1000px; margin: 0 auto; padding: 40px 24px 96px; }
+
+.hero {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 13px; box-shadow: 0 1px 2px oklch(0.4 0.02 262 / 0.05);
+  padding: 26px 28px; margin-bottom: 26px;
+}
+.hero .kind {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--accent-2); background: var(--accent-soft);
+  border: 1px solid var(--accent-border); padding: 3px 10px; border-radius: 20px;
+}
+.hero .kind::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.hero h1 { font-size: 25px; font-weight: 700; letter-spacing: -0.01em; margin: 13px 0 0; line-height: 1.3; }
+
+.file { background: var(--surface); border: 1px solid var(--border); border-radius: 13px; box-shadow: 0 1px 2px oklch(0.4 0.02 262 / 0.05); padding: 20px 24px; margin-bottom: 18px; }
+.file .f-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.file .f-name { font-family: var(--mono); font-size: 15px; font-weight: 700; }
+.file .f-dir { font-family: var(--mono); font-size: 11.5px; color: var(--text-3); }
+.file .f-purpose { font-size: 13.5px; color: var(--text-2); margin-bottom: 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); padding: 7px 10px; border-bottom: 1px solid var(--border-strong); white-space: nowrap; }
+td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.65; }
+tr:last-child td { border-bottom: none; }
+td.c-id { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text-3); white-space: nowrap; }
+td.c-io { font-family: var(--mono); font-size: 12px; color: var(--text-25); white-space: pre-wrap; word-break: break-word; }
+td.c-uc { font-size: 12.5px; color: var(--text-2); }
+.badge { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 8px; border-radius: 20px; white-space: nowrap; }
+.cat-normal   { color: var(--accent-2); background: var(--accent-soft); border: 1px solid var(--accent-border); }
+.cat-boundary { color: var(--amber); background: var(--amber-soft); border: 1px solid var(--amber-border); }
+.cat-error    { color: var(--rose); background: var(--rose-soft); border: 1px solid var(--rose-border); }
+.cat-edge     { color: var(--text-2); background: var(--surface-3); border: 1px solid var(--border-strong); }
+.prio-high { color: var(--rose); font-weight: 700; }
+.prio-med  { color: var(--amber); font-weight: 700; }
+.prio-low  { color: var(--text-3); font-weight: 700; }
+.throws { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--rose); }
+.gaps { margin-top: 12px; border: 1px solid var(--amber-border); background: var(--amber-soft); border-radius: 9px; padding: 11px 15px; font-size: 13px; color: var(--text-25); }
+.gaps b { color: var(--amber); font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 3px; }
+.gaps code { font-family: var(--mono); font-size: 12px; background: var(--surface); border: 1px solid var(--amber-border); padding: 0 5px; border-radius: 4px; }
+.gaps.ok { border-color: var(--green-border); background: var(--green-soft); }
+.gaps.ok b { color: var(--green); }
+
+tr.case-detail td { padding-top: 0; border-bottom: 1px solid var(--border); font-size: 12.5px; color: var(--text-3); }
+tr.case-detail .dt-label { font-weight: 700; font-size: 11px; color: var(--text-3); margin-right: 6px; }
+.td-card { background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 16px 20px; margin-bottom: 12px; }
+.td-card .td-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.td-card .td-id { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text-3); }
+.td-card .td-name { font-size: 14px; font-weight: 700; }
+.td-card .td-desc { font-size: 13px; color: var(--text-2); margin-bottom: 8px; }
+.td-card pre { font-family: var(--mono); font-size: 12px; line-height: 1.7; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+.td-card .td-used { margin-top: 8px; }
+.trace-head { display: flex; align-items: center; gap: 9px; margin: 30px 0 12px; }
+.trace-head h2 { font-size: 17px; font-weight: 700; }
+.trace-head .tag { font-family: var(--mono); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-2); background: var(--accent-soft); border: 1px solid var(--accent-border); padding: 2px 9px; border-radius: 20px; }
+.trace { background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 8px 24px 14px; }
+.trace td.t-id { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text-3); white-space: nowrap; }
+.tc-ref { font-family: var(--mono); font-size: 11.5px; color: var(--text-25); background: var(--surface-3); border: 1px solid var(--border); padding: 1px 7px; border-radius: 5px; margin: 1px 3px 1px 0; display: inline-block; }
+.st-ok  { color: var(--green); font-weight: 700; font-size: 12px; white-space: nowrap; }
+.st-gap { color: var(--rose); font-weight: 700; font-size: 12px; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero" id="hero"></header>
+  <div id="files"></div>
+  <div id="testdata"></div>
+  <div class="trace-head"><span class="tag">Trace</span><h2>要件との対応</h2></div>
+  <div class="trace"><table id="trace-table"></table></div>
+</div>
+
+<!-- ============================================================
+     DATA — このスクリプトだけをエージェントが実データで置き換える
+     ============================================================ -->
+<script>
+/*
+ * ============================================================================
+ *  spec-driven-dev-exp のテストケース生成へ:
+ *  この DATA を implementation-plan の検証計画・requirements のユースケースを
+ *  材料に実データで丸ごと置き換えること。HTMLは書かない — データだけ書けばよい。
+ * ----------------------------------------------------------------------------
+ *  DATA.meta : { title(機能名) }
+ *  DATA.files[]: テスト対象ファイルごと
+ *    name    : ファイル名（例 "price.test.ts"）
+ *    dir     : ディレクトリ（例 "src/utils/"）
+ *    purpose : このテストファイルが何を検証するか（1文）
+ *    gaps    : string[]  未カバーの疑い（正直に書く。<code> 可。なければ []）
+ *    cases[] :
+ *      id       : "TC-01" など（ファイル横断で一意）
+ *      title    : ケース名（挙動の言葉で）
+ *      usecase  : ユースケース・目的（どういう状況で誰が何をしたときの検証か 1文）
+ *      cat      : "normal" | "boundary" | "error" | "edge"
+ *      prio     : "high" | "med" | "low"
+ *      precond  : (任意) 前提条件（実行前に満たすべき状態）
+ *      steps    : (任意) string[]  実行手順（手動検証系のケースで特に）
+ *      input    : 入力・状態の具体値（\n 区切り可）
+ *      expected : 期待結果の具体値（「正しく動くこと」のような曖昧表現は不可）
+ *      throws   : (任意) true なら expected は期待される例外
+ *  DATA.testData[]: (任意) 複数ケースで使い回す共有テストデータ
+ *    id     : "TD-01" など
+ *    name   : データ名
+ *    desc   : 何のためのデータか（1文）
+ *    code   : データ定義（コード。複数行可）
+ *    usedBy : ["TC-01", ...]  使用するケースID
+ *  DATA.trace[]: 要件トレーサビリティ
+ *    id     : "UC-1" / "REQ-1" など（requirements の項目に対応）
+ *    req    : 要件の要約（1文）
+ *    tcs    : ["TC-01", ...]  対応するケースID（なければ []）
+ *    status : "ok" | "gap"    （tcs が空・不足なら正直に "gap"）
+ * ============================================================================
+ */
+const DATA = {
+  meta: {
+    title: "{機能名}",
+  },
+  files: [
+    {
+      name: "{price.test.ts}",
+      dir: "{src/utils/}",
+      purpose: "{このテストファイルが何を検証するか}",
+      gaps: ["{未カバーの疑い（なければ空配列に）}"],
+      cases: [
+        { id: "TC-01", title: "{最もシンプルな正常系}", cat: "normal", prio: "high",
+          usecase: "{どういう状況で誰が何をしたときの検証か}",
+          input: "{具体的な入力値}", expected: "{具体的な期待結果}" },
+        { id: "TC-02", title: "{境界条件}", cat: "boundary", prio: "med",
+          usecase: "{この境界が現実に発生する状況}",
+          input: "{最小値/最大値/ゼロ等}", expected: "{期待される振る舞い}" },
+        { id: "TC-03", title: "{異常系}", cat: "error", prio: "high",
+          usecase: "{この不正入力が発生しうる状況}",
+          precond: "{前提条件（例: ブロックリストに1件登録済み）}",
+          steps: ["{手順1}", "{手順2}"],
+          input: "{不正入力}", expected: "{期待される例外}", throws: true },
+      ],
+    },
+  ],
+  testData: [
+    { id: "TD-01", name: "{データ名}", desc: "{何のためのデータか}",
+      code: "{const user = { id: 1 }}", usedBy: ["TC-01", "TC-02"] },
+  ],
+  trace: [
+    { id: "UC-1", req: "{要件の要約}", tcs: ["TC-01", "TC-02"], status: "ok" },
+    { id: "UC-2", req: "{対応ケースのない要件}", tcs: [], status: "gap" },
+  ],
+};
+</script>
+
+<!-- ===== 以下 レンダラは固定。編集しない ===== -->
+<script>
+(function () {
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  const code = (s) => esc(s).replace(/&lt;code&gt;/g, "<code>").replace(/&lt;\/code&gt;/g, "</code>");
+  const CAT = { normal: "正常", boundary: "境界", error: "異常", edge: "エッジ" };
+  const PRIO = { high: "HIGH", med: "MED", low: "LOW" };
+
+  document.getElementById("hero").innerHTML = `
+    <span class="kind">テストケース · 網羅性レビュー</span>
+    <h1>${esc(DATA.meta.title)}</h1>`;
+  document.title = "テストケース — " + DATA.meta.title;
+
+  document.getElementById("files").innerHTML = (DATA.files || []).map((f) => `
+    <section class="file">
+      <div class="f-head"><span class="f-name">${esc(f.name)}</span><span class="f-dir">${esc(f.dir)}</span></div>
+      <div class="f-purpose">${esc(f.purpose)}</div>
+      <table>
+        <tr><th>ID</th><th>ケース</th><th>ユースケース / 目的</th><th>分類</th><th>優先</th><th>入力</th><th>期待結果</th></tr>
+        ${(f.cases || []).map((c) => `
+          <tr>
+            <td class="c-id">${esc(c.id)}</td>
+            <td>${esc(c.title)}</td>
+            <td class="c-uc">${esc(c.usecase)}</td>
+            <td><span class="badge cat-${esc(c.cat)}">${CAT[c.cat] || esc(c.cat)}</span></td>
+            <td><span class="prio-${esc(c.prio)}">${PRIO[c.prio] || esc(c.prio)}</span></td>
+            <td class="c-io">${esc(c.input)}</td>
+            <td class="c-io">${c.throws ? `<span class="throws">THROWS </span>` : ""}${esc(c.expected)}</td>
+          </tr>
+          ${c.precond || (c.steps && c.steps.length) ? `<tr class="case-detail"><td></td><td colspan="6">
+            ${c.precond ? `<span class="dt-label">前提</span>${esc(c.precond)}` : ""}
+            ${c.precond && c.steps && c.steps.length ? "<br>" : ""}
+            ${c.steps && c.steps.length ? `<span class="dt-label">手順</span>${c.steps.map((s, i) => `${i + 1}) ${esc(s)}`).join(" → ")}` : ""}
+          </td></tr>` : ""}`).join("")}
+      </table>
+      ${f.gaps && f.gaps.length
+        ? `<div class="gaps"><b>未カバーの疑い</b>${f.gaps.map(code).join("<br>")}</div>`
+        : `<div class="gaps ok"><b>カバー済</b>このファイルで把握している範囲に未カバーはありません。</div>`}
+    </section>`).join("");
+
+  document.getElementById("testdata").innerHTML = (DATA.testData && DATA.testData.length) ? `
+    <div class="trace-head"><span class="tag">Data</span><h2>共有テストデータ</h2></div>
+    ${DATA.testData.map((d) => `
+      <div class="td-card">
+        <div class="td-head"><span class="td-id">${esc(d.id)}</span><span class="td-name">${esc(d.name)}</span></div>
+        <div class="td-desc">${esc(d.desc)}</div>
+        <pre>${esc(d.code)}</pre>
+        <div class="td-used">${(d.usedBy || []).map((x) => `<span class="tc-ref">${esc(x)}</span>`).join("")}</div>
+      </div>`).join("")}` : "";
+
+  document.getElementById("trace-table").innerHTML =
+    `<tr><th>要件</th><th>内容</th><th>対応ケース</th><th>状態</th></tr>` +
+    (DATA.trace || []).map((t) => `
+      <tr>
+        <td class="t-id">${esc(t.id)}</td>
+        <td>${esc(t.req)}</td>
+        <td>${(t.tcs || []).map((x) => `<span class="tc-ref">${esc(x)}</span>`).join("") || "—"}</td>
+        <td>${t.status === "ok" ? `<span class="st-ok">✓ OK</span>` : `<span class="st-gap">✕ GAP</span>`}</td>
+      </tr>`).join("");
+})();
+</script>
+</body>
+</html>

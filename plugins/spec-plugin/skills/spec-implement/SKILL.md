@@ -3,7 +3,7 @@ name: spec-implement
 description: .plugin-workspace/.specsの実装計画に沿ってタスクを順番に実装する。番号を指定すると該当specを、省略するとarchive外で最も番号が大きいspecを自動選択し、tasks.mdを読み込んで未完了タスクを順次実装していく。全タスク完了後にオプションでCodex/Copilot/Claude Codeによるコードレビューを実行可能。「実装」「implement」「タスク実装」「コードレビュー付き」「codexレビュー」「copilotレビュー」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[番号] [--review codex|copilot|claude-code]"
-allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(mkdir *), Bash(codex *), Bash(copilot *), Bash(claude *), Write, Edit
+allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(mkdir *), Bash(cp *), Bash(sed *), Bash(codex *), Bash(copilot *), Bash(claude *), Write, Edit
 ---
 
 # Spec Implement
@@ -39,7 +39,7 @@ Step 6. PLANNINGファイル + ガードファイルの削除
    ↓
 Step 7. DoD照合
    ↓
-Step 7.5. 実装後理解度クイズ生成 → Artifact（デフォルト）/ understanding-quiz-impl.html / 対話出題（push 前ゲート・advisory）
+Step 7.5. 実装後レビュー生成（解説+クイズのタブ切替）→ Artifact（デフォルト）/ implementation-review.html / 対話出題（push 前ゲート・advisory）
    ↓
 Step 8. 完了報告
 ```
@@ -219,7 +219,7 @@ implementation-plan.md の "Definition of Done" セクションを読み込み�
 
 **注意**: DoDセクションが存在しない場合はスキップして Step 8 へ進む。
 
-## Step 7.5: 実装後理解度クイズ生成
+## Step 7.5: 実装後レビュー生成（解説+クイズ）
 
 push / merge の前に、**実装者（人間）が「実際に何が変わったか」を理解できているか**を測るクイズを生成する。`tsc --noEmit` が「型の関門」なのに対し、これは「人間の理解の関門」。落ちた設問がある間はまだ merge / push すべきでない、という **advisory ゲート**。
 
@@ -229,8 +229,8 @@ push / merge の前に、**実装者（人間）が「実際に何が変わっ�
 
 - **材料**: diff（実際の変更）＋ implementation-notes.md（実装中ノート / Deviations）＋ hearing-notes（事前の意図）
   - hearing-notes（事前の意図）と implementation-notes（実際にやったこと）が別ファイルで分かれているため、両方を読ませると「想定した設計 vs 実際の実装」のズレをそのまま出題材料にできる
-- **問う対象**: 実装で実際に何が行われたか / 既存コードパス依存で発生した挙動（diff の表面に出ない挙動を優先）。Deviations（計画からの逸脱）はクイズにせず、セクションの解説テキスト（brief）として記載する
-- **出力**: 解説＋クイズ（4択・YES/NO・並べ替え。回答した時点で1問ずつ正誤と解説を表示する即時フィードバック方式。初回回答でロックされ答えは変更不可。自己完結HTML）。`{QUIZ_OUTPUT}` に応じて Artifact 公開（デフォルト）/ `understanding-quiz-impl.html` ファイル / セッション内対話出題（`interactive`。HTML を生成せず AskUserQuestion で1問ずつ）
+- **問う対象**: 実装で実際に何が行われたか / 既存コードパス依存で発生した挙動（diff の表面に出ない挙動を優先）。Deviations（計画からの逸脱）はクイズにせず、解説タブの実装判断（各 section の `decisions`。kind: 変更/見送り・本来の案・実際・理由）として記載する
+- **出力**: **解説タブとクイズタブを切り替えられる自己完結HTML**。解説タブには目次付きの解説（リード文・散文・処理の流れ・要点・diff 抜粋・根拠 file:line）と実装判断カード（Deviations: 変更/見送り・本来の案・実際・理由）、クイズタブには 4択・YES/NO・並べ替え（回答した時点で1問ずつ正誤と解説を表示する即時フィードバック方式。初回回答でロックされ答えは変更不可）。`{QUIZ_OUTPUT}` に応じて Artifact 公開（デフォルト）/ `implementation-review.html` ファイル / セッション内対話出題（`interactive`。HTML を生成せず AskUserQuestion で1問ずつ）
 - **enforcement**: advisory。hook による機械的ブロックはしない（合否は自己申告のため）。
 
 ### 7.5-1. 材料の読み込み
@@ -243,7 +243,7 @@ push / merge の前に、**実装者（人間）が「実際に何が変わっ�
 
 `references/quiz-design.md` の「実装後クイズ（実際の挙動）の出題観点」に沿って、合計 5〜10 問（choice / boolean / order を混ぜる）作る。以下は必須:
 
-- **Deviations はクイズにしない** — implementation-notes の Deviations はセクションの `brief`（解説テキスト）として記載し、読んで把握できる形にする。クイズで問うのは逸脱の結果として生じた挙動や影響
+- **Deviations はクイズにしない** — implementation-notes の Deviations は解説タブの実装判断（`DATA.explain.sections[].decisions` に kind: 変更/見送り・本来の案・実際・理由）として「何が変わり、なぜ変えたか」を記載し、読んで把握できる形にする（対話出題時はセクション導入の解説として伝える）。クイズで問うのは逸脱の結果として生じた挙動や影響
 - **既存コードパス依存で生じた挙動**を優先的に出題（diff をざっと読むだけでは見えない挙動）
 - **想定 vs 実際**（hearing-notes と実装のズレ）。`tag` に区分を付けるとバッジ表示される
 
@@ -255,15 +255,15 @@ push / merge の前に、**実装者（人間）が「実際に何が変わっ�
 
 **`{QUIZ_OUTPUT}` が `interactive` の場合はこの節をスキップし、7.5-3b に進む。**
 
-`test-cases.html` と同様の **DATA スクリプト差し替え方式**。CSS・レンダラ・採点ロジックは固定済み。
+**DATA スクリプト差し替え方式**。CSS・レンダラ・採点ロジックは固定済みのため、テンプレート全体を Read / Write しない（DATA 部分だけ扱う）。
 
-1. テンプレート `assets/templates/understanding-quiz-impl.html` を Read する
-2. テンプレート先頭の DATA スクリプト（スキーマ説明コメント + `const QUIZ`）を実データで丸ごと置き換える
-3. それ以外（`<style>`・レンダラの2スクリプト・HTMLシェル）は1文字も変更しない（自己完結HTML）
-4. `<title>` の `{機能名}` を実際の機能名に置換する
-5. `{QUIZ_OUTPUT}` に応じて出力する（プレースホルダ `{...}` を残さない）:
-   - **`file` の場合**: `.plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-impl.html` に Write する
-   - **`artifact` の場合**: 外側のシェルタグ（`<!doctype html>` `<html>` `<head>` `</head>` `<body>` `</body>` `</html>`）を取り除き、`<title>`・`<style>`・body 内容・スクリプトを残した形で `.plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-impl.html` に Write し、Artifact ツールで公開する（Artifact 側がシェルを付与するため。favicon は `📝`）
+1. テンプレートを出力先にコピーする:
+   `cp "${CLAUDE_PLUGIN_ROOT}/skills/spec-implement/assets/templates/implementation-review.html" ".plugin-workspace/.specs/{nnn}-{feature-name}/implementation-review.html"`
+2. **`artifact` の場合のみ**、外側のシェルタグを sed で削除する（各タグは独立行。Artifact 側がシェルを付与するため）:
+   `sed -i -e '/^<!DOCTYPE html>$/d' -e '/^<html lang="ja">$/d' -e '/^<head>$/d' -e '/^<meta /d' -e '/^<\/head>$/d' -e '/^<body>$/d' -e '/^<\/body>$/d' -e '/^<\/html>$/d' {出力先}`
+3. コピー先の先頭部分（`<title>` 〜 DATA スクリプトの終わり。レンダラ以降は読まない）を Read（offset/limit 指定）する
+4. Edit で `<title>` の `{機能名}` と、DATA スクリプト（スキーマ説明コメント + `const DATA`）を実データに置き換える（解説 `explain` — 各 section の `decisions` に Deviations・実装判断 — とクイズ `quiz` の両方。スキーマはテンプレート先頭のコメント参照。プレースホルダ `{...}` を残さない）
+5. **`artifact` の場合**、Artifact ツールに出力先のファイルパスを渡して公開する（favicon は `📝`）
 
 ### 7.5-3b. 対話出題（`{QUIZ_OUTPUT}` が `interactive` の場合）
 
@@ -277,7 +277,7 @@ HTML を生成せず、`references/quiz-design.md` の「対話モード（quiz-
 ### 7.5-4. ユーザーへの提示
 
 - `{QUIZ_OUTPUT}` が `artifact` の場合: Artifact の URL を提示し、「実装後の理解度クイズをアーティファクトとして生成しました。push / merge する前に開いて、変更の実際の挙動を確認してください。」と案内する
-- `{QUIZ_OUTPUT}` が `file` の場合: `understanding-quiz-impl.html` のファイルパスを提示し、「実装後の理解度クイズを生成しました。push / merge する前に、ブラウザで開いて変更の実際の挙動を確認してください（例: `open .plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-impl.html`）。」と案内する
+- `{QUIZ_OUTPUT}` が `file` の場合: `implementation-review.html` のファイルパスを提示し、「実装後の理解度クイズを生成しました。push / merge する前に、ブラウザで開いて変更の実際の挙動を確認してください（例: `open .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-review.html`）。」と案内する
 - `{QUIZ_OUTPUT}` が `interactive` の場合: 7.5-3b の結果（スコア・合否・読み直し箇所）を提示済みのため、ファイル・URL の案内は不要
 - 「これは advisory ゲートです。落ちた設問がある＝変更を理解できていない箇所なので、その箇所の diff と implementation-notes を読み直してから push することをおすすめします。」
 
@@ -291,7 +291,7 @@ HTML を生成せず、`references/quiz-design.md` の「対話モード（quiz-
 4. AIレビューの結果サマリー（レビュー実行時）
 5. PLANNINGファイルの削除状態
 6. DoD充足状況（DoDがある場合）
-7. 実装後理解度クイズ（Artifact の URL または `understanding-quiz-impl.html` のパス）と、push 前に確認するよう案内
+7. 実装後理解度クイズ（Artifact の URL または `implementation-review.html` のパス）と、push 前に確認するよう案内
 
 ## コミットメッセージのフォーマット
 

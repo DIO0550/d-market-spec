@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>実装前 理解度クイズ — {機能名}</title>
+<title>解説 &amp; 理解度クイズ — {機能名}</title>
 <style>
 :root {
   --bg: oklch(0.985 0.003 255);
@@ -31,7 +31,7 @@
   --amber: oklch(0.52 0.1 72);
   --amber-soft: oklch(0.955 0.05 82);
   --amber-border: oklch(0.85 0.08 82);
-  --r-sm: 6px; --r-md: 9px; --r-lg: 13px;
+  --r-md: 9px; --r-lg: 13px;
   --shadow-sm: 0 1px 2px oklch(0.4 0.02 262 / 0.05);
   --shadow-md: 0 4px 14px oklch(0.4 0.02 262 / 0.08), 0 1px 3px oklch(0.4 0.02 262 / 0.05);
   --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -70,12 +70,70 @@ button { font-family: inherit; }
 }
 .hero .advisory b { color: var(--text); }
 
+/* ---- Tabs ---- */
+.tabs {
+  display: flex; gap: 6px; margin-bottom: 22px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: 6px;
+  position: sticky; top: 10px; z-index: 5;
+}
+.tab {
+  flex: 1; font-size: 14px; font-weight: 600;
+  border: 1px solid transparent; background: transparent; color: var(--text-2);
+  padding: 10px 16px; border-radius: var(--r-md); cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.tab:hover { background: var(--surface-2); }
+.tab.active { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent-2); }
+.tab .badge {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  background: var(--surface-3); border: 1px solid var(--border); color: var(--text-3);
+  padding: 1px 8px; border-radius: 20px;
+}
+.tab.active .badge { background: var(--surface); border-color: var(--accent-border); color: var(--accent-2); }
+.pane { display: none; }
+.pane.active { display: block; }
+
+/* ---- 解説 pane ---- */
+.doc {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-sm);
+  padding: 22px 26px; margin-bottom: 16px; scroll-margin-top: 84px;
+}
+.doc h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 10px; display: flex; align-items: baseline; gap: 10px; }
+.doc h2 .dn { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent-2); }
+.doc .body { font-size: 14px; color: var(--text-2); line-height: 1.85; }
+.doc .body b { color: var(--text); }
+.doc .body code { font-family: var(--mono); font-size: 12.5px; background: var(--surface-3); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; color: var(--text); }
+.doc ul.points { margin: 10px 0 0 2px; list-style: none; }
+.doc ul.points li { padding: 5px 0 5px 20px; position: relative; font-size: 13.5px; color: var(--text-2); }
+.doc ul.points li::before { content: "◆"; position: absolute; left: 0; top: 5px; font-size: 10px; color: var(--accent); }
+.changes-head { display: flex; align-items: center; gap: 9px; margin: 26px 0 12px; }
+.changes-head h2 { font-size: 16px; font-weight: 700; }
+.changes-head .tag {
+  font-family: var(--mono); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--amber); background: var(--amber-soft); border: 1px solid var(--amber-border);
+  padding: 2px 9px; border-radius: 20px;
+}
+.doc.change { border-left: 3px solid var(--amber); border-radius: 0 var(--r-lg) var(--r-lg) 0; }
+.changes-empty {
+  border: 1px dashed var(--border-strong); border-radius: var(--r-md);
+  padding: 14px 18px; font-size: 13px; color: var(--text-3);
+}
+
 /* ---- クイズ pane ---- */
 .quiz-wrap { display: flex; flex-direction: column; gap: 34px; }
 .q-section { display: flex; flex-direction: column; gap: 13px; }
 .q-section .qs-head { display: flex; align-items: baseline; gap: 11px; }
 .q-section .qs-n { font-family: var(--mono); font-size: 11.5px; font-weight: 700; color: var(--accent-2); }
 .q-section h2 { font-size: 19px; font-weight: 700; letter-spacing: -0.015em; }
+.q-section .qs-from {
+  margin-left: auto; font-size: 11.5px; font-weight: 600; color: var(--accent-2);
+  background: var(--accent-soft); border: 1px solid var(--accent-border);
+  padding: 3px 10px; border-radius: 20px; cursor: pointer;
+}
+.q-section .qs-from:hover { background: var(--accent-soft-2); }
 .q-section .qs-brief { border-left: 3px solid var(--accent-border); background: var(--surface); border-radius: 0 10px 10px 0; padding: 13px 17px; font-size: 13.5px; line-height: 1.8; color: var(--text-25); }
 .q { background: var(--surface); border-radius: 13px; padding: 20px 22px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
 .q.correct { border-color: var(--green-border); }
@@ -83,6 +141,7 @@ button { font-family: inherit; }
 .q .q-head { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
 .q .q-id { font-family: var(--mono); font-size: 11.5px; font-weight: 700; color: var(--text-3); }
 .q .q-type { font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; padding: 2px 9px; border-radius: 20px; color: var(--accent-2); background: var(--accent-soft); border: 1px solid var(--accent-border); }
+.q .q-tag { font-size: 10.5px; font-weight: 700; padding: 2px 9px; border-radius: 20px; color: var(--amber); background: var(--amber-soft); border: 1px solid var(--amber-border); }
 .q .q-mark { margin-left: auto; font-size: 11.5px; font-weight: 700; }
 .q .q-mark.ok { color: var(--green); }
 .q .q-mark.ng { color: var(--rose); }
@@ -141,13 +200,23 @@ button { font-family: inherit; }
 <body>
 <div class="wrap">
   <header class="hero" id="hero"></header>
-  <div class="quiz-wrap">
-    <div id="quiz-sections"></div>
-    <div class="verdict" id="verdict"></div>
-    <div class="actions">
-      <div class="progress-lbl" id="progress-lbl">未回答</div>
-      <button class="reset" id="reset">リセット</button>
-      <div class="score"><div class="num" id="score-num">—</div><div class="lbl">スコア</div></div>
+  <div class="tabs" role="tablist">
+    <button class="tab active" id="tab-explain" role="tab" aria-selected="true">解説</button>
+    <button class="tab" id="tab-quiz" role="tab" aria-selected="false">クイズ <span class="badge" id="quiz-badge"></span></button>
+  </div>
+  <div class="pane active" id="pane-explain">
+    <div id="explain-sections"></div>
+    <div id="explain-changes"></div>
+  </div>
+  <div class="pane" id="pane-quiz">
+    <div class="quiz-wrap">
+      <div id="quiz-sections"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="actions">
+        <div class="progress-lbl" id="progress-lbl">未回答</div>
+        <button class="reset" id="reset">リセット</button>
+        <div class="score"><div class="num" id="score-num">—</div><div class="lbl">スコア</div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -158,85 +227,119 @@ button { font-family: inherit; }
 <script>
 /*
  * ============================================================================
- *  spec-driven-dev のクイズ生成へ:
- *  この QUIZ を、requirements.md / implementation-plan / hearing-notes を材料に
- *  「設計の意図・理由」を問う実装前クイズの実データで丸ごと置き換えること。
- *  HTMLは書かない — データだけ書けばよい。
+ *  spec-driven-dev-exp のクイズ生成へ:
+ *  この PAGE を、requirements.md / implementation-plan / hearing-notes を材料に
+ *  実データで丸ごと置き換えること。HTMLは書かない — データだけ書けばよい。
  * ----------------------------------------------------------------------------
- *  QUIZ.meta:
+ *  PAGE.meta:
  *    title    : 機能名
- *    intro    : このクイズが何を確認するか（1〜2文）。設計意図の自己確認である旨。
- *    sources  : string[]  出題の材料（例: ["requirements.md","implementation-plan.md","hearing-notes.md"]）
+ *    intro    : このページが何か（1〜2文）。解説を読んでからクイズで自己確認する旨。
+ *    sources  : string[]  材料（例: ["requirements.md","implementation-plan.md"]）
  *    passLine : 合格ライン（0〜1。既定 0.8）
- *  QUIZ.sections[]: 出題ブロック
+ *
+ *  PAGE.explain: 解説タブの内容
+ *    sections[]:
+ *      title  : 解説ブロック名（例 "設計方針", "データフロー", "確定した分岐"）
+ *      body   : 散文の解説。HTML可: <b> <code> のみ
+ *      points : string[]  要点の箇条書き（省略可）
+ *    changes[]: 計画からの変更点。計画フェーズでは空配列 [] にしておき、
+ *      実装フェーズで計画とズレが生じたら {title, body} を追記して再生成する
+ *
+ *  PAGE.quiz.sections[]: 出題ブロック
  *    title    : ブロック名（例 "設計判断", "データモデル", "制約"）
- *    brief    : 解説文（この設計判断の背景・前提。散文でHTML可: <b> のみ）
+ *    from     : (任意) 対応する解説 section の番号（1始まり）。付けると
+ *               「解説 0n — タイトル」の戻りリンクが表示される
+ *    brief    : 出題前の短い前提解説（散文、プレーンテキスト）
  *    questions[]:
  *      id      : "Q1" など
  *      type    : "choice"(4択) | "boolean"(YES/NO) | "order"(並べ替え)
  *      prompt  : 設問文
  *      intent  : この設問が炙り出したい設計意図・unknown（1文）
+ *      tag     : (任意) 短い区分ラベル。付けると設問にバッジ表示
  *      explain : 正解の理由・誤答がなぜ違うか（散文）
- *      -- type:"choice" の場合 --  options:string[](3〜5), answer:number(0始まり)
- *      -- type:"boolean" の場合 -- answer:boolean
- *      -- type:"order" の場合 --   items:string[]（正しい順序で列挙。表示時に自動シャッフル）
+ *      -- type:"choice" の場合 --
+ *      options : string[]  4択（3〜5個）
+ *      answer  : number   正解の options インデックス（0始まり）
+ *      -- type:"boolean" の場合 --
+ *      answer  : boolean  正解（true=YES / false=NO）
+ *      -- type:"order" の場合 --
+ *      items   : string[]  「正しい順序」で列挙する（表示時は自動でシャッフルされる）
  *
- *  出題方針（quiz-design.md 準拠）:
- *    - 「なぜこの設計にしたか」「このデータモデル/型にした理由」
- *      「この制約が満たされないと何が壊れるか」「変わりやすい箇所の意図」を問う
+ *  出題方針:
+ *    - 設問は合計 5〜8 問（choice / boolean / order を混ぜる）
+ *    - クイズは解説から作る（読めば答えられるが、読まないと間違える設問。
+ *      from で対応する解説節を指す）
+ *    - 「なぜこの設計にしたか」「この制約が満たされないと何が壊れるか」を問う
  *    - 誤答(distractor)は "もっともらしいが違う" 別設計・別解釈にする
- *    - 各セクションの brief に、その設計判断の背景を先に解説してから問う
- *    - 設問文・選択肢は挙動・役割の言葉で書く（関数名・変数名前提の設問にしない。
- *      識別子は必要なときに括弧書きの補助として添えるに留める）
- *    - 出題前に quiz-design.md の「設問セルフレビュー」で検査し、該当設問は修正または破棄する
+ *    - 解説タブの本文やある設問の解説・選択肢が、別の設問の答えを
+ *      そのまま含まないよう設問間を独立させる
+ *    - 設問文・選択肢は挙動・役割の言葉で書く（識別子は括弧書きの補助に留める）
  * ============================================================================
  */
-const QUIZ = {
+const PAGE = {
   meta: {
     title: "{機能名}",
-    intro: "この実装計画の設計判断を、実装セッションに渡す前に自分の言葉で説明できるか確認するクイズです。落ちた設問は「設計がまだ固まっていない箇所」の候補です。",
+    intro: "この実装計画の解説を読み、設計判断を自分の言葉で説明できるかクイズで確認するページです。落ちた設問は「設計がまだ固まっていない箇所」の候補です。",
     sources: ["requirements.md", "implementation-plan.md", "hearing-notes.md"],
     passLine: 0.8,
   },
-  sections: [
-    {
-      title: "{設計判断のテーマ1}",
-      brief: "{この設計判断の背景・前提を解説。<b>強調</b>可}",
-      questions: [
-        {
-          id: "Q1",
-          type: "choice",
-          prompt: "{なぜこの設計/データモデルにしたかを問う設問}",
-          intent: "{炙り出したい設計意図}",
-          options: ["{もっともらしい誤答}", "{正解}", "{別解釈の誤答}", "{別設計の誤答}"],
-          answer: 1,
-          explain: "{正解の理由。誤答がなぜ違うか}",
-        },
-        {
-          id: "Q2",
-          type: "boolean",
-          prompt: "{この制約が満たされないと何が壊れるかを問う YES/NO 設問}",
-          intent: "{制約の意図}",
-          answer: true,
-          explain: "{理由}",
-        },
-      ],
-    },
-    {
-      title: "{設計判断のテーマ2}",
-      brief: "{背景解説}",
-      questions: [
-        {
-          id: "Q3",
-          type: "order",
-          prompt: "{データフロー/処理順序を正しい順に並べる設問}",
-          intent: "{フローの意図}",
-          items: ["{正しい順序1}", "{正しい順序2}", "{正しい順序3}"],
-          explain: "{なぜこの順序か}",
-        },
-      ],
-    },
-  ],
+  explain: {
+    sections: [
+      {
+        title: "{解説ブロック1: 設計方針など}",
+        body: "{この計画の背景・設計判断とその理由を散文で解説。<b>強調</b>と<code>識別子</code>可}",
+        points: ["{要点1}", "{要点2}"],
+      },
+      {
+        title: "{解説ブロック2: データフローなど}",
+        body: "{解説}",
+      },
+    ],
+    changes: [],
+  },
+  quiz: {
+    sections: [
+      {
+        title: "{設計判断のテーマ1}",
+        from: 1,
+        brief: "{この設計判断の背景・前提}",
+        questions: [
+          {
+            id: "Q1",
+            type: "choice",
+            prompt: "{なぜこの設計/データモデルにしたかを問う設問}",
+            intent: "{炙り出したい設計意図}",
+            options: ["{もっともらしい誤答}", "{正解}", "{別解釈の誤答}", "{別設計の誤答}"],
+            answer: 1,
+            explain: "{正解の理由。誤答がなぜ違うか}",
+          },
+          {
+            id: "Q2",
+            type: "boolean",
+            prompt: "{この制約が満たされないと何が壊れるかを問う YES/NO 設問}",
+            intent: "{制約の意図}",
+            answer: true,
+            explain: "{理由}",
+          },
+        ],
+      },
+      {
+        title: "{設計判断のテーマ2}",
+        from: 2,
+        brief: "{背景解説}",
+        questions: [
+          {
+            id: "Q3",
+            type: "order",
+            prompt: "{データフロー/処理順序を正しい順に並べる設問}",
+            intent: "{フローの意図}",
+            items: ["{正しい順序1}", "{正しい順序2}", "{正しい順序3}"],
+            explain: "{なぜこの順序か}",
+          },
+        ],
+      },
+    ],
+  },
 };
 </script>
 
@@ -248,7 +351,8 @@ const QUIZ = {
     .replace(/&lt;b&gt;/g, "<b>").replace(/&lt;\/b&gt;/g, "</b>")
     .replace(/&lt;code&gt;/g, "<code>").replace(/&lt;\/code&gt;/g, "</code>");
   const TYPE_LABEL = { choice: "4択", boolean: "YES / NO", order: "並べ替え" };
-  const passLine = QUIZ.meta.passLine == null ? 0.8 : QUIZ.meta.passLine;
+  const QUIZ = PAGE.quiz;
+  const passLine = PAGE.meta.passLine == null ? 0.8 : PAGE.meta.passLine;
 
   const Q = [];
   QUIZ.sections.forEach((sec) => sec.questions.forEach((q) => Q.push(q)));
@@ -272,32 +376,75 @@ const QUIZ = {
     Q.forEach((q) => { if (q.type === "order") orders[q.id] = shuffle(q.items.length); });
   }
 
+  // ---- tabs ----
+  const tabs = { explain: document.getElementById("tab-explain"), quiz: document.getElementById("tab-quiz") };
+  const panes = { explain: document.getElementById("pane-explain"), quiz: document.getElementById("pane-quiz") };
+  function switchTab(name) {
+    for (const k of Object.keys(tabs)) {
+      tabs[k].classList.toggle("active", k === name);
+      tabs[k].setAttribute("aria-selected", String(k === name));
+      panes[k].classList.toggle("active", k === name);
+    }
+  }
+  tabs.explain.addEventListener("click", () => switchTab("explain"));
+  tabs.quiz.addEventListener("click", () => switchTab("quiz"));
+
+  function goExplainSection(n) {
+    switchTab("explain");
+    requestAnimationFrame(() => {
+      const el = document.getElementById("xsec-" + n);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   // ---- render hero ----
   function renderHero() {
-    const m = QUIZ.meta;
+    const m = PAGE.meta;
     const src = (m.sources || []).map((s) => `<span class="src">${esc(s)}</span>`).join("");
     document.getElementById("hero").innerHTML = `
-      <span class="kind">実装前クイズ · Plan → Impl ゲート</span>
+      <span class="kind">解説 &amp; クイズ · Plan → Impl ゲート</span>
       <h1>${esc(m.title)}</h1>
       <p class="intro">${rich(m.intro)}</p>
       <div class="sources">${src}</div>
       <div class="advisory">
         <div><b>これは advisory ゲートです。</b>合否は自己申告で、機械的なブロックはしません。
+        まず「解説」タブで計画の要点を読み、「クイズ」タブで自己確認してください。
         各設問は<b>回答した時点で正誤と解説が表示され、答えは変更できません</b>。
         合否は初回の通し回答で判断してください（リセットは解説を読んだ後の再学習用です）。
         落ちた設問がある＝設計がまだ自分の中で固まっていない箇所なので、<b>実装を始める前に</b>計画を見直してください。</div>
       </div>`;
   }
 
+  // ---- render 解説 ----
+  function renderExplain() {
+    const ex = PAGE.explain || { sections: [], changes: [] };
+    document.getElementById("explain-sections").innerHTML = (ex.sections || []).map((s, i) => `
+      <div class="doc" id="xsec-${i + 1}">
+        <h2><span class="dn">${String(i + 1).padStart(2, "0")}</span>${esc(s.title)}</h2>
+        <div class="body">${rich(s.body)}</div>
+        ${s.points && s.points.length ? `<ul class="points">${s.points.map((p) => `<li>${rich(p)}</li>`).join("")}</ul>` : ""}
+      </div>`).join("");
+    const changes = ex.changes || [];
+    document.getElementById("explain-changes").innerHTML = `
+      <div class="changes-head"><span class="tag">Plan → Impl</span><h2>計画からの変更点</h2></div>
+      ${changes.length
+        ? changes.map((c) => `<div class="doc change"><h2>${esc(c.title)}</h2><div class="body">${rich(c.body)}</div></div>`).join("")
+        : `<div class="changes-empty">まだありません。実装フェーズで計画とズレが生じた場合、ここに変更点とその理由が追記されます。</div>`}`;
+  }
+
   // ---- render クイズ ----
   function renderQuiz() {
     const secs = QUIZ.sections || [];
-    document.getElementById("quiz-sections").innerHTML = secs.map((sec, si) => `
-      <section class="q-section">
-        <div class="qs-head"><span class="qs-n">SECTION ${si + 1}</span><h2>${esc(sec.title)}</h2></div>
-        ${sec.brief ? `<div class="qs-brief">${rich(sec.brief)}</div>` : ""}
+    const expSecs = (PAGE.explain && PAGE.explain.sections) || [];
+    document.getElementById("quiz-sections").innerHTML = secs.map((sec, si) => {
+      const from = sec.from && expSecs[sec.from - 1]
+        ? `<button class="qs-from" data-from="${sec.from}">解説 ${String(sec.from).padStart(2, "0")} — ${esc(expSecs[sec.from - 1].title)}</button>` : "";
+      return `<section class="q-section">
+        <div class="qs-head"><span class="qs-n">SECTION ${si + 1}</span><h2>${esc(sec.title)}</h2>${from}</div>
+        ${sec.brief ? `<div class="qs-brief">${esc(sec.brief)}</div>` : ""}
         ${sec.questions.map(renderQ).join("")}
-      </section>`).join("");
+      </section>`;
+    }).join("");
     wire();
     updateProgress();
   }
@@ -346,6 +493,7 @@ const QUIZ = {
       <div class="q-head">
         <span class="q-id">${esc(q.id)}</span>
         <span class="q-type">${TYPE_LABEL[q.type]}</span>
+        ${q.tag ? `<span class="q-tag">${esc(q.tag)}</span>` : ""}
         <span class="q-mark ${done ? (ok ? "ok" : "ng") : ""}">${done ? (ok ? "正解" : "不正解") : ""}</span>
       </div>
       <div class="q-prompt">${esc(q.prompt)}</div>
@@ -364,6 +512,9 @@ const QUIZ = {
   }
 
   function wire() {
+    document.querySelectorAll(".qs-from").forEach((b) => {
+      b.addEventListener("click", () => goExplainSection(+b.dataset.from));
+    });
     document.querySelectorAll(".row.pickable").forEach((r) => {
       const q = Q.find((x) => x.id === r.dataset.qid);
       if (!q || q.id in results) return;
@@ -421,6 +572,7 @@ const QUIZ = {
   function updateProgress() {
     const answered = Object.keys(results).length;
     const correct = Object.values(results).filter(Boolean).length;
+    document.getElementById("quiz-badge").textContent = `${answered}/${Q.length}`;
     document.getElementById("score-num").textContent = answered ? `${correct}/${Q.length}` : "—";
     document.getElementById("progress-lbl").textContent =
       answered === 0 ? `全 ${Q.length} 問 / 未回答` : (answered === Q.length ? "全問回答済み" : `残り ${Q.length - answered} 問`);
@@ -436,8 +588,8 @@ const QUIZ = {
     const v = document.getElementById("verdict");
     v.className = "verdict show " + (pass ? "pass" : "fail");
     v.innerHTML = pass
-      ? `<b>合格 (${Math.round(ratio * 100)}%)</b> — 設計の意図を自分の言葉で説明できています。実装セッションに進んでよいでしょう。間違えた設問があれば、その箇所だけ計画を読み直してください。`
-      : `<b>不合格 (${Math.round(ratio * 100)}% / 合格ライン ${Math.round(passLine * 100)}%)</b> — 赤い設問は設計がまだ固まっていない箇所です。実装を始める前に、その論点を計画・要件で詰め直すことをおすすめします。`;
+      ? `<b>合格 (${Math.round(ratio * 100)}%)</b> — 設計の意図を自分の言葉で説明できています。実装セッションに進んでよいでしょう。間違えた設問があれば、その箇所だけ解説タブと計画を読み直してください。`
+      : `<b>不合格 (${Math.round(ratio * 100)}% / 合格ライン ${Math.round(passLine * 100)}%)</b> — 赤い設問は設計がまだ固まっていない箇所です。実装を始める前に、解説タブと計画・要件でその論点を詰め直すことをおすすめします。`;
     v.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
@@ -450,6 +602,7 @@ const QUIZ = {
   });
 
   renderHero();
+  renderExplain();
   initOrders();
   renderQuiz();
 })();

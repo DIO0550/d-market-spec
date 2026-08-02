@@ -1,7 +1,7 @@
 # 実装中ノート — {機能名}
 
 > 実装セッション中に随時追記する「実際にやったこと」の記録。
-> 実装後 理解度クイズ（understanding-quiz-impl.html）の出題材料になる。
+> 実装後 理解度クイズ（implementation-review.html）の出題材料になる。
 > hearing-notes（事前の意図）と対にすることで、「想定 vs 実際」のズレを出題できる。
 
 ## 概要

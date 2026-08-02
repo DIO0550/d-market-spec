@@ -38,9 +38,10 @@ plugins/spec-based-code-review-plugin/
 
 ## 主要コンセプト
 
-- **PLANNINGファイル**: `.plugin-workspace/.specs/{nnn}-{feature}/PLANNING` が存在する間は計画フェーズ。フェーズマーカーとして使われ、PreCompact フックの実装禁止警告と、セッション終了時のアーカイブ対象判定（PLANNING がないフォルダのみアーカイブ）に用いられる
+- **PLANNINGファイル**: `.plugin-workspace/.specs/{nnn}-{feature}/PLANNING` が存在する間は計画フェーズ。フェーズマーカーとして使われ、セッション終了時のアーカイブ対象判定（PLANNING がないフォルダのみアーカイブ）に用いられる。実装禁止の強制はガードファイル + `guard-planning-writes.sh` が担う
 - **ガードファイル**: `.plugin-workspace/.specs/.guard/{SESSION_ID}` はdevスキル発火時に `guard-skill-init.sh` フックが自動作成する。存在する間、`guard-planning-writes.sh` がそのセッションでの実装（`.plugin-workspace/.specs/` 外への書き込み）をブロックする。worktree内で起動した場合は worktree 外への書き込みもブロックする
 - **システム図の検証**: `enforce-diagrams.sh` が実装計画・設計書に状態遷移図とデータフロー図が含まれているかを検証し、不足があればリマインドを出す（ブロックはしない）
+- **EXPERIMENTマーカー**: `.plugin-workspace/.specs/{nnn}-{feature}/EXPERIMENT` は実験スキル `spec-driven-dev-exp` が作成するマーカー。存在するフォルダのみ `exp-plan-format.sh` フックが implementation-plan / tasks のフォーマット（必須セクション・プレースホルダ残留・コードブロック有無）を機械検証してリマインドする（チェッカー系サブエージェントの代替）
 - **タスク進捗**: `tasks.md` 内の `□`（未完了）/ `■`（完了）で進捗を管理する
 - **自動アーカイブ**: セッション終了時、PLANNINGファイルのない spec フォルダは `.plugin-workspace/.specs/archive/` に移動される
 
