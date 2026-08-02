@@ -18,13 +18,18 @@
 #   tasks*.md:
 #     - 未完了タスク（行頭 □）の存在
 #     - テンプレートプレースホルダの残留
+#   test-cases*.html（DATA スクリプト部分のみ検証）:
+#     - テンプレートプレースホルダの残留
+#     - ケースID（id: "TC-xx"）の重複
+#     - cat / prio の不正値
+#     - trace の欠落・GAP 残り（GAP は正直な申告なので情報表示のみ）
 # ※ 図表は enforce-diagrams.sh、コード例の実質性は enforce-code-examples.sh が担当
 
 input=$(cat)
 file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 
 case "$file_path" in
-  *implementation-plan*.md | *tasks*.md) ;;
+  *implementation-plan*.md | *tasks*.md | *test-cases*.html) ;;
   *) exit 0 ;;
 esac
 
@@ -37,8 +42,16 @@ dir=$(dirname "$file_path")
 content=$(cat "$file_path")
 missing=()
 
+# test-cases.html はレンダラが固定部のため、DATA スクリプト部分だけを検証対象にする
+scan_content=$content
+case "$file_path" in
+  *test-cases*.html)
+    scan_content=$(echo "$content" | sed '/===== 以下 レンダラは固定/,$d')
+    ;;
+esac
+
 # テンプレートプレースホルダの残留（{…} 内に日本語を含むもの）
-placeholders=$(echo "$content" | grep -noE '\{[^{}]*[ぁ-んァ-ヶ一-龠][^{}]*\}' | head -5)
+placeholders=$(echo "$scan_content" | grep -noE '\{[^{}]*[ぁ-んァ-ヶ一-龠][^{}]*\}' | head -5)
 if [ -n "$placeholders" ]; then
   missing+=("テンプレートプレースホルダが残っています:")
   while IFS= read -r line; do
@@ -115,6 +128,34 @@ case "$file_path" in
   *tasks*.md)
     if ! echo "$content" | grep -qE '^[[:space:]]*-?[[:space:]]*[□■]'; then
       missing+=("タスク行（行頭 □ / ■）が1つもありません")
+    fi
+    ;;
+  *test-cases*.html)
+    # ケースIDの重複
+    dup_ids=$(echo "$scan_content" | grep -oE 'id: "TC-[^"]+"' | sort | uniq -d)
+    if [ -n "$dup_ids" ]; then
+      missing+=("ケースIDが重複しています:")
+      while IFS= read -r line; do
+        missing+=("    ${line}")
+      done <<< "$dup_ids"
+    fi
+
+    # cat / prio の不正値
+    bad_cat=$(echo "$scan_content" | grep -oE 'cat: "[^"]+"' | grep -vE '"(normal|boundary|error|edge)"' | sort -u)
+    [ -n "$bad_cat" ] && missing+=("cat の不正値: $(echo "$bad_cat" | tr '\n' ' ')（normal/boundary/error/edge のみ）")
+    bad_prio=$(echo "$scan_content" | grep -oE 'prio: "[^"]+"' | grep -vE '"(high|med|low)"' | sort -u)
+    [ -n "$bad_prio" ] && missing+=("prio の不正値: $(echo "$bad_prio" | tr '\n' ' ')（high/med/low のみ）")
+
+    # trace の存在
+    if ! echo "$scan_content" | grep -q 'trace:'; then
+      missing+=("trace（要件との対応表）がありません。requirements の UC/要件と対応付けてください")
+    fi
+
+    # GAP は正直な申告なので情報表示のみ（ブロック・修正要求はしない）
+    gap_count=$(echo "$scan_content" | grep -c 'status: "gap"')
+    if [ "$gap_count" -gt 0 ]; then
+      echo ""
+      echo "【exp】test-cases: 対応ケースのない要件（GAP）が ${gap_count} 件あります。意図的な未カバーか確認してください。"
     fi
     ;;
 esac

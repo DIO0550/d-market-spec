@@ -89,9 +89,27 @@ implementation-plan が「計画だけ読めば実装内容が一意に伝わる
    - 判定 `UNDERSTOOD` かつ誤解なし → Step 6 へ
 3. 2回書き直しても `PARTIAL` / `CONFUSED` が残る場合は、残った曖昧箇所を Step 6 でユーザーに提示する
 
+## Step 5.7: テストケース詳細設計
+
+テスト方針が「手動検証のみ」の場合はスキップ。`{dir}/test-cases.html` を生成する（テスト網羅性を人間がレビューするための自己完結HTML）。
+
+1. `cp "${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/assets/templates/test-cases.html" "{dir}/test-cases.html"`
+2. コピー先の先頭部分（`<title>` 〜 `const DATA` の終わり。レンダラ以降は読まない）を Read（offset/limit 指定）する
+3. Edit で `<title>` と DATA スクリプト（スキーマ説明コメントごと）を実データに置き換える。implementation-plan の検証計画と requirements のユースケースは既にコンテキストにあるため、それを材料にオーケストレーター自身が設計する
+   - 各ケースに具体的な入力値と期待結果を書く（「正しく動くこと」のような曖昧な期待結果は不可）
+   - `gaps`（未カバーの疑い）と `trace` の `status: "gap"` は正直に書く — フックが形式・ID重複・trace 欠落を検証する
+
 ## Step 6: ユーザー確認
 
-specフォルダパス・生成ファイル一覧・implementation-plan のサマリー・tasks 一覧・明瞭性チェックの判定（残った曖昧箇所があればそれも）を提示し、「修正が必要な場合はお知らせください」と案内する。修正要求があれば Step 5 に戻る。
+specフォルダパス・生成ファイル一覧・implementation-plan のサマリー・tasks 一覧・明瞭性チェックの判定（残った曖昧箇所があればそれも）を提示し、テスト網羅性は `test-cases.html` をブラウザで開いてレビューするよう案内する。「修正が必要な場合はお知らせください」と案内し、修正要求があれば Step 5 に戻る。
+
+## Step 6.5: tech-reference 生成
+
+ユーザー確認完了後、**サブエージェント（general-purpose）1回**で `{dir}/tech-reference.md` を生成する（モデルは落とさない — 解説の質を優先）。
+
+プロンプトに渡すもの:
+- `{dir}/implementation-plan.md` のパスと、テンプレート `${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/assets/templates/tech-reference.md` のパス
+- 指示: implementation-plan に登場するすべての技術（言語・フレームワーク・ライブラリ・概念）を、言語も対象領域も初心者である読者向けにテンプレートへ沿って解説し、`{dir}/tech-reference.md` に Write する
 
 ## Step 7: 解説+クイズのタブHTML生成
 
@@ -125,5 +143,7 @@ rm .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID} .plugin-workspace/.specs
 ├── requirements.md
 ├── implementation-plan.md
 ├── tasks.md
+├── test-cases.html              # テスト網羅性レビュー用（手動検証のみの場合は無し）
+├── tech-reference.md            # 技術リファレンス（初学者向け）
 └── understanding-quiz-plan.html # 解説+クイズ（タブ切替）
 ```
