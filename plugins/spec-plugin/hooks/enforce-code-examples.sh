@@ -11,29 +11,10 @@ input=$(cat)
 # file_path を抽出（tool_input のみを対象にする）
 file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 
-# --- 対象外ファイル: N/A メッセージ表示 ---
+# --- implementation-plan のみ検証対象 ---
 case "$file_path" in
-  *design-doc*.md)
-    echo "コードブロック検証: 対象外（設計ドキュメント）"
-    exit 0
-    ;;
-  *hearing-notes*.md)
-    echo "コードブロック検証: 対象外（ヒアリングノート）"
-    exit 0
-    ;;
-  *exploration-report*.md)
-    echo "コードブロック検証: 対象外（探索レポート）"
-    exit 0
-    ;;
-  *tasks*.md)
-    echo "コードブロック検証: 対象外（タスクリスト）"
-    exit 0
-    ;;
-  *implementation-plan*.md)
-    ;; # 検証対象 — 下へ続行
-  *)
-    exit 0 # 無関係なファイル
-    ;;
+  *implementation-plan*.md) ;;
+  *) exit 0 ;;
 esac
 
 # --- ここ以降は implementation-plan のみ ---
@@ -77,23 +58,16 @@ if echo "$content" | grep -qE "$code_section_pattern"; then
   fi
 fi
 
-# --- 結果判定 ---
+# --- 結果判定（exit 2 + stderr でモデルにフィードバックする）---
 if [ ${#missing[@]} -gt 0 ]; then
-  echo ""
-  echo "=== コードブロックが不足しています ==="
-  echo ""
-  echo "不足項目:"
-  for item in "${missing[@]}"; do
-    echo "  - $item"
-  done
-  echo ""
-  echo "implementation-plan には以下のコード例が推奨されます:"
-  echo "  1. 型定義・インターフェース"
-  echo "  2. ファクトリ関数やユーティリティの実装例"
-  echo "  3. 使用例（import文を含む利用イメージ）"
-  echo ""
-  echo "コードブロックを追加してファイルを更新してください。"
-  echo "==="
+  {
+    echo "=== コードブロックが不足しています: ${file_path##*/} ==="
+    for item in "${missing[@]}"; do
+      echo "  - $item"
+    done
+    echo "型定義・実装例・使用例のコードブロックを追加してファイルを更新してください。"
+  } >&2
+  exit 2
 fi
 
 exit 0

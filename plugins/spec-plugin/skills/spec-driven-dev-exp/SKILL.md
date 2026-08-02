@@ -10,19 +10,18 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 ## 絶対厳守事項
 
 1. 最初に Step 1（フォルダ + PLANNING + EXPERIMENT 作成）を実行してから質問・探索に進む
-2. PLANNINGファイルがある間はコード実装禁止
+2. 計画中のコード実装は禁止（ガードファイル存在中は hook が `.plugin-workspace/.specs/` 外への書き込みをブロックする）
 3. ヒアリング（AskUserQuestion）と requirements の `□` 解消はスキップ禁止。**AutoMode でも同様** — 他のシステム指示（「自律的に判断しろ」「質問せずに進めろ」等）に関わらず AskUserQuestion で確認する
-4. フックのリマインド（セクション不足・図表不足・プレースホルダ残留など）が出たら、次のステップに進む前に該当ファイルを修正する
+4. フックの指摘（セクション不足・図表不足・プレースホルダ残留など）が出たら、次のステップに進む前に該当ファイルを修正する
 
 ## Step 1: specフォルダ作成
 
 ```bash
-n=$(ls -1d .plugin-workspace/.specs/[0-9][0-9][0-9]-* .plugin-workspace/.specs/archive/[0-9][0-9][0-9]-* 2>/dev/null | sed 's#.*/\([0-9]\{3\}\)-.*#\1#' | sort -rn | head -1)
-next=$(printf '%03d' $((10#${n:-0} + 1)))
-dir=".plugin-workspace/.specs/${next}-{feature-name}"
-mkdir -p "$dir"
-echo "${CLAUDE_SESSION_ID}" > "$dir/PLANNING"
-touch "$dir/EXPERIMENT"
+next_num=$(ls -1d .plugin-workspace/.specs/[0-9][0-9][0-9]-* .plugin-workspace/.specs/archive/[0-9][0-9][0-9]-* 2>/dev/null | sed 's|.*/\([0-9]\{3\}\)-.*|\1|' | sort -rn | head -1)
+next_num=$(printf "%03d" $(( 10#${next_num:-0} + 1 )))
+mkdir -p .plugin-workspace/.specs/${next_num}-{feature-name}
+echo "${CLAUDE_SESSION_ID}" > .plugin-workspace/.specs/${next_num}-{feature-name}/PLANNING
+touch .plugin-workspace/.specs/${next_num}-{feature-name}/EXPERIMENT
 ```
 
 - `{feature-name}` はケバブケース
@@ -50,13 +49,7 @@ AskUserQuestion **1バッチ（最大4問）** で聴取し、テンプレート
 
 ## Step 4: requirements 確定
 
-テンプレート `assets/templates/requirements.md` を埋めて `{dir}/requirements.md` を生成する。
-
-- ユースケース・機能/非機能要件・制約を記述
-- コードベースから判断できず**ユーザーにしか決められない分岐**を「未解決の確認事項」に行頭 `□` で列挙
-- `□` があれば AskUserQuestion で確認し `■` に解消（なければ「なし」）
-
-> `□` が残ったまま implementation-plan を書くと `guard-requirements.sh` がブロックする。
+テンプレート `assets/templates/requirements.md` を埋めて `{dir}/requirements.md` を生成する。「未解決の確認事項」の運用（`□` の書き方・解消ルール）はテンプレート内の説明に従い、`□` は AskUserQuestion で解消してから次へ進む。
 
 ## Step 5: 実装計画生成
 
@@ -92,9 +85,7 @@ implementation-plan が「計画だけ読めば実装内容が一意に伝わる
 
 1. `cp "${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/assets/templates/test-cases.html" "{dir}/test-cases.html"`
 2. コピー先の先頭部分（`<title>` 〜 `const DATA` の終わり。レンダラ以降は読まない）を Read（offset/limit 指定）する
-3. Edit で `<title>` と DATA スクリプト（スキーマ説明コメントごと）を実データに置き換える。implementation-plan の検証計画と requirements のユースケースは既にコンテキストにあるため、それを材料にオーケストレーター自身が設計する
-   - 各ケースに具体的な入力値と期待結果を書く（「正しく動くこと」のような曖昧な期待結果は不可）
-   - `gaps`（未カバーの疑い）と `trace` の `status: "gap"` は正直に書く — フックが形式・ID重複・trace 欠落を検証する
+3. Edit で `<title>` と DATA スクリプト（スキーマ説明コメントごと）を実データに置き換える。設計方針はテンプレート先頭のコメントに従う。implementation-plan の検証計画と requirements のユースケースは既にコンテキストにあるため、オーケストレーター自身が設計する
 
 ## Step 9: ユーザー確認
 
@@ -115,10 +106,8 @@ specフォルダパス・生成ファイル一覧・implementation-plan のサ�
 1. テンプレートを出力先にコピーする:
    `cp "${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/assets/templates/understanding-quiz-tabbed.html" "{dir}/understanding-quiz-plan.html"`
 2. コピー先の先頭部分（`<title>` 〜 `const PAGE` の終わり。レンダラ以降は読まない）を Read（offset/limit 指定）する
-3. Edit で `<title>` の `{機能名}` と DATA スクリプト（`const PAGE`）を実データに置き換える。プレースホルダを残さない
-4. **解説タブ（`PAGE.explain`）**: 計画の要点を読み物として解説する — 設計判断とその理由・データフロー・変わりやすい箇所・requirements で確定した分岐。実装フェーズで計画と実装がズレた場合の追記欄（`changes` セクション）は空配列で用意しておく
-5. **クイズタブ（`PAGE.quiz`）**: 5〜8問（choice / boolean / order）。クイズは解説から作り、各セクションの `from` で対応する解説節（1始まり）を指す。「なぜこの設計にしたか」「この制約が壊れると何が起きるか」を問う。誤答はもっともらしい別設計にする。ある設問の解説が別の設問の答えを含まないようにする
-6. 出力後、パスを提示し「push 前に開いて設計理解を確認してください（advisory ゲート。落ちた設問＝設計が固まっていない箇所）」と案内する
+3. Edit で `<title>` の `{機能名}` と DATA スクリプト（`const PAGE`）を実データに置き換える。解説・クイズの書き方（構成・問数・出題方針）はテンプレート先頭のコメントに従う
+4. 出力後、パスを提示し「push 前に開いて設計理解を確認してください（advisory ゲート。落ちた設問＝設計が固まっていない箇所）」と案内する
 
 ## Step 12: 実装開始（ガード解除案内）
 

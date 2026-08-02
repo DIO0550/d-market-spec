@@ -3,7 +3,8 @@
 # PostToolUse: Write, Edit
 #
 # サブエージェント（plan-format-checker 等）によるフォーマットチェックの代替として、
-# implementation-plan / tasks の形式を機械検証してリマインドする（ブロックはしない）。
+# implementation-plan / tasks / test-cases の形式を機械検証し、
+# 不備があれば exit 2 + stderr でモデルにフィードバックする。
 #
 # 作動条件: 書き込み先の spec フォルダに EXPERIMENT マーカーファイルが存在すること
 # （安定版スキルの spec には干渉しない）
@@ -160,16 +161,16 @@ case "$file_path" in
     ;;
 esac
 
+# exit 2 + stderr でモデルにフィードバックする
 if [ ${#missing[@]} -gt 0 ]; then
-  echo ""
-  echo "=== 【exp】フォーマット検証: ${file_path##*/} ==="
-  echo ""
-  for item in "${missing[@]}"; do
-    echo "  - $item"
-  done
-  echo ""
-  echo "テンプレート（assets/templates/）の構成に合わせて修正してから次のステップに進んでください。"
-  echo "==="
+  {
+    echo "=== 【exp】フォーマット検証: ${file_path##*/} ==="
+    for item in "${missing[@]}"; do
+      echo "  - $item"
+    done
+    echo "テンプレート（assets/templates/）の構成に合わせて修正してから次のステップに進んでください。"
+  } >&2
+  exit 2
 fi
 
 exit 0
