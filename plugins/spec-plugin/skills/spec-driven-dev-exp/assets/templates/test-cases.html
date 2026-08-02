@@ -65,6 +65,7 @@ td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: 
 tr:last-child td { border-bottom: none; }
 td.c-id { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text-3); white-space: nowrap; }
 td.c-io { font-family: var(--mono); font-size: 12px; color: var(--text-25); white-space: pre-wrap; word-break: break-word; }
+td.c-uc { font-size: 12.5px; color: var(--text-2); }
 .badge { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 8px; border-radius: 20px; white-space: nowrap; }
 .cat-normal   { color: var(--accent-2); background: var(--accent-soft); border: 1px solid var(--accent-border); }
 .cat-boundary { color: var(--amber); background: var(--amber-soft); border: 1px solid var(--amber-border); }
@@ -117,6 +118,7 @@ td.c-io { font-family: var(--mono); font-size: 12px; color: var(--text-25); whit
  *    cases[] :
  *      id       : "TC-01" など（ファイル横断で一意）
  *      title    : ケース名（挙動の言葉で）
+ *      usecase  : ユースケース・目的（どういう状況で誰が何をしたときの検証か 1文）
  *      cat      : "normal" | "boundary" | "error" | "edge"
  *      prio     : "high" | "med" | "low"
  *      input    : 入力・状態の具体値（\n 区切り可）
@@ -141,10 +143,13 @@ const DATA = {
       gaps: ["{未カバーの疑い（なければ空配列に）}"],
       cases: [
         { id: "TC-01", title: "{最もシンプルな正常系}", cat: "normal", prio: "high",
+          usecase: "{どういう状況で誰が何をしたときの検証か}",
           input: "{具体的な入力値}", expected: "{具体的な期待結果}" },
         { id: "TC-02", title: "{境界条件}", cat: "boundary", prio: "med",
+          usecase: "{この境界が現実に発生する状況}",
           input: "{最小値/最大値/ゼロ等}", expected: "{期待される振る舞い}" },
         { id: "TC-03", title: "{異常系}", cat: "error", prio: "high",
+          usecase: "{この不正入力が発生しうる状況}",
           input: "{不正入力}", expected: "{期待される例外}", throws: true },
       ],
     },
@@ -174,11 +179,12 @@ const DATA = {
       <div class="f-head"><span class="f-name">${esc(f.name)}</span><span class="f-dir">${esc(f.dir)}</span></div>
       <div class="f-purpose">${esc(f.purpose)}</div>
       <table>
-        <tr><th>ID</th><th>ケース</th><th>分類</th><th>優先</th><th>入力</th><th>期待結果</th></tr>
+        <tr><th>ID</th><th>ケース</th><th>ユースケース / 目的</th><th>分類</th><th>優先</th><th>入力</th><th>期待結果</th></tr>
         ${(f.cases || []).map((c) => `
           <tr>
             <td class="c-id">${esc(c.id)}</td>
             <td>${esc(c.title)}</td>
+            <td class="c-uc">${esc(c.usecase)}</td>
             <td><span class="badge cat-${esc(c.cat)}">${CAT[c.cat] || esc(c.cat)}</span></td>
             <td><span class="prio-${esc(c.prio)}">${PRIO[c.prio] || esc(c.prio)}</span></td>
             <td class="c-io">${esc(c.input)}</td>
