@@ -26,7 +26,7 @@ spec-plugin のワークスペース初期化と設定を行うスキル。
 | `output-formats.tasks` | `md` / `html` | tasks の出力形式 |
 | `output-formats.tech-reference` | `md` / `html` | tech-reference の出力形式 |
 | `skip-files` | リスト | 生成をスキップするファイル（例: `[tech-reference, test-cases, understanding-quiz]`）。`test-cases` は spec-driven-dev で有効。`understanding-quiz` は spec-driven-dev（実装前クイズ）と spec-implement（実装後クイズ）で有効 |
-| `quiz-output.plan` | `file` / `artifact` / `interactive` | 実装前レビュー（implementation-review）の出力先。`file` = specフォルダにHTMLファイル、`artifact` = Artifact ツールで公開、`interactive` = HTMLを生成せずセッション内で AskUserQuestion により1問ずつ対話出題。**未設定時のデフォルト: `file`** |
+| `quiz-output.plan` | `file` / `artifact` / `interactive` | 実装前クイズ（understanding-quiz-plan）の出力先。`file` = specフォルダにHTMLファイル、`artifact` = Artifact ツールで公開、`interactive` = HTMLを生成せずセッション内で AskUserQuestion により1問ずつ対話出題。**未設定時のデフォルト: `file`** |
 | `quiz-output.impl` | `file` / `artifact` / `interactive` | 実装後レビュー（implementation-review）の出力先。値の意味は plan と同じ。**未設定時のデフォルト: `artifact`** |
 
 ## ワークフロー
@@ -94,13 +94,13 @@ options:
   - label: "test-cases"
     description: "テストケース詳細仕様（test-cases.html）を生成しない。spec-driven-dev で有効"
   - label: "understanding-quiz"
-    description: "理解度クイズ（実装前 implementation-review.html（実装前） / 実装後 implementation-review.html）を生成しない"
+    description: "理解度クイズ（実装前 understanding-quiz-plan.html / 実装後 implementation-review.html）を生成しない"
 ```
 
 選択結果から `skip-files` リストを構築する。何も選択されなかった場合は `skip-files` キーを出力しない。
 
 `test-cases` は `spec-driven-dev` で意味を持つ（test-cases.html を生成するスキル。他のスキルでは無視される）。
-`understanding-quiz` は `spec-driven-dev`（実装前レビュー）と `spec-implement`（実装後レビュー）で意味を持つ。
+`understanding-quiz` は `spec-driven-dev`（実装前クイズ）と `spec-implement`（実装後クイズ）で意味を持つ。
 
 ### Step 3.7: クイズの出力先の選択
 
@@ -112,7 +112,7 @@ AskUserQuestion（1回の呼び出しに2問）で、実装前クイズ・実装
 
 ```
 質問1:
-question: "実装前レビュー（implementation-review）の出力先を選んでください"
+question: "実装前クイズ（understanding-quiz-plan）の出力先を選んでください"
 header: "実装前クイズ"
 multiSelect: false
 options:

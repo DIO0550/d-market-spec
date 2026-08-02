@@ -18,7 +18,7 @@ SKILL.md本文で宣言されたパラメータを参照して実行する。
 - [Step 4.8: テストケース網羅性検証（test-cases 検証）](#step-48-テストケース網羅性検証test-cases-検証必須)
 - [ユーザー確認](#ユーザー確認)
 - [tech-reference 生成](#tech-reference-生成サブエージェントに委譲)
-- [Step 6.7: 実装前レビュー生成（解説+クイズ）](#step-67-実装前レビュー生成解説クイズ)
+- [Step 6.7: 実装前理解度クイズ生成](#step-67-実装前理解度クイズ生成)
 - [ガード解除 / PLANNINGファイル削除](#ガード解除use_guard--true-の場合)
 
 **パラメータ一覧**（SKILL.md本文で宣言）:
@@ -781,12 +781,11 @@ tech-reference 生成完了後、ユーザーに以下を追加提示する:
 
 ---
 
-## Step 6.7: 実装前レビュー生成（解説+クイズ）
+## Step 6.7: 実装前理解度クイズ生成
 
-plan を実装セッションに渡す直前（ガード解除の前）に、**実装前レビュー**（解説タブ+クイズタブを
-切り替えられる自己完結HTML）を生成する。解説タブで計画の設計判断を読み物として確認し、
-クイズタブで設計理解を測る **advisory ゲート**。落ちた設問は実装に渡す前に潰す。
-実装フェーズ（spec-implement）が同じファイルを実データで再生成する。
+plan を実装セッションに渡す直前（ガード解除の前）に、**実装者（人間）の設計理解度を測るクイズ**を
+HTML アーティファクトとして生成する。これは「設計がまだ自分の中で固まっているか」を確認し、
+unknowns を炙り出す **advisory ゲート**。落ちた設問は実装に渡す前に潰す。
 
 **生成の有無は config で決まる**: `.plugin-workspace/.specs/.config.yml` の `skip-files` に
 `understanding-quiz` が含まれていればこのステップをスキップする（`/spec-setup` で設定）。
@@ -827,23 +826,23 @@ plan を実装セッションに渡す直前（ガード解除の前）に、**�
 作成後、`references/quiz-design.md` の「設問セルフレビュー」チェックリストで設問を1問ずつ検査し、
 該当する設問は修正するか捨てる（観点ごとに多めにドラフトして削るのが推奨フロー）。
 
-### 6.7-3. レビュー生成
+### 6.7-3. クイズ生成
 
 **`{QUIZ_OUTPUT}` が `interactive` の場合はこの節をスキップし、6.7-3b に進む。**
 
-**DATA スクリプト差し替え方式**。CSS・レンダラ・採点ロジックは固定済みのため、
-テンプレート全体を Read / Write しない（DATA 部分だけ扱う）。
+`test-cases.html` と同様の **DATA スクリプト差し替え方式**。CSS・レンダラ・採点ロジックは固定済み。
 
-1. テンプレートを出力先にコピーする:
-   `cp "${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev/assets/templates/implementation-review.html" ".plugin-workspace/.specs/{nnn}-{feature-name}/implementation-review.html"`
-2. **`artifact` の場合のみ**、外側のシェルタグを sed で削除する（各タグは独立行。Artifact 側がシェルを付与するため）:
-   `sed -i -e '/^<!DOCTYPE html>$/d' -e '/^<html lang="ja">$/d' -e '/^<head>$/d' -e '/^<meta /d' -e '/^<\/head>$/d' -e '/^<body>$/d' -e '/^<\/body>$/d' -e '/^<\/html>$/d' {出力先}`
-3. コピー先の先頭部分（`<title>` 〜 DATA スクリプトの終わり。レンダラ以降は読まない）を Read（offset/limit 指定）する
-4. Edit で `<title>` の `{機能名}` と DATA スクリプト（スキーマ説明コメント + `const DATA`）を実データに置き換える
-   （スキーマはテンプレート先頭のコメント参照。**`meta.mode` は `"plan"`**。解説 `explain` には設計判断・データフロー・
-   確定した分岐を、ADR は各 section の `decisions`（kind: `採用` / `見送り`）に理由付きで書く。
-   クイズは解説から作り、`from` で対応する解説節を指す。プレースホルダ `{...}` を残さない）
-5. **`artifact` の場合**、Artifact ツールに出力先のファイルパスを渡して公開する（favicon は `📝`）
+1. テンプレート `assets/templates/understanding-quiz-plan.html` を Read する
+2. テンプレート先頭の DATA スクリプト（スキーマ説明コメント + `const QUIZ`）を実データで丸ごと置き換える
+3. それ以外（`<style>`・レンダラの2スクリプト・HTMLシェル）は1文字も変更しない。
+   **test-cases.html と同じく自己完結HTMLのため、`<link>`→style.css 置換は不要。**
+4. `<title>` の `{機能名}` を実際の機能名に置換する
+5. `{QUIZ_OUTPUT}` に応じて出力する（プレースホルダ `{...}` を残さない）:
+   - **`file` の場合（デフォルト）**: `.plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-plan.html` に Write する
+   - **`artifact` の場合**: 外側のシェルタグ（`<!doctype html>` `<html>` `<head>` `</head>` `<body>` `</body>` `</html>`）を取り除き、
+     `<title>`・`<style>`・body 内容・スクリプトを残した形で
+     `.plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-plan.html` に Write し、
+     Artifact ツールで公開する（Artifact 側がシェルを付与するため。favicon は `📝`）
 
 > **config の `output-formats` に関わらず常に `.html`**（本質的にインタラクティブなレビューUIのため）。
 
@@ -859,12 +858,12 @@ HTML を生成せず、`references/quiz-design.md` の「対話モード（quiz-
 
 ### 6.7-4. ユーザーへの提示
 
-- `{QUIZ_OUTPUT}` が `file` の場合: `implementation-review.html` のファイルパス
-  （例: `open .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-review.html`）
+- `{QUIZ_OUTPUT}` が `file` の場合: `understanding-quiz-plan.html` のファイルパス
+  （例: `open .plugin-workspace/.specs/{nnn}-{feature-name}/understanding-quiz-plan.html`）
 - `{QUIZ_OUTPUT}` が `artifact` の場合: Artifact の URL
 - `{QUIZ_OUTPUT}` が `interactive` の場合: 6.7-3b の結果（スコア・合否・読み直し箇所）を提示済みのため、
   ファイル・URL の案内は不要
-- 「実装前レビュー（解説+クイズ）を生成しました。実装を始める前に、解説を読んで設計意図を確認してください。」（file / artifact の場合）
+- 「実装前の理解度クイズを生成しました。実装を始める前に、開いて設計意図を確認してください。」（file / artifact の場合）
 - 「これは advisory ゲートです。落ちた設問がある＝設計がまだ固まっていない箇所なので、
   その論点を計画・要件で詰め直してから実装に進むことをおすすめします。」
 

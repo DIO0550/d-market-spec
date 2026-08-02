@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>レビュー — {機能名}</title>
+<title>実装後レビュー — {機能名}</title>
 <style>
 :root {
   --bg: oklch(0.985 0.003 255);
@@ -244,7 +244,7 @@ button { font-family: inherit; }
 <div class="wrap">
   <header class="top">
     <div class="top-row">
-      <span class="kind" id="kind-badge"></span>
+      <span class="kind">実装後レビュー · push 前ゲート</span>
       <span class="top-sub">advisory / 自己申告</span>
       <div class="tabs">
         <button class="tab active" id="tab-explain">解説</button>
@@ -262,7 +262,7 @@ button { font-family: inherit; }
         <div class="cta">
           <div>
             <div class="cta-title">読み終えたら、理解できているか確かめる</div>
-            <div class="cta-sub" id="cta-sub"></div>
+            <div class="cta-sub">各設問は回答した時点で正誤と解説が出て、答えは変更できません。落ちた設問がある間は push しないでください。</div>
           </div>
           <button id="cta-quiz">クイズへ進む</button>
         </div>
@@ -289,14 +289,10 @@ button { font-family: inherit; }
 <script>
 /*
  * ============================================================================
- *  レビュー生成へ（plan: spec-driven-dev 系 / impl: spec-implement）:
- *  この DATA だけを実データで置き換えること。
+ *  spec-implement のレビュー生成へ: この DATA だけを実データで置き換えること。
  *  CSS・レンダラは触らない。文字列はプレーンテキスト（HTMLタグ不可）。
  *
- *  DATA.meta      : {title, mode, passLine?(0〜1。既定 0.8)}
- *    mode: "plan"(計画フェーズ: spec-driven-dev 系が生成。設計判断・データフローを解説し
- *          設計意図を問う) | "impl"(実装フェーズ: spec-implement が同じファイルを実データで
- *          再生成。実際の変更を解説し挙動を問う)。バッジ・文言が切り替わる
+ *  DATA.meta      : {title, passLine?(0〜1。既定 0.8)}
  *  DATA.explain.sections[] : {title, lead(1文の要約), paras[](散文), points[],
  *                             refs[]("file:line"), flow[](どういう処理にしたかの手順),
  *                             code?: {file, caption?, lines[]}, decisions[]}
@@ -317,7 +313,7 @@ button { font-family: inherit; }
  * ============================================================================
  */
 const DATA = {
-  meta: { title: "{機能名}", mode: "impl", passLine: 0.8 },
+  meta: { title: "{機能名}", passLine: 0.8 },
   explain: {
     sections: [
       {
@@ -386,20 +382,6 @@ const DATA = {
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const TYPE_LABEL = { choice: "4択", boolean: "YES / NO", order: "並べ替え" };
   const passLine = DATA.meta.passLine == null ? 0.8 : DATA.meta.passLine;
-  const PLAN = DATA.meta.mode === "plan";
-  const T = PLAN ? {
-    kind: "実装前レビュー · plan → impl ゲート",
-    titlePrefix: "実装前レビュー — ",
-    ctaSub: "各設問は回答した時点で正誤と解説が出て、答えは変更できません。落ちた設問がある間は実装を始めないでください。",
-    pass: " — 設計の意図を自分の言葉で説明できています。実装に進んでよいでしょう。",
-    fail: " — 赤い設問は設計がまだ固まっていない箇所です。実装を始める前に、解説と計画・要件でその論点を詰め直してください。",
-  } : {
-    kind: "実装後レビュー · push 前ゲート",
-    titlePrefix: "実装後レビュー — ",
-    ctaSub: "各設問は回答した時点で正誤と解説が出て、答えは変更できません。落ちた設問がある間は push しないでください。",
-    pass: " — 変更の実際の挙動を理解できています。push / merge に進んでよいでしょう。",
-    fail: " — 赤い設問は理解できていない変更です。push する前に、その箇所の diff と解説・implementation-notes を読み直してください。",
-  };
 
   const Q = [];
   DATA.quiz.sections.forEach((sec) => sec.questions.forEach((q) => Q.push(q)));
@@ -656,8 +638,8 @@ const DATA = {
     const v = document.getElementById("verdict");
     v.className = "verdict show " + (pass ? "pass" : "fail");
     v.innerHTML = pass
-      ? `<b>合格 (${Math.round(ratio * 100)}%)</b>` + T.pass
-      : `<b>不合格 (${Math.round(ratio * 100)}% / 合格ライン ${Math.round(passLine * 100)}%)</b>` + T.fail;
+      ? `<b>合格 (${Math.round(ratio * 100)}%)</b> — 変更の実際の挙動を理解できています。push / merge に進んでよいでしょう。`
+      : `<b>不合格 (${Math.round(ratio * 100)}% / 合格ライン ${Math.round(passLine * 100)}%)</b> — 赤い設問は理解できていない変更です。push する前に、その箇所の diff と解説・implementation-notes を読み直してください。`;
     v.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
@@ -671,9 +653,7 @@ const DATA = {
   });
 
   document.getElementById("page-title").textContent = DATA.meta.title;
-  document.getElementById("kind-badge").textContent = T.kind;
-  document.getElementById("cta-sub").textContent = T.ctaSub;
-  document.title = T.titlePrefix + DATA.meta.title;
+  document.title = "実装後レビュー — " + DATA.meta.title;
   initOrders();
   renderExplain();
   renderQuiz();
