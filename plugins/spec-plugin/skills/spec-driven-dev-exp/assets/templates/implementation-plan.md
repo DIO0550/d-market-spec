@@ -115,12 +115,6 @@ UI Update
 
 ## 検証計画
 
-### テスト戦略
-
-**機能タイプ**: {Pure Logic / API Integration / Data Transformation / State Management / UI Component / Async Operations / Security/Auth / Configuration / DOM Manipulation}
-**テスト方針**: {TDD / テスト追加 / 手動検証のみ}
-**根拠**: {なぜこのテスト方針を選択したか — 1-2文}
-
 ### 自動テスト
 
 <!-- テスト方針が「TDD」または「テスト追加」の場合に記載。テストファイルごとにセクションを作成し、各ファイルの役割とテストTODOリストを記載する -->
