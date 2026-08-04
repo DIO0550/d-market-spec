@@ -54,6 +54,7 @@ Claude Code でこのリポジトリを Marketplace として追加し、プラ�
 |--------|------|
 | `spec-implement` | tasks.md の未完了タスクを順次実装。完了後にオプションでコードレビュー |
 | `spec-implement-exp` | 実験的なトークン節約版。サブエージェント・TaskCreate・AIレビューなしで tasks.md だけで進捗管理 |
+| `spec-decompose` | 実装計画をローカルLLM（OpenCode等）向けの自己完結マイクロタスク群に分割 |
 
 ### セットアップ・Issue 連携
 
