@@ -54,7 +54,7 @@ plugins/spec-based-code-review-plugin/
 - `--review claude-code` — Claude Code CLI
 - (未指定) — ワークフロー内で AskUserQuestion により選択
 
-対象スキル: `spec-driven-dev`, `spec-implement`, `spec-implement-auto`
+対象スキル: `spec-driven-dev`, `spec-implement`
 
 構造的に異なるバリアント（`-lite`）は独立スキルとして維持。HTML 出力は `spec-setup` の `output-formats` 設定でベーススキルが対応する（独立した `-html` スキルは廃止済み）。
 

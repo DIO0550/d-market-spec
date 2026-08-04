@@ -45,6 +45,7 @@ Claude Code でこのリポジトリを Marketplace として追加し、プラ�
 |--------|------|
 | `spec-driven-dev` | 標準ワークフロー。ヒアリング → コード探索 → 計画生成 → オプションでAIレビュー |
 | `spec-driven-dev-lite` | 軽量版。サブエージェントを使わずオーケストレーターが直接計画を生成し、トークン消費を削減 |
+| `spec-driven-dev-exp` | 実験版。テンプレート駆動でトークン消費を抑え、解説+クイズのタブHTMLまで生成 |
 | `spec-driven-fix-review` | spec-viewer のレビューコメントを implementation-plan.md と tasks.md に反映 |
 
 ### 実装
@@ -52,7 +53,7 @@ Claude Code でこのリポジトリを Marketplace として追加し、プラ�
 | スキル | 説明 |
 |--------|------|
 | `spec-implement` | tasks.md の未完了タスクを順次実装。完了後にオプションでコードレビュー |
-| `spec-implement-auto` | 自動コンテキスト注入版。計画・進捗をシェルで強制読み込みし、タスク単位でコミット |
+| `spec-implement-exp` | 実験的なトークン節約版。サブエージェント・TaskCreate・AIレビューなしで tasks.md だけで進捗管理 |
 
 ### セットアップ・Issue 連携
 
@@ -63,7 +64,7 @@ Claude Code でこのリポジトリを Marketplace として追加し、プラ�
 
 ### レビューツール指定
 
-レビューツール（Codex / GitHub Copilot / Claude Code CLI）は独立したスキルではなく、ベーススキル（`spec-driven-dev`, `spec-implement`, `spec-implement-auto`）にパラメータとして統合されている:
+レビューツール（Codex / GitHub Copilot / Claude Code CLI）は独立したスキルではなく、ベーススキル（`spec-driven-dev`, `spec-implement`）にパラメータとして統合されている:
 
 - `--review codex` — Codex CLI
 - `--review copilot` — GitHub Copilot CLI

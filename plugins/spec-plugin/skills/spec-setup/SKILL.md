@@ -177,6 +177,6 @@ skip-files:
 
 設定内容をユーザーに提示し、以下を案内:
 
-- この設定は `/spec-driven-dev`, `/spec-implement`, `/spec-implement-auto` で自動適用される
+- この設定は `/spec-driven-dev`, `/spec-implement` で自動適用される
 - `--review` 引数で個別にオーバーライド可能
 - 設定を変更したい場合は `/spec-setup` を再実行
