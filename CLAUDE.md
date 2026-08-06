@@ -58,7 +58,7 @@ plugins/spec-based-code-review-plugin/
 
 対象スキル: `spec-driven-dev`, `spec-implement`
 
-同様に、GitHub Issue への自動追記（`issue-update`）の `ai` モードもこの2スキルに統合されている。`hook` モードはファイル更新を起点に動くため、どのスキルで実装しても動作する。
+同様に、GitHub Issue への自動追記（`issue-update`）の `ai` モードは、この2スキルと exp 版（`spec-driven-dev-exp` / `spec-implement-exp`）に統合されている。`hook` モードはファイル更新を起点に動くため、どのスキルで実装しても動作する。
 
 構造的に異なるバリアント（`-lite`）は独立スキルとして維持。HTML 出力は `spec-setup` の `output-formats` 設定でベーススキルが対応する（独立した `-html` スキルは廃止済み）。
 

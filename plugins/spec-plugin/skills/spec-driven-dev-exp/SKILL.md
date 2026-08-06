@@ -2,7 +2,7 @@
 name: spec-driven-dev-exp
 description: "軽量な仕様駆動開発ワークフロー。ヒアリング→探索→requirements→実装計画→解説+クイズのタブHTML生成。「exp」「軽量スペック」「トークン節約で計画」などでトリガー。フル機能版は spec-driven-dev。"
 disable-model-invocation: true
-allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(cp *)
+allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(cp *), Bash(command -v gh), Bash(gh issue comment *)
 ---
 
 # Spec-Driven Dev Exp
@@ -25,6 +25,20 @@ exp で `.config.yml` の `output-formats` を参照するのは **tech-referenc
 | requirements | 常に `.md` | `guard-requirements.sh` のパース対象 |
 | hearing-notes / exploration-report | 常に `.md` | 中間成果物。exp では軽量さを優先 |
 | test-cases / understanding-quiz-plan | 常に `.html` | 本質的にHTMLレビューUIで `.md` 相当が無い |
+
+## Issue 追記（issue-update）
+
+`.config.yml` の `issue-update`（`none`（既定）/ `hook` / `ai`）を読み、`{ISSUE_UPDATE}` として参照する。
+
+| 値 | 動作 |
+|---|---|
+| `none` | 何もしない |
+| `hook` | このスキルは何もしない。実装フェーズ（ガード解除後）の tasks / implementation-plan 更新を `issue-sync.sh` が検知して進捗コメントを機械的に更新する |
+| `ai` | Step 12 で計画サマリのコメントを投稿する |
+
+`none` 以外の場合のみ、追記先の Issue 番号 `{ISSUE_NUMBER}` を確定する（依頼文中の `#123` → 無ければ AskUserQuestion で確認。「Issue と紐づけない」を選べるようにする。紐づけない場合は空）。
+
+追記先は implementation-plan ヘッダの `**関連Issue**: #{番号}`（Step 5 で記載）で決まる。記載がなければ `hook` / `ai` とも追記されない。
 
 ## Step 1: specフォルダ作成
 
@@ -68,6 +82,7 @@ AskUserQuestion **1バッチ（最大4問）** で聴取し、テンプレート
 テンプレート `assets/templates/implementation-plan.md` / `assets/templates/tasks.md` を埋めて、オーケストレーター自身が `{dir}/implementation-plan.md` と `{dir}/tasks.md` を生成する。形式はフックが機械検証する（リマインドが出たら修正）。
 
 守ること:
+- `{ISSUE_NUMBER}` が確定していればヘッダに `**関連Issue**: #{ISSUE_NUMBER}` を記載する（未確定ならテンプレートの該当行を削除する）
 - 冒頭の **概要 / 背景 / 設計判断（ADR）** は重要セクション。設計判断には採用した理由と、検討して不採用にした案の理由を書く
 - **コードブロック内で実装を `...` や「省略」「TODO」コメントで端折らない**。骨格（シグネチャ・分岐・主要ロジック）まで書く
 - 検証計画はテスト構成と実行コマンドまで（詳細なテストケース設計はしない）
@@ -142,7 +157,17 @@ cp "${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/assets/templates/tech-refer
 3. Edit で `<title>` の `{機能名}` と DATA スクリプト（`const PAGE`）を実データに置き換える。解説・クイズの書き方（構成・問数・出題方針）はテンプレート先頭のコメントに従う
 4. 出力後、パスを提示し「push 前に開いて設計理解を確認してください（advisory ゲート。落ちた設問＝設計が固まっていない箇所）」と案内する
 
-## Step 12: 実装開始（ガード解除案内）
+## Step 12: Issue へ計画サマリを追記
+
+`{ISSUE_UPDATE}` が `ai` の場合のみ実行する（`none` / `hook` は何もしない）。`{ISSUE_NUMBER}` が空、または `gh` が使えない場合はスキップし、理由を1行報告する。
+
+1. `{dir}/plan-comment.md` を書く（100行以内。コードブロックと図は貼らず、詳細は spec フォルダを参照させる）:
+   - 1行目にマーカー `<!-- spec-plugin:issue-update:{nnn}-{feature-name}:plan -->`
+   - `## 📋 実装計画: {タイトル}` / 背景1-2文 / 設計判断（ADR）の要約 / 変更対象ファイル（`[NEW]`・`[MODIFY]` とパス）/ タスク一覧（`- [ ]`）/ 確認してほしい点（無ければ省く）
+2. `gh issue comment {ISSUE_NUMBER} --body-file {dir}/plan-comment.md`
+3. 投稿した URL を Step 13 の案内と併せて提示する。投稿に失敗しても計画自体は完了しているため、失敗した旨とコマンドを伝えてワークフローは止めない
+
+## Step 13: 実装開始（ガード解除案内）
 
 ```
 実装を開始するには、以下のコマンドを実行してください:
@@ -164,5 +189,6 @@ rm .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID} .plugin-workspace/.specs
 ├── tasks.md
 ├── test-cases.html              # テスト網羅性レビュー用（手動検証のみの場合は無し）
 ├── tech-reference.md/.html      # 技術リファレンス（初学者向け。output-formats.tech-reference に従う）
-└── understanding-quiz-plan.html # 解説+クイズ（タブ切替）
+├── understanding-quiz-plan.html # 解説+クイズ（タブ切替）
+└── plan-comment.md              # Issue 追記用の計画サマリ（issue-update: ai のときのみ）
 ```

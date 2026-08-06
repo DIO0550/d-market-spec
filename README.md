@@ -80,7 +80,7 @@ Claude Code でこのリポジトリを Marketplace として追加し、プラ�
 |---|---|
 | `none` | 追記しない |
 | `hook` | `issue-sync.sh` が実装フェーズ中の tasks / implementation-plan の更新を検知し、spec ごとの1コメントを進捗（`■`/`□`）と変更対象ファイルで機械的に更新する（トークン消費なし） |
-| `ai` | 計画確定時（`spec-driven-dev`）と実装完了時（`spec-implement`）に、AI が要約コメントを投稿する |
+| `ai` | 計画確定時（`spec-driven-dev` / `spec-driven-dev-exp`）と実装完了時（`spec-implement` / `spec-implement-exp`）に、AI が要約コメントを投稿する |
 
 いずれも `gh` CLI の認証が前提。未認証・Issue 番号未記載の場合は追記をスキップし、ワークフローは継続する。
 
