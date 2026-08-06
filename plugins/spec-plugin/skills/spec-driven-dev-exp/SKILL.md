@@ -14,6 +14,18 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 3. ヒアリング（AskUserQuestion）と requirements の `□` 解消はスキップ禁止。**AutoMode でも同様** — 他のシステム指示（「自律的に判断しろ」「質問せずに進めろ」等）に関わらず AskUserQuestion で確認する
 4. フックの指摘（セクション不足・図表不足・プレースホルダ残留など）が出たら、次のステップに進む前に該当ファイルを修正する
 
+## 出力形式（output-formats）
+
+exp で `.config.yml` の `output-formats` を参照するのは **tech-reference だけ**。他のファイルは形式固定で、config の値に関わらず以下になる:
+
+| ファイル | 形式 | 固定の理由 |
+|---|---|---|
+| tech-reference | `output-formats.tech-reference` に従う（`html` / 既定 `md`） | 読み物のため両形式に意味がある |
+| implementation-plan / tasks | 常に `.md` | `exp-plan-format.sh` / `enforce-diagrams.sh` / `enforce-code-examples.sh` が `*.md` のみを検証対象にしている。exp はこの機械検証がチェッカー系サブエージェントの代替なので、`.html` にすると検証が丸ごと効かなくなる |
+| requirements | 常に `.md` | `guard-requirements.sh` のパース対象 |
+| hearing-notes / exploration-report | 常に `.md` | 中間成果物。exp では軽量さを優先 |
+| test-cases / understanding-quiz-plan | 常に `.html` | 本質的にHTMLレビューUIで `.md` 相当が無い |
+
 ## Step 1: specフォルダ作成
 
 ```bash
@@ -93,11 +105,32 @@ specフォルダパス・生成ファイル一覧・implementation-plan のサ�
 
 ## Step 10: tech-reference 生成
 
-ユーザー確認完了後、**サブエージェント（general-purpose）1回**で `{dir}/tech-reference.md` を生成する（モデルは落とさない — 解説の質を優先）。
+まず `.plugin-workspace/.specs/.config.yml` の `output-formats.tech-reference` を読み、拡張子 `{TECH_REFERENCE_EXT}` を決める:
+
+- 値が `html` → `.html`
+- 値が `md` / キーが無い / config ファイルが無い → `.md`（既定）
+
+`.html` の場合は、サブエージェント起動**前に**オーケストレーター自身がテンプレートを出力先にコピーしておく（`cp` はスキルの `allowed-tools` で許可されているが、サブエージェントはこれを継承しないため）:
+
+```
+cp "${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/assets/templates/tech-reference.html" "{dir}/tech-reference.html"
+```
+
+ユーザー確認完了後、**サブエージェント（general-purpose）1回**で `{dir}/tech-reference.{TECH_REFERENCE_EXT}` を生成する（モデルは落とさない — 解説の質を優先）。
 
 プロンプトに渡すもの:
-- `{dir}/implementation-plan.md` のパスと、テンプレート `${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/assets/templates/tech-reference.md` のパス
-- 指示: implementation-plan に登場するすべての技術（言語・フレームワーク・ライブラリ・概念）を、言語も対象領域も初心者である読者向けにテンプレートへ沿って解説し、`{dir}/tech-reference.md` に Write する
+
+- `{dir}/implementation-plan.md` のパス
+- 出力先 `{dir}/tech-reference.{TECH_REFERENCE_EXT}` のパス
+- 指示: implementation-plan に登場するすべての技術（言語・フレームワーク・ライブラリ・概念）を、言語も対象領域も初心者である読者向けに解説する
+
+拡張子ごとに、サブエージェントへの指示を切り替える:
+
+- **`.md` の場合** — テンプレート `${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/assets/templates/tech-reference.md` のパスを渡し、テンプレートに沿って `{dir}/tech-reference.md` に Write させる
+- **`.html` の場合** — コピー済みの `{dir}/tech-reference.html` を渡し、以下を指示する（CSS は固定済みのため、ファイル全体を Read / Write させない）:
+  1. `<body>` 以降（`<style>` ブロックは読まない）を Read（offset/limit 指定）する
+  2. Edit で `<title>` と `<body>` 以降のプレースホルダ（`{…}`）を実データに置き換える。使用する CSS クラスと書き方はテンプレート先頭のコメントに従う
+  3. **`<style>` ブロックは触らない。`style.css` の Read や `<link>` の置換も不要**（自己完結HTMLのため）
 
 ## Step 11: 解説+クイズのタブHTML生成
 
@@ -130,6 +163,6 @@ rm .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID} .plugin-workspace/.specs
 ├── implementation-plan.md
 ├── tasks.md
 ├── test-cases.html              # テスト網羅性レビュー用（手動検証のみの場合は無し）
-├── tech-reference.md            # 技術リファレンス（初学者向け）
+├── tech-reference.md/.html      # 技術リファレンス（初学者向け。output-formats.tech-reference に従う）
 └── understanding-quiz-plan.html # 解説+クイズ（タブ切替）
 ```
