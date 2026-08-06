@@ -10,7 +10,7 @@ Claude Code 向けの**仕様駆動開発（Spec-Driven Development）プラグ�
 - **テスト戦略の自動分類** — Pure Logic / API Integration / UI Component 等のパターンに応じて TDD 適用を判断
 - **フェーズ分離** — ガードファイル（`.guard/{SESSION_ID}`）とガードフックにより、計画フェーズ中の実装（`.plugin-workspace/.specs/` 外への書き込み）をブロック。`PLANNING` ファイルはフェーズマーカーとして警告表示・アーカイブ判定に使用
 - **マルチレビュー対応** — Codex / GitHub Copilot / Claude Code によるレビューループ（最大5回）
-- **GitHub Issue 連携** — 実装計画から Epic + 子 Issue を自動生成
+- **GitHub Issue 連携** — 実装計画から Epic + 子 Issue を自動生成。実装フェーズの計画内容・進捗を紐づく Issue へ自動追記（`issue-update`）
 
 ## ワークフロー
 
@@ -60,7 +60,7 @@ Claude Code でこのリポジトリを Marketplace として追加し、プラ�
 
 | スキル | 説明 |
 |--------|------|
-| `spec-setup` | ワークスペース初期化とデフォルト設定（レビューツール・出力形式） |
+| `spec-setup` | ワークスペース初期化とデフォルト設定（レビューツール・出力形式・Issue 自動追記） |
 | `plan-to-issues` | 実装計画を GitHub Issues（Epic + 子Issue）に変換 |
 
 ### レビューツール指定
@@ -71,6 +71,18 @@ Claude Code でこのリポジトリを Marketplace として追加し、プラ�
 - `--review copilot` — GitHub Copilot CLI
 - `--review claude-code` — Claude Code CLI
 - (未指定) — ワークフロー内で AskUserQuestion により選択
+
+### GitHub Issue への自動追記（issue-update）
+
+`/spec-setup` の `issue-update` 設定で、実装内容を紐づく GitHub Issue（implementation-plan の `**関連Issue**: #{番号}`）へ自動追記できる。**デフォルトは `none`（追記しない）**。
+
+| 値 | 動作 |
+|---|---|
+| `none` | 追記しない |
+| `hook` | `issue-sync.sh` が実装フェーズ中の tasks / implementation-plan の更新を検知し、spec ごとの1コメントを進捗（`■`/`□`）と変更対象ファイルで機械的に更新する（トークン消費なし） |
+| `ai` | 計画確定時（`spec-driven-dev`）と実装完了時（`spec-implement`）に、AI が要約コメントを投稿する |
+
+いずれも `gh` CLI の認証が前提。未認証・Issue 番号未記載の場合は追記をスキップし、ワークフローは継続する。
 
 ## エージェント
 
@@ -109,6 +121,7 @@ Claude Code でこのリポジトリを Marketplace として追加し、プラ�
 | `auto-allow-spec-commands.sh` | PreToolUse | spec 関連コマンドの自動許可（未許可コマンドはAIに通知） |
 | `enforce-diagrams.sh` | PostToolUse | 実装計画・設計書にシステム図が含まれているか検証し、不足があればリマインド |
 | `enforce-code-examples.sh` | PostToolUse | 実装計画にコードブロック（型定義・使用例等）が含まれているか検証し、不足があればリマインド |
+| `issue-sync.sh` | PostToolUse | `issue-update: hook` のとき、実装フェーズの tasks / implementation-plan 更新を紐づく GitHub Issue のコメントへ反映 |
 | `session-phase-name.sh` | UserPromptSubmit | `/spec-driven-dev`・`/spec-implement` の起動を検出しセッションタイトルを設定 |
 | PreCompact | PreCompact | 計画中のコンテキスト圧縮時に実装禁止を警告 |
 | Stop | Stop | PLANNING ファイルのない spec を自動アーカイブ |
@@ -125,7 +138,9 @@ Claude Code でこのリポジトリを Marketplace として追加し、プラ�
 │   ├── tasks.md                    # タスクリスト（□/■）
 │   ├── code-review/                # コードレビュー成果物
 │   └── plan-review/                # 計画レビュー成果物
+├── .config.yml                     # spec-setup の設定（レビューツール・出力形式・issue-update 等）
 ├── .guard/                         # セッション保護
+├── .issue-sync/                    # Issue 追記の状態（コメントID・前回本文のハッシュ）
 └── archive/                        # 完了済み spec
 ```
 

@@ -15,6 +15,7 @@ plugins/spec-plugin/
 │   ├── auto-allow-spec-commands.sh
 │   ├── enforce-diagrams.sh       # システム図の検証・リマインド
 │   ├── enforce-code-examples.sh  # コード例の検証・リマインド
+│   ├── issue-sync.sh             # 実装進捗のGitHub Issue自動追記
 │   └── session-phase-name.sh     # セッションタイトルの自動設定
 ├── agents/                       # エージェント定義（.md）
 ├── skills/                       # スキル定義（各 SKILL.md + テンプレート + 参照資料）
@@ -43,6 +44,7 @@ plugins/spec-based-code-review-plugin/
 - **システム図の検証**: `enforce-diagrams.sh` が実装計画・設計書に状態遷移図とデータフロー図が含まれているかを検証し、不足があればリマインドを出す（ブロックはしない）
 - **EXPERIMENTマーカー**: `.plugin-workspace/.specs/{nnn}-{feature}/EXPERIMENT` は実験スキル `spec-driven-dev-exp` が作成するマーカー。存在するフォルダのみ `exp-plan-format.sh` フックが implementation-plan / tasks のフォーマット（必須セクション・プレースホルダ残留・コードブロック有無）を機械検証してリマインドする（チェッカー系サブエージェントの代替）
 - **タスク進捗**: `tasks.md` 内の `□`（未完了）/ `■`（完了）で進捗を管理する
+- **Issue自動追記**: `spec-setup` の `issue-update` 設定（`none`（デフォルト）/ `hook` / `ai`）で、実装内容を紐づく GitHub Issue へ追記する。`hook` は `issue-sync.sh` が実装フェーズ中の tasks / implementation-plan の更新を検知し、spec フォルダごとに1件のコメントを機械的に更新する（計画フェーズ＝ガードファイル存在中は投稿しない）。`ai` はスキルが節目（`spec-driven-dev` の計画確定時 / `spec-implement` の実装完了時）に要約コメントを投稿する。追記先は implementation-plan の `**関連Issue**: #{番号}` で決まる
 - **自動アーカイブ**: セッション終了時、PLANNINGファイルのない spec フォルダは `.plugin-workspace/.specs/archive/` に移動される
 
 ## レビューツール統合
@@ -55,6 +57,8 @@ plugins/spec-based-code-review-plugin/
 - (未指定) — ワークフロー内で AskUserQuestion により選択
 
 対象スキル: `spec-driven-dev`, `spec-implement`
+
+同様に、GitHub Issue への自動追記（`issue-update`）の `ai` モードもこの2スキルに統合されている。`hook` モードはファイル更新を起点に動くため、どのスキルで実装しても動作する。
 
 構造的に異なるバリアント（`-lite`）は独立スキルとして維持。HTML 出力は `spec-setup` の `output-formats` 設定でベーススキルが対応する（独立した `-html` スキルは廃止済み）。
 

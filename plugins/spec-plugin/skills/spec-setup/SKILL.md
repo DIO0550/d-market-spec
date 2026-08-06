@@ -1,6 +1,6 @@
 ---
 name: spec-setup
-description: spec-pluginのワークスペース初期化と設定を行う。.plugin-workspace/.specs/ディレクトリの作成、デフォルトのレビューツール設定、ファイルごとの出力形式設定(.config.yml)を対話的にセットアップする。「spec setup」「spec初期化」「specセットアップ」「レビューツール設定」「デフォルトレビュー変更」「spec config」「出力形式変更」などでトリガー。設定ファイルにより各スキル実行時のAskUserQuestion問い合わせを省略できる。
+description: spec-pluginのワークスペース初期化と設定を行う。.plugin-workspace/.specs/ディレクトリの作成、デフォルトのレビューツール設定、ファイルごとの出力形式設定、GitHub Issueへの進捗自動追記設定(.config.yml)を対話的にセットアップする。「spec setup」「spec初期化」「specセットアップ」「レビューツール設定」「デフォルトレビュー変更」「spec config」「出力形式変更」「Issue追記設定」などでトリガー。設定ファイルにより各スキル実行時のAskUserQuestion問い合わせを省略できる。
 allowed-tools: Bash(ls *), Bash(mkdir *), Write
 ---
 
@@ -28,6 +28,7 @@ spec-plugin のワークスペース初期化と設定を行うスキル。
 | `skip-files` | リスト | 生成をスキップするファイル（例: `[tech-reference, test-cases, understanding-quiz]`）。`test-cases` は spec-driven-dev で有効。`understanding-quiz` は spec-driven-dev（実装前クイズ）と spec-implement（実装後クイズ）で有効 |
 | `quiz-output.plan` | `file` / `artifact` / `interactive` | 実装前クイズ（understanding-quiz-plan）の出力先。`file` = specフォルダにHTMLファイル、`artifact` = Artifact ツールで公開、`interactive` = HTMLを生成せずセッション内で AskUserQuestion により1問ずつ対話出題。**未設定時のデフォルト: `file`** |
 | `quiz-output.impl` | `file` / `artifact` / `interactive` | 実装後レビュー（implementation-review）の出力先。値の意味は plan と同じ。**未設定時のデフォルト: `artifact`** |
+| `issue-update` | `none` / `hook` / `ai` | 実装内容を紐づく GitHub Issue へ自動追記するモード。`hook` = `issue-sync.sh` が tasks / implementation-plan の更新を検知して進捗コメントを機械的に更新、`ai` = スキルが節目（計画確定時・実装完了時）に要約コメントを投稿、`none` = 追記しない。**未設定時のデフォルト: `none`** |
 
 ## ワークフロー
 
@@ -139,6 +140,34 @@ options:
 選択結果から `quiz-output` マップを構築する:
 - 「ファイル」 → `file` / 「アーティファクト」 → `artifact` / 「対話モード」 → `interactive`
 
+### Step 3.9: GitHub Issue への自動追記モードの選択
+
+AskUserQuestion で、実装内容を紐づく GitHub Issue へ自動追記するかを選択させる。
+
+既存の `.config.yml` に `issue-update` が設定済みの場合は、現在の設定を表示してから質問する。
+
+```
+question: "実装内容を、紐づく GitHub Issue に自動追記しますか？（対象は implementation-plan に **関連Issue**: #123 がある spec のみ）"
+header: "Issue追記"
+multiSelect: false
+options:
+  - label: "追記しない (Recommended)"
+    description: "GitHub Issue へは何も投稿しない（未設定時のデフォルト）"
+  - label: "フック（進捗コメント自動更新）"
+    description: "実装フェーズ中に tasks / implementation-plan が更新されるたび、issue-sync.sh が Issue 上の1件のコメントを進捗（■/□）と変更対象ファイルで機械的に更新する。トークン消費なし・gh CLI の認証が必要"
+  - label: "AI（節目ごとに要約を投稿）"
+    description: "計画確定時（spec-driven-dev）と実装完了時（spec-implement）に、AI が要約コメントを Issue に投稿する。内容は柔軟だがトークンを消費する"
+```
+
+選択結果を `issue-update` に設定する:
+- 「追記しない」 → `none` / 「フック」 → `hook` / 「AI」 → `ai`
+
+`none` 以外を選んだ場合は、以下をユーザーに伝える:
+
+- 追記には `gh` CLI が対象リポジトリに対して認証済みである必要がある（未認証・未インストール時は追記をスキップして処理は継続する）
+- 追記先は implementation-plan の `**関連Issue**: #{番号}` で決まる。記載がない spec は追記対象外
+- `hook` は計画フェーズ（ガードファイルが存在する間）には投稿せず、実装フェーズの更新のみを反映する
+
 ### Step 4: 設定ファイルの書き出し
 
 Write ツールで `.plugin-workspace/.specs/.config.yml` に書き出す:
@@ -164,6 +193,10 @@ quiz-output:
   plan: {file / artifact / interactive}
   impl: {file / artifact / interactive}
 
+# 紐づく GitHub Issue への自動追記
+# none = 追記しない / hook = issue-sync.sh が進捗コメントを機械的に更新 / ai = スキルが節目ごとに要約を投稿
+issue-update: {none / hook / ai}
+
 # 生成をスキップするファイル（Step 3.5 で選択された場合のみ出力）
 # test-cases は spec-driven-dev で有効
 # understanding-quiz は spec-driven-dev（実装前）/ spec-implement（実装後）で有効
@@ -179,4 +212,5 @@ skip-files:
 
 - この設定は `/spec-driven-dev`, `/spec-implement` で自動適用される
 - `--review` 引数で個別にオーバーライド可能
+- `issue-update` が `hook` の場合、実装フェーズでの tasks / implementation-plan の更新を `issue-sync.sh` が検知して Issue コメントを更新する（スキルの実行有無に関わらず動作する）
 - 設定を変更したい場合は `/spec-setup` を再実行

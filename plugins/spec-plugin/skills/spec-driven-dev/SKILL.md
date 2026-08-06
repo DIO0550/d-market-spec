@@ -2,7 +2,7 @@
 name: spec-driven-dev
 description: 新機能の仕様策定から実装計画まで一気通貫で進めるワークフロー。ヒアリング→コード探索→計画生成→オプションでAIレビュー。Codex/Copilot/Claude Code CLIでのレビューオプション付き。「仕様策定」「spec」「実装計画」「レビュー付き」「codexでレビュー」「copilotでレビュー」「claude codeでレビュー」「レビュー省略」などでトリガー。
 disable-model-invocation: true
-allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(codex *), Bash(copilot *), Bash(claude *)
+allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(codex *), Bash(copilot *), Bash(claude *), Bash(command -v gh), Bash(gh issue comment *)
 ---
 
 # Spec-Driven Development
@@ -56,6 +56,8 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 6.5. tech-reference 生成（サブエージェント）→ tech-reference.md
    ↓
 6.7. 実装前理解度クイズ生成 → understanding-quiz-plan.html / Artifact / 対話出題（設計意図の自己確認・advisory）
+   ↓
+6.8. 紐づくGitHub Issueへ計画サマリを追記（issue-update: ai の場合のみ）
    ↓
 7. 実装開始許可後、PLANNINGファイル削除
 ```
@@ -117,6 +119,19 @@ output-formats:
 2. 対応する HTML テンプレート（`assets/templates/{ファイル名}.html`）を Read
 3. テンプレートの `<link rel="stylesheet" href="style.css">` を `<style>{CSS内容}</style>` に置換
 4. プレースホルダを内容で埋めて自己完結型HTMLとして出力
+
+### 0-3. Issue 追記モード解決
+
+`.plugin-workspace/.specs/.config.yml` の `issue-update`（`none` / `hook` / `ai`。**未設定時のデフォルトは `none`**）を読み取り、`{ISSUE_UPDATE}` として参照する。設定は `/spec-setup` で行い、このスキルからは問い合わせない。
+
+`{ISSUE_UPDATE}` が `none` 以外の場合のみ、**追記先の Issue 番号を確定する**:
+
+1. ユーザーの依頼に `#123` 形式の番号があればそれを使う
+2. なければ AskUserQuestion で確認する（選択肢に「Issue と紐づけない」を含める）
+3. 確定した番号は Step 4 で spec-planner に渡し、implementation-plan のヘッダに `**関連Issue**: #{番号}` として記載させる（`hook` / `ai` いずれもこの記載を追記先の決定に使う）
+4. 「紐づけない」場合はヘッダの行を削除させ、以降の追記処理をスキップする
+
+詳細は [references/issue-update.md](references/issue-update.md) を参照。
 
 ## Step 1: specsフォルダ + PLANNINGファイル作成
 
@@ -277,6 +292,16 @@ plan を実装セッションに渡す直前に、**実装者（人間）の設�
 
 **詳細手順は [references/workflow-steps.md](references/workflow-steps.md) の Step 6.7 を参照。**
 
+## Step 6.8: GitHub Issue への計画追記
+
+`{ISSUE_UPDATE}` が `ai` の場合のみ実行する。確定した計画の要約（背景・設計方針・変更対象ファイル・タスク一覧・確認してほしい点）を、Step 0-3 で確定した Issue に `gh issue comment` で投稿する。
+
+- `{ISSUE_UPDATE}` が `none` の場合: 何もしない
+- `{ISSUE_UPDATE}` が `hook` の場合: このステップでは何もしない（実装フェーズに入ってから `issue-sync.sh` が進捗コメントを自動更新する）
+- 関連Issue番号がない、または `gh` CLI が使えない場合: スキップして理由を1行で報告する（ワークフローは止めない）
+
+**本文の構成・投稿コマンド・失敗時の扱いは [references/issue-update.md](references/issue-update.md) を参照。**
+
 ## Step 7: 実装開始（ユーザーによるガード解除）
 
 **詳細は [references/workflow-steps.md](references/workflow-steps.md) のガード解除を参照。**
@@ -301,6 +326,7 @@ plan を実装セッションに渡す直前に、**実装者（人間）の設�
     ├── test-cases.html          # テストケース詳細仕様（網羅性レビュー用、HTML・常に .html）
     ├── tech-reference{EXT}      # 技術リファレンス（初学者向け、サブエージェント生成）
     ├── understanding-quiz-plan.html # 実装前理解度クイズ（設計意図の自己確認、HTML・常に .html。quiz-output.plan: artifact の場合は Artifact 公開、interactive の場合はファイルを作らず対話出題）
+    ├── plan-comment.md          # Issue 追記用の計画サマリ（issue-update: ai の場合のみ）
     └── plan-review/             # AIレビュー結果（レビュー実行時のみ）
         ├── prompt-001.txt
         ├── review-001.md
