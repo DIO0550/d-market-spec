@@ -128,8 +128,8 @@ output-formats:
 
 1. ユーザーの依頼に `#123` 形式の番号があればそれを使う
 2. なければ AskUserQuestion で確認する（選択肢に「Issue と紐づけない」を含める）
-3. 確定した番号は Step 4 で spec-planner に渡し、implementation-plan のヘッダに `**関連Issue**: #{番号}` として記載させる（`hook` / `ai` いずれもこの記載を追記先の決定に使う）
-4. 「紐づけない」場合はヘッダの行を削除させ、以降の追記処理をスキップする
+3. 確定した番号を `{ISSUE_NUMBER}` として Step 4 の spec-planner プロンプトに渡し、implementation-plan のヘッダに `**関連Issue**: #{番号}` として記載させる（`hook` / `ai` いずれもこの記載を追記先の決定に使う）
+4. 「紐づけない」場合は `{ISSUE_NUMBER}` を空とし、ヘッダの行を削除させたうえで以降の追記処理をスキップする
 
 詳細は [references/issue-update.md](references/issue-update.md) を参照。
 

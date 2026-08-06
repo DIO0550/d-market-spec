@@ -17,6 +17,7 @@ set -uo pipefail
 SPEC_BASE=".plugin-workspace/.specs"
 CONFIG_FILE="${SPEC_BASE}/.config.yml"
 STATE_DIR="${SPEC_BASE}/.issue-sync"
+# 1コメントの上限（GitHub は 65536 文字）に収め、Issue が読めなくなるのを防ぐための打ち切り値
 MAX_TASK_LINES=200
 MAX_FILE_LINES=50
 
