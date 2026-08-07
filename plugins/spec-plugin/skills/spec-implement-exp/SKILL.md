@@ -3,7 +3,7 @@ name: spec-implement-exp
 description: "実験的なトークン節約版の実装スキル。spec-driven-dev-exp で作成した計画（実装骨格つき）を前提に、サブエージェント・TaskCreate・AIレビューを使わず tasks.md だけで進捗管理して順次実装する。「実装 exp」「軽量実装」「トークン節約で実装」などでトリガー。フル機能版は spec-implement。"
 disable-model-invocation: true
 argument-hint: "[番号]"
-allowed-tools: Bash(ls *), Bash(cp *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Write, Edit
+allowed-tools: Bash(ls *), Bash(cp *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(command -v gh), Bash(gh issue comment *), Write, Edit
 ---
 
 # Spec Implement Exp
@@ -39,7 +39,7 @@ spec_dir=$(ls -1d .plugin-workspace/.specs/[0-9][0-9][0-9]-* 2>/dev/null | sort 
 `{dir}/implementation-plan.md` と `{dir}/tasks.md` を **各1回** Read する。
 
 - 変更対象ファイル（`[NEW]` `[MODIFY]` `[DELETE]`）・設計判断・検証計画を把握する
-- `**関連Issue**: #{番号}` があれば控え、以降のコミットメッセージに `Refs #{番号}` として含める
+- `**関連Issue**: #{番号}` があれば控え、以降のコミットメッセージに `Refs #{番号}` として含める。Issue 追記（Step 8 / `issue-sync.sh`）の宛先にもこの番号を使う
 - `□` がない場合は「全タスク完了済み」と報告して終了
 
 ## Step 3: 実装開始前確認ゲート
@@ -100,7 +100,23 @@ implementation-plan の "Definition of Done" セクションの各項目を確�
 
 これは advisory ゲート。「push / merge の前にブラウザで開き、落ちた設問＝理解できていない変更を読み直してください」と案内する。
 
-## Step 8: 完了報告
+## Step 8: Issue へ実装サマリを追記
+
+`.config.yml` の `issue-update` を読み、`ai` の場合のみ実行する。
+
+- `none`（既定）— 何もしない
+- `hook` — 何もしない（Step 4 の tasks 更新のたびに `issue-sync.sh` が進捗コメントを更新済み）
+- Step 2 の関連Issue番号がない、または `gh` が使えない場合 — スキップして理由を完了報告に1行含める
+
+`ai` の場合:
+
+1. `{dir}/impl-comment.md` を書く（100行以内。diff は貼らず、変更ファイル名と1行説明にとどめる）:
+   - 1行目にマーカー `<!-- spec-plugin:issue-update:{nnn}-{feature-name}:impl -->`
+   - `## ✅ 実装完了: {タイトル}` / 実装内容1-2文 / 完了したタスク（`- [x]`）/ 変更したファイル / Deviations（無ければ「なし」）/ DoD 充足状況 / 残タスク・ブロッカー（無ければ省く）
+2. `gh issue comment {番号} --body-file {dir}/impl-comment.md`
+3. Issue のクローズはしない。投稿に失敗しても実装は完了しているため、失敗した旨を完了報告に含めてワークフローは止めない
+
+## Step 9: 完了報告
 
 以下を簡潔に報告する:
 
@@ -109,3 +125,4 @@ implementation-plan の "Definition of Done" セクションの各項目を確�
 3. Deviations の有無（implementation-notes.md を作った場合はそのパス）
 4. DoD充足状況（DoDがある場合）
 5. `implementation-review.html` のパス（生成した場合）
+6. Issue へ追記した場合はコメント URL、スキップした場合はその理由（`issue-update` が `ai` のとき）

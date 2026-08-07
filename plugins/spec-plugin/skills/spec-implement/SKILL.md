@@ -3,7 +3,7 @@ name: spec-implement
 description: .plugin-workspace/.specsの実装計画に沿ってタスクを順番に実装する。番号を指定すると該当specを、省略するとarchive外で最も番号が大きいspecを自動選択し、tasks.mdを読み込んで未完了タスクを順次実装していく。全タスク完了後にオプションでCodex/Copilot/Claude Codeによるコードレビューを実行可能。「実装」「implement」「タスク実装」「コードレビュー付き」「codexレビュー」「copilotレビュー」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[番号] [--review codex|copilot|claude-code]"
-allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(mkdir *), Bash(cp *), Bash(sed *), Bash(codex *), Bash(copilot *), Bash(claude *), Write, Edit
+allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(mkdir *), Bash(cp *), Bash(sed *), Bash(codex *), Bash(copilot *), Bash(claude *), Bash(command -v gh), Bash(gh issue comment *), Write, Edit
 ---
 
 # Spec Implement
@@ -17,7 +17,7 @@ allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-wor
 ```
 ユーザーが `/spec-implement {nnn}` または `/spec-implement` を実行
    ↓
-Step 0. レビューツール解決（引数 → .config.yml → 初回のみ AskUserQuestion）
+Step 0. 設定解決（レビューツール: 引数 → .config.yml → 初回のみ AskUserQuestion / Issue追記モード: .config.yml）
    ↓
 Step 1. specフォルダの特定
    （番号指定時: {nnn}-* にマッチするフォルダ / 番号省略時: archive外で最大番号のspecを自動選択）
@@ -41,10 +41,14 @@ Step 7. DoD照合
    ↓
 Step 7.5. 実装後レビュー生成（解説+クイズのタブ切替）→ Artifact（デフォルト）/ implementation-review.html / 対話出題（push 前ゲート・advisory）
    ↓
+Step 7.7. 紐づくGitHub Issueへ実装サマリを追記（issue-update: ai の場合のみ）
+   ↓
 Step 8. 完了報告
 ```
 
-## Step 0: レビューツール解決
+## Step 0: 設定解決（レビューツール + Issue追記モード）
+
+### 0-1. レビューツール解決
 
 ワークフロー開始時に、使用するレビューツールを以下の優先順で決定する:
 
@@ -61,6 +65,16 @@ AskUserQuestion の選択肢:
 **AskUserQuestion で選択された場合、その結果を `.plugin-workspace/.specs/.config.yml` に自動保存する。** 次回以降は問い合わせなしで同じツールが使われる。設定変更は `/spec-setup` で可能。
 
 決定した値を以降のステップで `{REVIEW_TOOL}` として参照する。
+
+### 0-2. Issue 追記モード解決
+
+`.plugin-workspace/.specs/.config.yml` の `issue-update`（`none` / `hook` / `ai`。**未設定時のデフォルトは `none`**）を読み取り、`{ISSUE_UPDATE}` として参照する。設定は `/spec-setup` で行い、このスキルからは問い合わせない。
+
+- `none` — Issue へは何も投稿しない
+- `hook` — このスキルは何もしない。tasks の更新（`□` → `■`）を `issue-sync.sh`（PostToolUse）が検知して Issue 上の進捗コメントを機械的に更新する
+- `ai` — Step 7.7 で実装サマリのコメントを投稿する
+
+詳細は [references/issue-update.md](references/issue-update.md) を参照。
 
 ## Step 1: specフォルダの特定
 
@@ -99,7 +113,7 @@ spec_dir=$(ls -1d .plugin-workspace/.specs/[0-9][0-9][0-9]-* 2>/dev/null | sort 
 
 ### 関連Issue番号の抽出
 
-implementation-plan.md から `**関連Issue**: #{番号}` を読み取り、以降のコミットメッセージに使用する。
+implementation-plan.md から `**関連Issue**: #{番号}` を読み取り、以降のコミットメッセージと Issue 追記（Step 7.7 / `issue-sync.sh`）の宛先に使用する。
 Issue番号が記載されていない場合はスキップする。
 
 ## Step 3: tasks.md の読み込み
@@ -281,6 +295,17 @@ HTML を生成せず、`references/quiz-design.md` の「対話モード（quiz-
 - `{QUIZ_OUTPUT}` が `interactive` の場合: 7.5-3b の結果（スコア・合否・読み直し箇所）を提示済みのため、ファイル・URL の案内は不要
 - 「これは advisory ゲートです。落ちた設問がある＝変更を理解できていない箇所なので、その箇所の diff と implementation-notes を読み直してから push することをおすすめします。」
 
+## Step 7.7: GitHub Issue への実装内容追記
+
+`{ISSUE_UPDATE}` が `ai` の場合のみ実行する。実装結果の要約（完了したタスク・変更したファイル・計画からの逸脱・DoD 充足状況・残タスク）を、Step 2 で抽出した関連Issue番号へ `gh issue comment` で投稿する。
+
+- `{ISSUE_UPDATE}` が `none` の場合: 何もしない
+- `{ISSUE_UPDATE}` が `hook` の場合: このステップでは何もしない（Step 4 の tasks 更新のたびに `issue-sync.sh` が進捗コメントを更新済み）
+- 関連Issue番号がない、または `gh` CLI が使えない場合: スキップして理由を Step 8 の完了報告に1行で含める（ワークフローは止めない）
+- Issue のクローズはしない
+
+**本文の構成・投稿コマンド・失敗時の扱いは [references/issue-update.md](references/issue-update.md) を参照。**
+
 ## Step 8: 完了報告
 
 実装完了後、ユーザーに以下を報告する：
@@ -292,6 +317,7 @@ HTML を生成せず、`references/quiz-design.md` の「対話モード（quiz-
 5. PLANNINGファイルの削除状態
 6. DoD充足状況（DoDがある場合）
 7. 実装後理解度クイズ（Artifact の URL または `implementation-review.html` のパス）と、push 前に確認するよう案内
+8. Issue へ追記した場合はそのコメント URL（`issue-update` が `ai` のとき）、スキップした場合はその理由
 
 ## コミットメッセージのフォーマット
 
