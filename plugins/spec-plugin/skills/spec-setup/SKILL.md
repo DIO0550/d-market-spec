@@ -156,7 +156,7 @@ options:
   - label: "フック（進捗コメント自動更新）"
     description: "実装フェーズ中に tasks / implementation-plan が更新されるたび、issue-sync.sh が Issue 上の1件のコメントを進捗（■/□）と変更対象ファイルで機械的に更新する。トークン消費なし・gh CLI の認証が必要"
   - label: "AI（節目ごとに要約を投稿）"
-    description: "計画確定時（spec-driven-dev / -exp）と実装完了時（spec-implement / -exp）に、AI が要約コメントを Issue に投稿する。内容は柔軟だがトークンを消費する"
+    description: "計画確定時（spec-driven-dev / -exp / -exp-lite）と実装完了時（spec-implement / -exp）に、AI が要約コメントを Issue に投稿する。内容は柔軟だがトークンを消費する"
 ```
 
 選択結果を `issue-update` に設定する:
