@@ -408,18 +408,21 @@ const DATA = {
   // ---- tabs ----
   const tabs = { explain: document.getElementById("tab-explain"), quiz: document.getElementById("tab-quiz") };
   const panes = { explain: document.getElementById("pane-explain"), quiz: document.getElementById("pane-quiz") };
-  function switchTab(name) {
+  function switchTab(name, resetScroll = true) {
     for (const k of Object.keys(tabs)) {
       tabs[k].classList.toggle("active", k === name);
       panes[k].classList.toggle("active", k === name);
     }
+    // タブは独立した文書なので、切り替えたら先頭から読ませる
+    // （前のタブのスクロール位置を引き継ぐと、切替先の途中に着地する）
+    if (resetScroll) window.scrollTo(0, 0);
   }
   tabs.explain.addEventListener("click", () => switchTab("explain"));
   tabs.quiz.addEventListener("click", () => switchTab("quiz"));
   document.getElementById("cta-quiz").addEventListener("click", () => switchTab("quiz"));
 
   function goExplainSection(n) {
-    switchTab("explain");
+    switchTab("explain", false);
     requestAnimationFrame(() => {
       const el = document.getElementById("sec-" + n);
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
