@@ -153,6 +153,37 @@ case "$file_path" in
       missing+=("trace（要件との対応表）がありません。requirements の UC/要件と対応付けてください")
     fi
 
+    # requirements のユースケースが trace[] に現れているか（UC の丸ごとの漏れを検出）
+    # requirements.md は □→■ をユーザーが解消済みの、人間の確認が入った唯一の文書なので
+    # 自己申告物どうしの照合にならない
+    req_file="${dir}/requirements.md"
+    if [ -f "$req_file" ]; then
+      untraced=""
+      while IFS= read -r uc; do
+        [ -n "$uc" ] || continue
+        echo "$scan_content" | grep -q "\"${uc}\"" || untraced="${untraced}${uc} "
+      done < <(grep -oE '^#{2,4}[[:space:]]+UC-[0-9]+' "$req_file" | grep -oE 'UC-[0-9]+' | sort -u)
+      if [ -n "$untraced" ]; then
+        missing+=("requirements のユースケースが trace[] にありません: ${untraced}")
+        missing+=("    未カバーなら status: \"gap\" で明示的に申告してください（黙って落とさない）")
+      fi
+    fi
+
+    # 紐づくケースが1件だけの UC（ハッピーパス1件で ok になっている疑い）— 情報表示のみ
+    single_tc=$(echo "$scan_content" | awk '
+      /id: "UC-[0-9]+"/ && /tcs: \[/ {
+        if (match($0, /id: "UC-[0-9]+"/)) uc = substr($0, RSTART + 5, RLENGTH - 6)
+        if (match($0, /tcs: \[[^]]*\]/)) {
+          arr = substr($0, RSTART + 6, RLENGTH - 7)
+          if (arr != "" && split(arr, parts, ",") == 1) print uc
+        }
+      }' | sort -u | tr '\n' ' ')
+    if [ -n "$single_tc" ]; then
+      echo ""
+      echo "【exp】test-cases: 対応ケースが1件だけのユースケース: ${single_tc}"
+      echo "  正常系1件のみになっていないか確認してください（失敗経路・分岐ごとのケースが要るかもしれません）。"
+    fi
+
     # GAP は正直な申告なので情報表示のみ（ブロック・修正要求はしない）
     gap_count=$(echo "$scan_content" | grep -c 'status: "gap"')
     if [ "$gap_count" -gt 0 ]; then

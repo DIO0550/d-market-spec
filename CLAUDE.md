@@ -42,7 +42,8 @@ plugins/spec-based-code-review-plugin/
 - **PLANNINGファイル**: `.plugin-workspace/.specs/{nnn}-{feature}/PLANNING` が存在する間は計画フェーズ。フェーズマーカーとして使われ、セッション終了時のアーカイブ対象判定（PLANNING がないフォルダのみアーカイブ）に用いられる。実装禁止の強制はガードファイル + `guard-planning-writes.sh` が担う
 - **ガードファイル**: `.plugin-workspace/.specs/.guard/{SESSION_ID}` はdevスキル発火時に `guard-skill-init.sh` フックが自動作成する。存在する間、`guard-planning-writes.sh` がそのセッションでの実装（`.plugin-workspace/.specs/` 外への書き込み）をブロックする。worktree内で起動した場合は worktree 外への書き込みもブロックする
 - **システム図の検証**: `enforce-diagrams.sh` が実装計画・設計書に状態遷移図とデータフロー図が含まれているかを検証し、不足があればリマインドを出す（ブロックはしない）
-- **EXPERIMENTマーカー**: `.plugin-workspace/.specs/{nnn}-{feature}/EXPERIMENT` は実験スキル `spec-driven-dev-exp` が作成するマーカー。存在するフォルダのみ `exp-plan-format.sh` フックが implementation-plan / tasks のフォーマット（必須セクション・プレースホルダ残留・コードブロック有無）を機械検証してリマインドする（チェッカー系サブエージェントの代替）
+- **EXPERIMENTマーカー**: `.plugin-workspace/.specs/{nnn}-{feature}/EXPERIMENT` は実験スキル `spec-driven-dev-exp` / `spec-driven-dev-exp-lite` が作成するマーカー。存在するフォルダのみ `exp-plan-format.sh` フックが implementation-plan / tasks のフォーマット（必須セクション・プレースホルダ残留・コードブロック有無）と test-cases の整合（ケースID重複・cat/prio の値・requirements の UC が `trace[]` にあるか）を機械検証してリマインドする（チェッカー系サブエージェントの代替）
+- **テスト網羅性の検証**: 「ケースが足りているか」はユースケース単位の充足なのでフックでは判定できない。機械検証できるのは UC の丸ごとの漏れまで（requirements.md は `□`→`■` をユーザーが解消済みの、人間の確認が入った唯一の文書なので照合の基準になる）。充足そのものは `spec-driven-dev-exp` が `test-coverage-checker` サブエージェント（sonnet・`tools: Read` のみ・implementation-plan は渡さない）で、`spec-driven-dev-exp-lite` がオーケストレーター直接のセルフチェックで担当する。両者の catch-rate 比較が exp 系の実験項目のひとつ
 - **タスク進捗**: `tasks.md` 内の `□`（未完了）/ `■`（完了）で進捗を管理する
 - **Issue自動追記**: `spec-setup` の `issue-update` 設定（`none`（デフォルト）/ `hook` / `ai`）で、実装内容を紐づく GitHub Issue へ追記する。`hook` は `issue-sync.sh` が実装フェーズ中の tasks / implementation-plan の更新を検知し、spec フォルダごとに1件のコメントを機械的に更新する（計画フェーズ＝ガードファイル存在中は投稿しない）。`ai` はスキルが節目（`spec-driven-dev` の計画確定時 / `spec-implement` の実装完了時）に要約コメントを投稿する。追記先は implementation-plan の `**関連Issue**: #{番号}` で決まる
 - **自動アーカイブ**: セッション終了時、PLANNINGファイルのない spec フォルダは `.plugin-workspace/.specs/archive/` に移動される
@@ -58,9 +59,11 @@ plugins/spec-based-code-review-plugin/
 
 対象スキル: `spec-driven-dev`, `spec-implement`
 
-同様に、GitHub Issue への自動追記（`issue-update`）の `ai` モードは、この2スキルと exp 版（`spec-driven-dev-exp` / `spec-implement-exp`）に統合されている。`hook` モードはファイル更新を起点に動くため、どのスキルで実装しても動作する。
+同様に、GitHub Issue への自動追記（`issue-update`）の `ai` モードは、この2スキルと exp 版（`spec-driven-dev-exp` / `spec-driven-dev-exp-lite` / `spec-implement-exp`）に統合されている。`hook` モードはファイル更新を起点に動くため、どのスキルで実装しても動作する。
 
 構造的に異なるバリアント（`-lite`）は独立スキルとして維持。HTML 出力は `spec-setup` の `output-formats` 設定でベーススキルが対応する（独立した `-html` スキルは廃止済み）。
+
+計画系スキルはコスト順に `spec-driven-dev`（フル） > `spec-driven-dev-exp` > `spec-driven-dev-exp-lite`。exp-lite は exp からコードベース探索（Explore サブエージェント2回）・tech-reference・理解度クイズを落とし、探索をユーザー指定ファイルの直接 Read に置き換えたもの。サブエージェントは `plan-clarity-checker`（haiku）1回だけ。`output-formats` は参照せず全ファイル形式固定。
 
 ## コマンド
 

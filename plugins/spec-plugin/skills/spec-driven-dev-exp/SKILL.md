@@ -113,10 +113,30 @@ implementation-plan が「計画だけ読めば実装内容が一意に伝わる
 1. `cp "${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/assets/templates/test-cases.html" "{dir}/test-cases.html"`
 2. コピー先の先頭部分（`<title>` 〜 `const DATA` の終わり。レンダラ以降は読まない）を Read（offset/limit 指定）する
 3. Edit で `<title>` と DATA スクリプト（スキーマ説明コメントごと）を実データに置き換える。設計方針はテンプレート先頭のコメントに従う。implementation-plan の検証計画と requirements のユースケースは既にコンテキストにあるため、オーケストレーター自身が設計する
+4. 書き終えた DATA スクリプトの**行範囲**（`const DATA = {` の行 〜 閉じ `};` の行）を控える。Step 8.5 でチェッカーに渡す
+
+`references/test-scenarios.md` の機能タイプ別シナリオを見ながら設計すること。**不足の検出より、そもそも不足させない方が安い。**
+
+## Step 8.5: テスト網羅性チェック
+
+Step 8 をスキップした場合（手動検証のみ）はスキップ。
+
+テストケースの不足は「形式」ではなく「ユースケース単位の充足」なので、フックでは検出できない。ここだけサブエージェントを使う。**探索させないことでコストを抑える設計**なので、以下を守ること:
+
+1. Agent tool で `subagent_type: "test-coverage-checker"` を起動する。プロンプトに渡すのは以下**だけ**:
+   - `{dir}/requirements.md` のパス
+   - `{dir}/test-cases.html` のパスと、Step 8-4 で控えた **DATA スクリプトの行範囲**（「offset={開始行}, limit={行数} で Read すること」と明記する）
+   - `${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/references/test-scenarios.md` のパス
+   - **機能タイプ**（test-scenarios.md のタイプ名から選ぶ。複合なら複数）
+   - **implementation-plan は渡さない**（最も大きく、UC↔TC の照合には不要）
+2. 判定を受けて:
+   - `INSUFFICIENT` → 指摘された不足ケースを**オーケストレーター自身が** test-cases.html の DATA スクリプトに追加する（**最大2回**。CSS・レンダラは触らない）。修正後に再チェックはしない
+   - `SUFFICIENT` → Step 9 へ
+3. 2回修正しても残った不足、および「申告済み gap への所見」は Step 9 でユーザーに提示する
 
 ## Step 9: ユーザー確認
 
-specフォルダパス・生成ファイル一覧・implementation-plan のサマリー・tasks 一覧・明瞭性チェックの判定（残った曖昧箇所があればそれも）を提示し、テスト網羅性は `test-cases.html` をブラウザで開いてレビューするよう案内する。「修正が必要な場合はお知らせください」と案内し、修正要求があれば Step 5 に戻る。
+specフォルダパス・生成ファイル一覧・implementation-plan のサマリー・tasks 一覧・明瞭性チェックの判定（残った曖昧箇所があればそれも）・網羅性チェックの判定（残った不足があればそれも）を提示し、テスト網羅性は `test-cases.html` をブラウザで開いてレビューするよう案内する。「修正が必要な場合はお知らせください」と案内し、修正要求があれば Step 5 に戻る。
 
 ## Step 10: tech-reference 生成
 
