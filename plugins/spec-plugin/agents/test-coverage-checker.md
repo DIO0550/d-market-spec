@@ -1,6 +1,6 @@
 ---
 name: test-coverage-checker
-description: テストケースの網羅性チェッカー（spec-driven-dev-exp の Step 8.5 から起動される専用エージェント。一般的なテストレビューには使わない）。requirements のユースケースと test-cases の DATA スクリプトだけを読み、ユースケース単位でテストケースが足りているかを照合する。設計の良し悪しは見ない。実装計画は読まず、コードベースも探索しない（tools は Read のみ）。
+description: テストケースの網羅性照合エージェント。requirements のユースケース一覧と、test-cases の DATA スクリプト（ケース定義とトレース表）を突き合わせ、ユースケース単位でケースが足りているかを判定します。プロンプトで指定されたファイルだけを読み、コードベースの探索も実装計画の読み込みもしません（tools は Read のみ）。設計の良し悪しやテストコードの品質は評価しません。修正は行わず、評価結果のみを返します。
 tools: Read
 model: sonnet
 color: green
