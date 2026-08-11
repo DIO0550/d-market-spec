@@ -12,6 +12,13 @@
 
 `hook` は spec フォルダごとに1件のコメントを作成し、以降は同じコメントを編集する（コメントが増え続けない）。本文が前回と同じ場合は API を呼ばない。計画フェーズ（ガードファイル `.plugin-workspace/.specs/.guard/{SESSION_ID}` が存在する間）は投稿しない。
 
+## アーカイブとの関係
+
+PLANNINGファイルのない spec フォルダはセッション終了時に `.plugin-workspace/.specs/archive/` へ移動される。
+
+- `hook`: `archive/` 配下の tasks / implementation-plan の更新も検知する。マーカーと状態ファイル（`.issue-sync/{nnn}-{feature-name}.*`）の鍵は spec 名なので、パスが変わっても**移動前と同じコメントを編集し続ける**（アーカイブを跨いで重複コメントは作られない）
+- `ai`: 実装対象の spec が `archive/` 配下にあった場合、Step 1 が直下へ戻してから実装を始める。したがって以下の手順のパスは常に `.plugin-workspace/.specs/{nnn}-{feature-name}/` でよい
+
 ## 追記先 Issue の決定
 
 追記先は **implementation-plan の `**関連Issue**: #{番号}`**（Step 2 で抽出済み）で決まる（`hook` / `ai` 共通）。記載がない、またはプレースホルダ `#{Issue番号}` のままの spec は追記対象外（エラーにはしない）。
@@ -60,7 +67,7 @@
 - {未完了タスクやフォローアップ。なければこのセクションを省く}
 
 ---
-<sub>spec-plugin `/spec-implement` が生成した実装サマリです（`.plugin-workspace/.specs/{nnn}-{feature-name}/`）。</sub>
+<sub>spec-plugin `/spec-implement` が生成した実装サマリです（`.plugin-workspace/.specs/{nnn}-{feature-name}/`。セッション終了後は `.plugin-workspace/.specs/archive/{nnn}-{feature-name}/` へ移動します）。</sub>
 ```
 
 - 材料は tasks（完了タスク）、implementation-notes.md（Deviations・実装判断）、implementation-plan の DoD、変更差分

@@ -3,7 +3,8 @@
 # PostToolUse: Write, Edit, MultiEdit
 #
 # 動作条件（1つでも満たさなければ何もせず exit 0）:
-#   1. 書き込み先が .plugin-workspace/.specs/{nnn}-*/ の tasks / implementation-plan
+#   1. 書き込み先が .plugin-workspace/.specs/{nnn}-*/ または .plugin-workspace/.specs/archive/{nnn}-*/ の
+#      tasks / implementation-plan（アーカイブ済み spec を再開した場合も追従する）
 #   2. .plugin-workspace/.specs/.config.yml の issue-update が hook
 #   3. 自セッションのガードファイルが存在しない（= 計画フェーズではない）
 #   4. implementation-plan に `**関連Issue**: #123` がある
@@ -28,12 +29,20 @@ session_id=$(printf '%s' "$input" | jq -r '.session_id // empty')
 [ -n "$file_path" ] || exit 0
 
 # ── 1. 対象ファイル判定 ──
+# セッション終了時のアーカイブで spec フォルダは archive/ 配下へ移動するため、そちらのパスも対象にする。
+# マーカーと状態ファイルの鍵は spec 名（archive/ を含まない）のままなので、移動後も同じコメントを更新し続ける。
 echo "$file_path" \
-  | grep -qE '\.plugin-workspace/\.specs/[0-9]{3}-[^/]+/(tasks|implementation-plan)\.' || exit 0
+  | grep -qE '\.plugin-workspace/\.specs/(archive/)?[0-9]{3}-[^/]+/(tasks|implementation-plan)\.' || exit 0
 
-spec_name=$(echo "$file_path" | sed -E 's|^.*\.plugin-workspace/\.specs/([0-9]{3}-[^/]+)/.*$|\1|')
-spec_dir="${SPEC_BASE}/${spec_name}"
+spec_dir=$(echo "$file_path" \
+  | sed -E 's|^.*(\.plugin-workspace/\.specs/(archive/)?[0-9]{3}-[^/]+)/.*$|\1|')
+spec_name="${spec_dir##*/}"
 [ -d "$spec_dir" ] || exit 0
+
+archived=0
+case "$spec_dir" in
+  "${SPEC_BASE}/archive/"*) archived=1 ;;
+esac
 
 # ── 2. issue-update 設定の確認 ──
 [ -f "$CONFIG_FILE" ] || exit 0
@@ -127,7 +136,11 @@ body=$(
     [ -n "$truncated" ] && printf '%s\n' "$truncated"
   fi
   printf '\n---\n'
-  printf '<sub>spec-plugin が `%s/` の更新を検知して自動更新しています（`issue-update: hook`）。</sub>\n' "$spec_dir"
+  if [ "$archived" -eq 1 ]; then
+    printf '<sub>spec-plugin が `%s/` の更新を検知して自動更新しています（`issue-update: hook`／このspecはアーカイブ済み）。</sub>\n' "$spec_dir"
+  else
+    printf '<sub>spec-plugin が `%s/` の更新を検知して自動更新しています（`issue-update: hook`。完了後は `%s/archive/` 配下へ移動します）。</sub>\n' "$spec_dir" "$SPEC_BASE"
+  fi
 )
 
 # ============================================================
