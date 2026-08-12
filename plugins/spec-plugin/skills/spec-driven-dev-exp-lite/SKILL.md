@@ -46,6 +46,13 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 
 追記先は implementation-plan ヘッダの `**関連Issue**: #{番号}`（Step 5 で記載）で決まる。記載がなければ `hook` / `ai` とも追記されない。
 
+### アーカイブとの関係
+
+PLANNINGファイルのない spec フォルダはセッション終了時に `.plugin-workspace/.specs/archive/` へ移動される。計画フェーズ中は PLANNINGファイルがあるため移動されないが、**ガード解除（Step 10）で PLANNINGファイルを消した後は、実装を始める前でもセッション終了時に移動される**。
+
+- `hook`: `issue-sync.sh` は `archive/` 配下の更新も検知する。マーカーと状態ファイルの鍵が spec 名（パスではない）なので、移動前と同じコメントを編集し続ける
+- 次のセッションで `/spec-implement-exp {nnn}` を実行すると、`archive/` 配下の spec は直下へ戻されてから実装が始まる（`EXPERIMENT` マーカーも一緒に戻るため `exp-plan-format.sh` の検証も継続する）
+
 ## Step 1: specフォルダ作成
 
 ```bash
@@ -147,6 +154,7 @@ exp はここでサブエージェント（`test-coverage-checker`）を使う�
 1. `{dir}/plan-comment.md` を書く（100行以内。コードブロックと図は貼らず、詳細は spec フォルダを参照させる）:
    - 1行目にマーカー `<!-- spec-plugin:issue-update:{nnn}-{feature-name}:plan -->`
    - `## 📋 実装計画: {タイトル}` / 背景1-2文 / 設計判断（ADR）の要約 / 変更対象ファイル（`[NEW]`・`[MODIFY]` とパス）/ タスク一覧（`- [ ]`）/ 確認してほしい点（無ければ省く）
+   - 末尾のフッターに spec フォルダのパスを書く場合は、実装完了後に `archive/` 配下へ移動することを併記する（`.plugin-workspace/.specs/{nnn}-{feature-name}/`。実装完了後は `.plugin-workspace/.specs/archive/{nnn}-{feature-name}/` へ移動します）
 2. `gh issue comment {ISSUE_NUMBER} --body-file {dir}/plan-comment.md`
 3. 投稿した URL を Step 10 の案内と併せて提示する。投稿に失敗しても計画自体は完了しているため、失敗した旨とコマンドを伝えてワークフローは止めない
 
@@ -158,6 +166,8 @@ rm .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID} .plugin-workspace/.specs
 ```
 
 `EXPERIMENT` ファイルは残す。
+
+PLANNINGファイルを消した時点でこの spec はセッション終了時のアーカイブ対象になる。同じセッションで実装まで進めない場合は `archive/` へ移動するが、次のセッションで `/spec-implement-exp {nnn}` を実行すれば直下へ戻されて実装を再開できる、と案内する。
 
 ## 出力ディレクトリ
 
