@@ -12,6 +12,14 @@
 
 `hook` は計画フェーズ（ガードファイル `.plugin-workspace/.specs/.guard/{SESSION_ID}` が存在する間）には投稿しない。計画段階の未確定な内容が Issue に出ないようにするため。
 
+## アーカイブとの関係
+
+PLANNINGファイルのない spec フォルダはセッション終了時に `.plugin-workspace/.specs/archive/` へ移動される。計画フェーズ中は PLANNINGファイルがあるためこのスキルの実行中に移動されることはないが、**ガード解除（Step 7）で PLANNINGファイルを消した後は、実装を始める前でもセッション終了時に移動される**。
+
+- `hook`: `archive/` 配下の更新も検知し、移動前と同じコメントを編集し続ける（マーカーと状態ファイルの鍵が spec 名のため）
+- 次のセッションで `/spec-implement {nnn}` を実行すると、`archive/` 配下の spec は直下へ戻されてから実装が始まる
+- コメント本文に spec フォルダのパスを書く場合は、完了後に `archive/` 配下へ移動することを併記する（下のテンプレート参照）
+
 ## 追記先 Issue の決定
 
 追記先は **implementation-plan の `**関連Issue**: #{番号}`** で決まる（`hook` / `ai` 共通）。
@@ -61,7 +69,7 @@
 - {ユーザーレビューが必要な点。なければこのセクションを省く}
 
 ---
-<sub>spec-plugin `/spec-driven-dev` が生成した計画サマリです（`.plugin-workspace/.specs/{nnn}-{feature-name}/`）。</sub>
+<sub>spec-plugin `/spec-driven-dev` が生成した計画サマリです（`.plugin-workspace/.specs/{nnn}-{feature-name}/`。実装完了後は `.plugin-workspace/.specs/archive/{nnn}-{feature-name}/` へ移動します）。</sub>
 ```
 
 - implementation-plan の「ユーザーレビューが必要な点」「変更案」、tasks のタスク一覧を要約して埋める

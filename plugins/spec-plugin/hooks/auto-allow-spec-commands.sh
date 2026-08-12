@@ -51,6 +51,8 @@ if echo "$CMD" | grep -qE '^mkdir -p \.plugin-workspace/\.specs/\.guard && touch
 if echo "$CMD" | grep -qE '^rm \.plugin-workspace/\.specs/[^/]+/PLANNING$'; then allow; fi
 if echo "$CMD" | grep -qE '^rm \.plugin-workspace/\.specs/\.guard/'; then allow; fi
 if echo "$CMD" | grep -qE '^echo .* > \.plugin-workspace/\.specs/[^/]+/PLANNING$'; then allow; fi
+# アーカイブ済み spec の復帰（archive/ → .specs/ 直下）。実装再開時に spec-implement 系が実行する
+if echo "$CMD" | grep -qE '^mv \.plugin-workspace/\.specs/archive/[0-9]{3}-[^/ ]+/? \.plugin-workspace/\.specs/?$'; then allow; fi
 
 # ============================================================
 # 3. cat heredoc/redirect → .plugin-workspace/.specs/
@@ -109,6 +111,7 @@ if echo "$CMD" | grep -qE '\.plugin-workspace/\.specs/'; then
 - touch .plugin-workspace/.specs/...
 - rm .plugin-workspace/.specs/{name}/PLANNING
 - rm .plugin-workspace/.specs/.guard/...
+- mv .plugin-workspace/.specs/archive/{nnn}-{name} .plugin-workspace/.specs/ (アーカイブ済みspecの復帰)
 - echo ... > .plugin-workspace/.specs/{name}/PLANNING
 - cat > .plugin-workspace/.specs/... (heredoc含む)
 - echo ... (リダイレクトなし)

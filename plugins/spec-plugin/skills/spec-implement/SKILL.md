@@ -3,7 +3,7 @@ name: spec-implement
 description: .plugin-workspace/.specsの実装計画に沿ってタスクを順番に実装する。番号を指定すると該当specを、省略するとarchive外で最も番号が大きいspecを自動選択し、tasks.mdを読み込んで未完了タスクを順次実装していく。全タスク完了後にオプションでCodex/Copilot/Claude Codeによるコードレビューを実行可能。「実装」「implement」「タスク実装」「コードレビュー付き」「codexレビュー」「copilotレビュー」などでトリガー。
 disable-model-invocation: true
 argument-hint: "[番号] [--review codex|copilot|claude-code]"
-allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(mkdir *), Bash(cp *), Bash(sed *), Bash(codex *), Bash(copilot *), Bash(claude *), Bash(command -v gh), Bash(gh issue comment *), Write, Edit
+allowed-tools: Bash(ls *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(mv .plugin-workspace/.specs/archive/*), Bash(mkdir *), Bash(cp *), Bash(sed *), Bash(codex *), Bash(copilot *), Bash(claude *), Bash(command -v gh), Bash(gh issue comment *), Write, Edit
 ---
 
 # Spec Implement
@@ -20,7 +20,8 @@ allowed-tools: Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-wor
 Step 0. 設定解決（レビューツール: 引数 → .config.yml → 初回のみ AskUserQuestion / Issue追記モード: .config.yml）
    ↓
 Step 1. specフォルダの特定
-   （番号指定時: {nnn}-* にマッチするフォルダ / 番号省略時: archive外で最大番号のspecを自動選択）
+   （番号指定時: {nnn}-* にマッチするフォルダ。archive 配下にあれば直下へ復帰
+    / 番号省略時: archive外で最大番号のspecを自動選択）
    ↓
 Step 2. implementation-plan.md を読み込み、変更内容を把握
    ↓
@@ -80,14 +81,29 @@ AskUserQuestion の選択肢:
 
 ### 番号が指定された場合
 
-指定された番号 `$0` を使い、`.plugin-workspace/.specs/` 配下からマッチするフォルダを検索する。
+指定された番号 `$0` を使い、`.plugin-workspace/.specs/` 直下からマッチするフォルダを検索する。直下になければ `archive/` 配下も検索する。
 
 ```bash
-spec_dir=$(ls -1d .plugin-workspace/.specs/$0-* 2>/dev/null | head -1)
+# 直下
+ls -1d .plugin-workspace/.specs/$0-* 2>/dev/null | head -1
+# 直下になければ archive 配下
+ls -1d .plugin-workspace/.specs/archive/$0-* 2>/dev/null | head -1
 ```
 
 - マッチするフォルダが見つからない場合はエラーメッセージを表示して終了
 - 複数マッチした場合は最初のものを使用
+
+### アーカイブ済み spec を指定された場合
+
+PLANNINGファイルのない spec はセッション終了時に `archive/` へ移動される（計画確定後・実装開始前にセッションが切れた spec や、追加タスクのために再開する完了済み spec がこれに当たる）。`archive/` 配下で見つかった場合は、実装を始める前に直下へ戻す。
+
+```bash
+mv .plugin-workspace/.specs/archive/{nnn}-{feature-name} .plugin-workspace/.specs/
+```
+
+- 戻した旨をユーザーに表示する（例: 「`003-feature-name` を archive から復帰しました」）
+- 以降のステップはすべて復帰後のパス `.plugin-workspace/.specs/{nnn}-{feature-name}/` を使う。これにより `issue-sync.sh` の進捗コメント更新・タスク管理・PLANNINGファイルの扱いが通常フローと同じになる
+- このセッションの終了時、PLANNINGファイルがなければ再び `archive/` へ移動される（復帰は一時的なもので、元の状態に戻る）
 
 ### 番号が省略された場合
 

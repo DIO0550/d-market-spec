@@ -3,7 +3,7 @@ name: spec-implement-exp
 description: "実験的なトークン節約版の実装スキル。spec-driven-dev-exp で作成した計画（実装骨格つき）を前提に、サブエージェント・TaskCreate・AIレビューを使わず tasks.md だけで進捗管理して順次実装する。「実装 exp」「軽量実装」「トークン節約で実装」などでトリガー。フル機能版は spec-implement。"
 disable-model-invocation: true
 argument-hint: "[番号]"
-allowed-tools: Bash(ls *), Bash(cp *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(command -v gh), Bash(gh issue comment *), Write, Edit
+allowed-tools: Bash(ls *), Bash(cp *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(mv .plugin-workspace/.specs/archive/*), Bash(command -v gh), Bash(gh issue comment *), Write, Edit
 ---
 
 # Spec Implement Exp
@@ -25,14 +25,22 @@ allowed-tools: Bash(ls *), Bash(cp *), Bash(rm .plugin-workspace/.specs/*/PLANNI
 ## Step 1: specフォルダの特定
 
 ```bash
-# 番号指定時
-spec_dir=$(ls -1d .plugin-workspace/.specs/$0-* 2>/dev/null | head -1)
+# 番号指定時（直下 → 見つからなければ archive 配下）
+ls -1d .plugin-workspace/.specs/$0-* 2>/dev/null | head -1
+ls -1d .plugin-workspace/.specs/archive/$0-* 2>/dev/null | head -1
 # 番号省略時（archive外で最大番号を自動選択）
-spec_dir=$(ls -1d .plugin-workspace/.specs/[0-9][0-9][0-9]-* 2>/dev/null | sort -rn | head -1)
+ls -1d .plugin-workspace/.specs/[0-9][0-9][0-9]-* 2>/dev/null | sort -rn | head -1
 ```
 
 - 見つからない場合はエラーを報告して終了
 - 自動選択した場合はフォルダ名をユーザーに表示する
+- `archive/` 配下で見つかった場合は、実装を始める前に直下へ戻し、その旨をユーザーに表示する。以降のステップは復帰後のパスを `{dir}` として使う（`issue-sync.sh` の進捗コメント更新・PLANNINGファイルの扱いが通常フローと同じになる）
+
+```bash
+mv .plugin-workspace/.specs/archive/{nnn}-{feature-name} .plugin-workspace/.specs/
+```
+
+PLANNINGファイルのない spec はセッション終了時に `archive/` へ移動されるため、計画確定後・実装開始前にセッションが切れた spec や、追加タスクのために再開する完了済み spec はここに該当する。復帰は一時的なもので、このセッションの終了時に PLANNINGファイルがなければ再び `archive/` へ移動される。
 
 ## Step 2: 計画・タスクの読み込み
 

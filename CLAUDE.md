@@ -46,7 +46,7 @@ plugins/spec-based-code-review-plugin/
 - **テスト網羅性の検証**: 「ケースが足りているか」はユースケース単位の充足なのでフックでは判定できない。機械検証できるのは UC の丸ごとの漏れまで（requirements.md は `□`→`■` をユーザーが解消済みの、人間の確認が入った唯一の文書なので照合の基準になる）。充足そのものは `spec-driven-dev-exp` が `test-coverage-checker` サブエージェント（sonnet・`tools: Read` のみ・implementation-plan は渡さない）で、`spec-driven-dev-exp-lite` がオーケストレーター直接のセルフチェックで担当する。両者の catch-rate 比較が exp 系の実験項目のひとつ
 - **タスク進捗**: `tasks.md` 内の `□`（未完了）/ `■`（完了）で進捗を管理する
 - **Issue自動追記**: `spec-setup` の `issue-update` 設定（`none`（デフォルト）/ `hook` / `ai`）で、実装内容を紐づく GitHub Issue へ追記する。`hook` は `issue-sync.sh` が実装フェーズ中の tasks / implementation-plan の更新を検知し、spec フォルダごとに1件のコメントを機械的に更新する（計画フェーズ＝ガードファイル存在中は投稿しない）。`ai` はスキルが節目（`spec-driven-dev` の計画確定時 / `spec-implement` の実装完了時）に要約コメントを投稿する。追記先は implementation-plan の `**関連Issue**: #{番号}` で決まる
-- **自動アーカイブ**: セッション終了時、PLANNINGファイルのない spec フォルダは `.plugin-workspace/.specs/archive/` に移動される
+- **自動アーカイブ**: セッション終了時、PLANNINGファイルのない spec フォルダは `.plugin-workspace/.specs/archive/` に移動される。ガード解除直後（計画確定・実装未着手）の spec もここに含まれるため、`spec-implement` / `spec-implement-exp` は番号指定時に `archive/` 配下も検索し、見つかれば直下へ戻してから実装を再開する。`issue-sync.sh` も `archive/` 配下の更新を検知し、マーカー・状態ファイルの鍵が spec 名（パスではない）なのでアーカイブを跨いで同じコメントを更新し続ける
 
 ## レビューツール統合
 
