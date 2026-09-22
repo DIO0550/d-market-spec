@@ -244,16 +244,16 @@ PLANNINGファイルが存在しない場合はスキップする。
 implementation-plan.md の "Definition of Done" セクションを読み込み、各条件の充足を確認する。
 
 1. DoDの各項目を順番にチェック
-2. すべて満たしていれば Step 8 へ
+2. すべて満たしていれば完了報告の Step へ
 3. 未達の項目がある場合はユーザーに報告し、対応方針を確認する
 
-**注意**: DoDセクションが存在しない場合はスキップして Step 8 へ進む。
+**注意**: DoDセクションが存在しない場合はスキップして完了報告の Step へ進む。
 
 ## Step 7.5: 実装後レビュー生成（解説+クイズ）
 
 push / merge の前に、**実装者（人間）が「実際に何が変わったか」を理解できているか**を測るクイズを生成する。`tsc --noEmit` が「型の関門」なのに対し、これは「人間の理解の関門」。落ちた設問がある間はまだ merge / push すべきでない、という **advisory ゲート**。
 
-**生成の有無は `.plugin-workspace/.specs/.config.yml` の `skip-files` で決まる**（`/spec-setup` で設定）。`skip-files` に `understanding-quiz` が含まれている場合はこのステップをスキップして Step 8 へ進む。含まれていなければ生成する。
+**生成の有無は `.plugin-workspace/.specs/.config.yml` の `skip-files` で決まる**（`/spec-setup` で設定）。`skip-files` に `understanding-quiz` が含まれている場合はこのステップをスキップして完了報告の Step へ進む。含まれていなければ生成する。
 
 **出力先は `.config.yml` の `quiz-output.impl` で決まる**: `artifact`（Artifact ツールで公開）、`file`（specフォルダ内の HTML ファイル）、または `interactive`（HTML を生成せず、セッション内で AskUserQuestion により1問ずつ対話出題）。**未設定時のデフォルトは `artifact`**。決定した値を以降 `{QUIZ_OUTPUT}` として参照する。ただし `artifact` でも実行環境に Artifact ツールが存在しない場合（CLI 等）は `file` にフォールバックする。`interactive` でも対話できない実行環境（非対話実行）では `file` にフォールバックする。
 

@@ -40,11 +40,11 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 |---|---|
 | `none` | 何もしない |
 | `hook` | このスキルは何もしない。実装フェーズ（ガード解除後）の tasks / implementation-plan 更新を `issue-sync.sh` が検知して進捗コメントを機械的に更新する |
-| `ai` | Step 9 で計画サマリのコメントを投稿する |
+| `ai` | 「Issue へ計画サマリを追記」の Step で計画サマリのコメントを投稿する |
 
 `none` 以外の場合のみ、追記先の Issue 番号 `{ISSUE_NUMBER}` を確定する（依頼文中の `#123` → 無ければ Step 2 のヒアリングに含めて確認。「Issue と紐づけない」を選べるようにする。紐づけない場合は空）。
 
-追記先は implementation-plan ヘッダの `**関連Issue**: #{番号}`（Step 5 で記載）で決まる。記載がなければ `hook` / `ai` とも追記されない。
+追記先は implementation-plan ヘッダの `**関連Issue**: #{番号}`（実装計画生成の Step で記載）で決まる。記載がなければ `hook` / `ai` とも追記されない。
 
 ## Step 1: specフォルダ作成
 
@@ -101,8 +101,8 @@ implementation-plan が「計画だけ読めば実装内容が一意に伝わる
 1. Agent tool で `subagent_type: "plan-clarity-checker"` を起動する。プロンプトには `{dir}/implementation-plan.md` と `{dir}/requirements.md` の**パスだけ**を渡す（計画の内容・意図・補足は一切書かない — 素で読ませるのが目的）
 2. 返ってきた復唱を計画の意図と突き合わせる:
    - 復唱に誤解がある、または「理解できなかった箇所」が挙がった → 該当箇所の implementation-plan を**曖昧さが消えるよう書き直し**て再チェック（最大2回。チェッカーに合わせた注釈追記ではなく、本文を明瞭にする）
-   - 判定 `UNDERSTOOD` かつ誤解なし → Step 7 へ
-3. 2回書き直しても `PARTIAL` / `CONFUSED` が残る場合は、残った曖昧箇所を Step 8 でユーザーに提示する
+   - 判定 `UNDERSTOOD` かつ誤解なし → 次の Step へ
+3. 2回書き直しても `PARTIAL` / `CONFUSED` が残る場合は、残った曖昧箇所をユーザー確認の Step で提示する
 
 ## Step 7: テストケース設計 + 網羅性セルフチェック
 
@@ -138,7 +138,7 @@ exp はここでサブエージェント（`test-coverage-checker`）を使う�
 - セルフチェックで埋めた不足と、`gaps` に残した未カバーとその理由
 - **exp-lite は探索を省いている**ため、既存資産の再利用漏れは検出されていない旨を1行添える
 
-テスト網羅性は `test-cases.html` をブラウザで開いてレビューするよう案内する。「修正が必要な場合はお知らせください」と案内し、修正要求があれば Step 5 に戻る。
+テスト網羅性は `test-cases.html` をブラウザで開いてレビューするよう案内する。「修正が必要な場合はお知らせください」と案内し、修正要求があれば実装計画生成の Step に戻る。
 
 ## Step 9: Issue へ計画サマリを追記
 
