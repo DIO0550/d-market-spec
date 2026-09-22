@@ -261,15 +261,11 @@ lite ではサブエージェントを起動しない。**オーケストレー�
 
 ## Step 5.5: 技術リファレンス生成【必須】
 
-> **このステップは `skip-files` に `tech-reference` が含まれていない限り必ず実行すること。Step 5 のユーザー確認完了でワークフローを終了してはならない。**
-
-`.plugin-workspace/.specs/.config.yml` の `skip-files` に `tech-reference` が含まれている場合のみスキップ可。
+> **ユーザー確認の完了でワークフローを終了してはならない。スキップできるのは `.plugin-workspace/.specs/.config.yml` の `skip-files` に `tech-reference` が含まれる場合のみ。**
 
 ユーザー確認完了後、サブエージェントを起動して tech-reference{TECH_REFERENCE_EXT} を生成する。
-
-implementation-plan に登場するすべての技術（言語・フレームワーク・ライブラリ・ツール・概念）を
-初学者向けに解説するドキュメントを生成する。
-読者は、言語やライブラリ、作ろうとしているものの初心者であることを前提とする。
+implementation-plan に登場するすべての技術（言語・フレームワーク・ライブラリ・ツール・概念）を、
+その言語・ライブラリ・作ろうとしているものの初学者を読者と想定して解説する。
 
 **詳細は [references/workflow-steps.md](../spec-driven-dev/references/workflow-steps.md) の tech-reference 生成を参照。**
 

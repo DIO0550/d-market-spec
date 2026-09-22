@@ -34,11 +34,11 @@ exp で `.config.yml` の `output-formats` を参照するのは **tech-referenc
 |---|---|
 | `none` | 何もしない |
 | `hook` | このスキルは何もしない。実装フェーズ（ガード解除後）の tasks / implementation-plan 更新を `issue-sync.sh` が検知して進捗コメントを機械的に更新する |
-| `ai` | Step 12 で計画サマリのコメントを投稿する |
+| `ai` | 「Issue へ計画サマリを追記」の Step で計画サマリのコメントを投稿する |
 
 `none` 以外の場合のみ、追記先の Issue 番号 `{ISSUE_NUMBER}` を確定する（依頼文中の `#123` → 無ければ AskUserQuestion で確認。「Issue と紐づけない」を選べるようにする。紐づけない場合は空）。
 
-追記先は implementation-plan ヘッダの `**関連Issue**: #{番号}`（Step 5 で記載）で決まる。記載がなければ `hook` / `ai` とも追記されない。
+追記先は implementation-plan ヘッダの `**関連Issue**: #{番号}`（実装計画生成の Step で記載）で決まる。記載がなければ `hook` / `ai` とも追記されない。
 
 ## Step 1: specフォルダ作成
 
@@ -94,7 +94,7 @@ AskUserQuestion **1バッチ（最大4問）** で聴取し、テンプレート
 1. implementation-plan の `#### [NEW]` エントリから、ファイル名・関数/コンポーネント名・責務を抽出する
 2. `Explore` サブエージェントを **1回だけ** 起動し、各 [NEW] 項目について「類似の既存実装・再利用可能なコードがないか」を逆引きで検索させる（名前だけでなく責務・処理内容でも検索）
 3. 類似コードが見つかった場合: 既存を再利用するよう計画を修正する。再利用しない場合はそのエントリの `**理由**:` に再利用しない理由を明記する
-4. 見つからなければそのまま Step 7 へ
+4. 見つからなければそのまま次の Step へ
 
 ## Step 7: 明瞭性チェック（小さいモデルによる復唱）
 
@@ -103,8 +103,8 @@ implementation-plan が「計画だけ読めば実装内容が一意に伝わる
 1. Agent tool で `subagent_type: "plan-clarity-checker"` を起動する。プロンプトには `{dir}/implementation-plan.md` と `{dir}/requirements.md` の**パスだけ**を渡す（計画の内容・意図・補足は一切書かない — 素で読ませるのが目的）
 2. 返ってきた復唱を計画の意図と突き合わせる:
    - 復唱に誤解がある、または「理解できなかった箇所」が挙がった → 該当箇所の implementation-plan を**曖昧さが消えるよう書き直し**て再チェック（最大2回。チェッカーに合わせた注釈追記ではなく、本文を明瞭にする）
-   - 判定 `UNDERSTOOD` かつ誤解なし → Step 8 へ
-3. 2回書き直しても `PARTIAL` / `CONFUSED` が残る場合は、残った曖昧箇所を Step 9 でユーザーに提示する
+   - 判定 `UNDERSTOOD` かつ誤解なし → 次の Step へ
+3. 2回書き直しても `PARTIAL` / `CONFUSED` が残る場合は、残った曖昧箇所をユーザー確認の Step で提示する
 
 ## Step 8: テストケース詳細設計
 
@@ -113,30 +113,30 @@ implementation-plan が「計画だけ読めば実装内容が一意に伝わる
 1. `cp "${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/assets/templates/test-cases.html" "{dir}/test-cases.html"`
 2. コピー先の先頭部分（`<title>` 〜 `const DATA` の終わり。レンダラ以降は読まない）を Read（offset/limit 指定）する
 3. Edit で `<title>` と DATA スクリプト（スキーマ説明コメントごと）を実データに置き換える。設計方針はテンプレート先頭のコメントに従う。implementation-plan の検証計画と requirements のユースケースは既にコンテキストにあるため、オーケストレーター自身が設計する
-4. 書き終えた DATA スクリプトの**行範囲**（`const DATA = {` の行 〜 閉じ `};` の行）を控える。Step 8.5 でチェッカーに渡す
+4. 書き終えた DATA スクリプトの**行範囲**（`const DATA = {` の行 〜 閉じ `};` の行）を控える。次の Step でチェッカーに渡す
 
 `references/test-scenarios.md` の機能タイプ別シナリオを見ながら設計すること。**不足の検出より、そもそも不足させない方が安い。**
 
 ## Step 8.5: テスト網羅性チェック
 
-Step 8 をスキップした場合（手動検証のみ）はスキップ。
+前の Step（テストケース詳細設計）をスキップした場合（手動検証のみ）はスキップ。
 
 テストケースの不足は「形式」ではなく「ユースケース単位の充足」なので、フックでは検出できない。ここだけサブエージェントを使う。**探索させないことでコストを抑える設計**なので、以下を守ること:
 
 1. Agent tool で `subagent_type: "test-coverage-checker"` を起動する。プロンプトに渡すのは以下**だけ**:
    - `{dir}/requirements.md` のパス
-   - `{dir}/test-cases.html` のパスと、Step 8-4 で控えた **DATA スクリプトの行範囲**（「offset={開始行}, limit={行数} で Read すること」と明記する）
+   - `{dir}/test-cases.html` のパスと、前の Step で控えた **DATA スクリプトの行範囲**（「offset={開始行}, limit={行数} で Read すること」と明記する）
    - `${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/references/test-scenarios.md` のパス
    - **機能タイプ**（test-scenarios.md のタイプ名から選ぶ。複合なら複数）
    - **implementation-plan は渡さない**（最も大きく、UC↔TC の照合には不要）
 2. 判定を受けて:
    - `INSUFFICIENT` → 指摘された不足ケースを**オーケストレーター自身が** test-cases.html の DATA スクリプトに追加する（**最大2回**。CSS・レンダラは触らない）。修正後に再チェックはしない
-   - `SUFFICIENT` → Step 9 へ
-3. 2回修正しても残った不足、および「申告済み gap への所見」は Step 9 でユーザーに提示する
+   - `SUFFICIENT` → 次の Step へ
+3. 2回修正しても残った不足、および「申告済み gap への所見」はユーザー確認の Step で提示する
 
 ## Step 9: ユーザー確認
 
-specフォルダパス・生成ファイル一覧・implementation-plan のサマリー・tasks 一覧・明瞭性チェックの判定（残った曖昧箇所があればそれも）・網羅性チェックの判定（残った不足があればそれも）を提示し、テスト網羅性は `test-cases.html` をブラウザで開いてレビューするよう案内する。「修正が必要な場合はお知らせください」と案内し、修正要求があれば Step 5 に戻る。
+specフォルダパス・生成ファイル一覧・implementation-plan のサマリー・tasks 一覧・明瞭性チェックの判定（残った曖昧箇所があればそれも）・網羅性チェックの判定（残った不足があればそれも）を提示し、テスト網羅性は `test-cases.html` をブラウザで開いてレビューするよう案内する。「修正が必要な場合はお知らせください」と案内し、修正要求があれば実装計画生成の Step に戻る。
 
 ## Step 10: tech-reference 生成
 
