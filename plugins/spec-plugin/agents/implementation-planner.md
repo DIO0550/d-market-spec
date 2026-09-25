@@ -86,7 +86,7 @@ implementation-plan:implementation-plan-template
 ### 必須セクション
 
 1. 設計方針
-2. **システム図（状態マシン図 + データフロー図）** — 省略禁止
+2. システム図（状態マシン図 + データフロー図）
 3. フォルダ構造（現在・将来）
 4. 主要コンポーネントの設計（型定義、実装コード例）
 5. 利点
@@ -109,10 +109,9 @@ implementation-plan:implementation-plan-template
 // ユーティリティ関数
 ```
 
-## ⚠️ システム図生成（必須 — 省略禁止）
+## システム図生成
 
-implementation-plan.md には**状態マシン図**と**データフロー図**の両方を必ず含めること。
-図がないimplementation-plan.mdは不完全であり、ファイルに書き出してはならない。
+implementation-plan.md には状態マシン図とデータフロー図の両方を含める。実装者は状態遷移とデータの流れをこの2つの図から把握するため、図のない計画は完成とみなさない（`enforce-diagrams.sh` フックも書き込み時に両方の有無を検証する）。
 
 ### 生成手順
 

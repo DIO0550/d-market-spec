@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "仕様駆動開発（Spec-Driven Development）と仕様ベースコードレビューのプラグインを提供する Marketplace",
-    "version": "3.5.1"
+    "version": "3.5.2"
   },
   "plugins": [
     {
       "name": "spec-plugin",
       "source": "./plugins/spec-plugin",
       "description": "仕様策定・実装計画・Issue作成支援プラグイン",
-      "version": "3.5.1",
+      "version": "3.5.2",
       "category": "development",
       "tags": [
         "spec-driven-development",
@@ -26,7 +26,7 @@
       "name": "spec-based-code-review-plugin",
       "source": "./plugins/spec-based-code-review-plugin",
       "description": "ユニバーサルな原則に基づくコードレビュー。計画ドキュメントがあれば仕様整合性も検証する",
-      "version": "1.8.1",
+      "version": "1.8.2",
       "category": "development",
       "tags": [
         "code-review",

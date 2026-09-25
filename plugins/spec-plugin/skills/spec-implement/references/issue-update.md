@@ -72,7 +72,7 @@ PLANNINGファイルのない spec フォルダはセッション終了時に `.
 
 - 材料は tasks（完了タスク）、implementation-notes.md（Deviations・実装判断）、implementation-plan の DoD、変更差分
 - diff は貼らない（変更ファイル名と1行説明にとどめる）
-- 全体で 100 行以内に収める
+- Issue を流し読みする人が要点を掴める分量に絞り、詳細は spec フォルダに任せる
 
 ### 3. 投稿
 
