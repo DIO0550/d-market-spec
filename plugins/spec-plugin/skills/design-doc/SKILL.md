@@ -77,7 +77,7 @@ allowed-tools: Bash(mkdir *)
 
 ### Step 2-2: システム図を作成
 
-状態マシン図とデータフロー図を**必ず**作成する。
+状態マシン図とデータフロー図を作成する（`enforce-diagrams.sh` フックが両方の有無を検証する）。
 図のフォーマット・チェックリストの詳細は [references/system-diagrams.md](references/system-diagrams.md) を参照。
 
 ## Step 3: ユーザー確認

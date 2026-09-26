@@ -118,7 +118,7 @@ implementation-plan の "Definition of Done" セクションの各項目を確�
 
 `ai` の場合:
 
-1. `{dir}/impl-comment.md` を書く（100行以内。diff は貼らず、変更ファイル名と1行説明にとどめる）:
+1. `{dir}/impl-comment.md` を書く（Issue で流し読みできる要点だけ。diff は貼らず、変更ファイル名と1行説明にとどめる）:
    - 1行目にマーカー `<!-- spec-plugin:issue-update:{nnn}-{feature-name}:impl -->`
    - `## ✅ 実装完了: {タイトル}` / 実装内容1-2文 / 完了したタスク（`- [x]`）/ 変更したファイル / Deviations（無ければ「なし」）/ DoD 充足状況 / 残タスク・ブロッカー（無ければ省く）
 2. `gh issue comment {番号} --body-file {dir}/impl-comment.md`

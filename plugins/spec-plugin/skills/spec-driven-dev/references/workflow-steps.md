@@ -361,8 +361,8 @@ Agent tool:
     対応する HTML テンプレートの <link> を <style>{CSS}</style> に置換して、
     自己完結型HTMLとして出力してください。
 
-    ## 重要
-    - システム図（状態マシン図 + データフロー図）は必須。省略禁止。ASCII罫線図を優先。
+    ## 計画に含めるもの
+    - システム図（状態マシン図 + データフロー図）。ASCII罫線図を優先。enforce-diagrams.sh フックが両方の有無を検証する。
     - exploration-report の制約・リスクを implementation-plan に反映すること。
     - implementation-plan に "## Definition of Done" セクションを必ず含めること。機能固有の受入条件を具体的に記載すること。
     - テスト戦略分析を必ず実施すること。references/test-design-patterns.md に基づき、機能タイプを分類してテストパターンを決定すること。

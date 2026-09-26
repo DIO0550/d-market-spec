@@ -181,7 +181,7 @@ cp "${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/assets/templates/tech-refer
 
 `{ISSUE_UPDATE}` が `ai` の場合のみ実行する（`none` / `hook` は何もしない）。`{ISSUE_NUMBER}` が空、または `gh` が使えない場合はスキップし、理由を1行報告する。
 
-1. `{dir}/plan-comment.md` を書く（100行以内。コードブロックと図は貼らず、詳細は spec フォルダを参照させる）:
+1. `{dir}/plan-comment.md` を書く（Issue で流し読みできる要点だけ。コードブロックと図は貼らず、詳細は spec フォルダを参照させる）:
    - 1行目にマーカー `<!-- spec-plugin:issue-update:{nnn}-{feature-name}:plan -->`
    - `## 📋 実装計画: {タイトル}` / 背景1-2文 / 設計判断（ADR）の要約 / 変更対象ファイル（`[NEW]`・`[MODIFY]` とパス）/ タスク一覧（`- [ ]`）/ 確認してほしい点（無ければ省く）
 2. `gh issue comment {ISSUE_NUMBER} --body-file {dir}/plan-comment.md`

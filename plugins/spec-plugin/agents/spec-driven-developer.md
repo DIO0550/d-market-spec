@@ -154,8 +154,8 @@ Task tool:
     - .plugin-workspace/.specs/{nnn}-{feature-name}/implementation-plan.md
     - .plugin-workspace/.specs/{nnn}-{feature-name}/tasks.md
 
-    ## 重要
-    - システム図（状態マシン図 + データフロー図）は必須。省略禁止。
+    ## 計画に含めるもの
+    - システム図（状態マシン図 + データフロー図）。enforce-diagrams.sh フックが両方の有無を検証する。
     - exploration-report.md の制約・リスクを implementation-plan.md に反映すること。
 ```
 
