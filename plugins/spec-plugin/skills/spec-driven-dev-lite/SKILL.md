@@ -1,6 +1,6 @@
 ---
 name: spec-driven-dev-lite
-description: 仕様策定ワークフローの軽量版。サブエージェントを使わず、ユーザーが探索範囲を指定し、オーケストレーターが直接計画を生成。トークン消費を大幅に削減。サブエージェントによる網羅的探索を省くため、小〜中規模の変更向け。複雑な機能や網羅的探索が必要な場合は spec-driven-dev を使う。
+description: 仕様策定ワークフローの軽量版。探索・計画・セルフチェックにサブエージェントを使わず（Step 5.5 の tech-reference 生成のみサブエージェントを使用）、ユーザーが探索範囲を指定し、オーケストレーターが直接計画を生成。トークン消費を大幅に削減。サブエージェントによる網羅的探索を省くため、小〜中規模の変更向け。複雑な機能や網羅的探索が必要な場合は spec-driven-dev を使う。
 disable-model-invocation: true
 allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(printf *), Bash(rm .plugin-workspace/.specs/*/PLANNING), Bash(rm .plugin-workspace/.specs/.guard/*), Bash(find *), Bash(grep *), Bash(wc *)
 ---
@@ -8,7 +8,7 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 # Spec-Driven Development (Lite)
 
 機能実装前に仕様を明確化し、実装計画とタスクリストを生成する軽量版スキル。
-**サブエージェントを使わず、ユーザーが探索範囲を指定し、オーケストレーターが直接計画を生成する。**
+**探索・計画・セルフチェックにサブエージェントを使わず（Step 5.5 の tech-reference 生成のみサブエージェントを使用）、ユーザーが探索範囲を指定し、オーケストレーターが直接計画を生成する。**
 複雑な機能で網羅的な探索が必要な場合は、フルバージョン `spec-driven-dev` を使用すること。
 
 ## 絶対厳守事項
@@ -53,8 +53,7 @@ allowed-tools: Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(echo *), Bash(prin
 - **config に `output-formats` がない場合**: すべて `.md` をデフォルトとする
 - **個別キーが欠落している場合**: そのファイルは `.md` をデフォルトとする
 
-以降のステップでは、ファイルごとの拡張子を以下の変数で参照する:
-- `{HEARING_NOTES_EXT}` — hearing-notes の拡張子
+以降のステップでは、ファイルごとの拡張子を以下の変数で参照する（`hearing-notes.md`・`requirements.md` は常に `.md` 固定）:
 - `{IMPLEMENTATION_PLAN_EXT}` — implementation-plan の拡張子
 - `{TASKS_EXT}` — tasks の拡張子
 - `{TECH_REFERENCE_EXT}` — tech-reference の拡張子
@@ -284,7 +283,7 @@ rm .plugin-workspace/.specs/.guard/${CLAUDE_SESSION_ID} .plugin-workspace/.specs
 .plugin-workspace/.specs/
 └── {nnn}-{feature-name}/
     ├── PLANNING                 # 計画中は存在、実装開始時に削除
-    ├── hearing-notes{EXT}       # ヒアリング結果
+    ├── hearing-notes.md         # ヒアリング結果（常に .md）
     ├── requirements.md          # ユースケース+要件・制約（hook パース対象ゆえ常に .md）
     ├── implementation-plan{EXT} # 実装計画（システム図・変更案・DoD含む）
     ├── tasks{EXT}               # タスクリスト

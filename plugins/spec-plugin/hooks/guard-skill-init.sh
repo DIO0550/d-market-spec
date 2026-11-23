@@ -4,7 +4,7 @@ set -euo pipefail
 # devスキル発火時にガードファイルを自動作成する
 # PostToolUse: Skill
 #
-# 対象スキル: spec-driven-dev, spec-driven-dev-lite, spec-driven-dev-exp
+# 対象スキル: spec-driven-dev, spec-driven-dev-lite, spec-driven-dev-exp, spec-driven-dev-exp-lite
 # ガードファイル: .plugin-workspace/.specs/.guard/${SESSION_ID}
 
 SPEC_BASE=".plugin-workspace/.specs"
@@ -20,7 +20,7 @@ SKILL=$(echo "$INPUT" | jq -r '.tool_input.skill // empty')
 SKILL_BASE="${SKILL##*:}"
 
 case "$SKILL_BASE" in
-  spec-driven-dev|spec-driven-dev-lite|spec-driven-dev-exp) ;;
+  spec-driven-dev|spec-driven-dev-lite|spec-driven-dev-exp|spec-driven-dev-exp-lite) ;;
   *) exit 0 ;;
 esac
 
