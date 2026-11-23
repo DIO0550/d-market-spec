@@ -130,9 +130,9 @@ implementation-plan が「計画だけ読めば実装内容が一意に伝わる
    - **機能タイプ**（test-scenarios.md のタイプ名から選ぶ。複合なら複数）
    - **implementation-plan は渡さない**（最も大きく、UC↔TC の照合には不要）
 2. 判定を受けて:
-   - `INSUFFICIENT` → 指摘された不足ケースを**オーケストレーター自身が** test-cases.html の DATA スクリプトに追加する（**最大2回**。CSS・レンダラは触らない）。修正後に再チェックはしない
+   - `INSUFFICIENT` → 指摘された不足ケースを**オーケストレーター自身が** test-cases.html の DATA スクリプトに追加する（修正は1回行い、再チェックはしない。CSS・レンダラは触らない）
    - `SUFFICIENT` → 次の Step へ
-3. 2回修正しても残った不足、および「申告済み gap への所見」はユーザー確認の Step で提示する
+3. 対応できなかった不足箇所、および「申告済み gap への所見」はユーザー確認の Step で提示する
 
 ## Step 9: ユーザー確認
 
@@ -151,12 +151,12 @@ specフォルダパス・生成ファイル一覧・implementation-plan のサ�
 cp "${CLAUDE_PLUGIN_ROOT}/skills/spec-driven-dev-exp/assets/templates/tech-reference.html" "{dir}/tech-reference.html"
 ```
 
-ユーザー確認完了後、**サブエージェント（general-purpose）1回**で `{dir}/tech-reference.{TECH_REFERENCE_EXT}` を生成する（モデルは落とさない — 解説の質を優先）。
+ユーザー確認完了後、**サブエージェント（general-purpose）1回**で `{dir}/tech-reference{TECH_REFERENCE_EXT}` を生成する（モデルは落とさない — 解説の質を優先）。
 
 プロンプトに渡すもの:
 
 - `{dir}/implementation-plan.md` のパス
-- 出力先 `{dir}/tech-reference.{TECH_REFERENCE_EXT}` のパス
+- 出力先 `{dir}/tech-reference{TECH_REFERENCE_EXT}` のパス
 - 指示: implementation-plan に登場するすべての技術（言語・フレームワーク・ライブラリ・概念）を、言語も対象領域も初心者である読者向けに解説する
 
 拡張子ごとに、サブエージェントへの指示を切り替える:

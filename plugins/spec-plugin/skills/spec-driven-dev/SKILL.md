@@ -329,5 +329,5 @@ plan を実装セッションに渡す直前に、**実装者（人間）の設�
         └── ...
 ```
 
-`{nnn}` は `.plugin-workspace/.specs/` 内の既存フォルダ数に基づく3桁の連番（001, 002, 003...）
+`{nnn}` は `.plugin-workspace/.specs/` 内（`archive/` 配下も含む）の既存の最大番号 + 1 の3桁連番（001, 002, 003...）
 `{feature-name}` はケバブケースで命名（例: `001-user-authentication`, `002-block-button`）

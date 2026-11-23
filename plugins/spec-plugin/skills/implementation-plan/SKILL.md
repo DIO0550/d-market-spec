@@ -95,7 +95,7 @@ allowed-tools: Bash(mkdir *)
 2. **TDD サイクルでの移行計画**: 各 Phase のタスクを Red-Green-Refactor サイクルで構成
 3. **テスト順序**: シンプルな正常系 → バリエーション → 境界値 → 異常系・エッジケース
 
-詳細はプラグインの `references/tdd-guidelines.md`・`references/test-design-patterns.md` を参照。
+詳細は `${CLAUDE_PLUGIN_ROOT}/references/tdd-guidelines.md`・`${CLAUDE_PLUGIN_ROOT}/references/test-design-patterns.md` を参照。
 
 ## Step 3: ユーザー確認
 
